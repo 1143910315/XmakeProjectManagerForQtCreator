@@ -1,15 +1,14 @@
-name: QMake Build Matrix
+name: Build plugin
 
 on: [push]
 
 env:
-  PLUGIN_NAME: Haskell
-  QT_VERSION: 6.4.2
-  MACOS_DEPLOYMENT_TARGET: 10.14
-  QT_CREATOR_VERSION: 10.0.0-beta1
-  QT_CREATOR_SNAPSHOT: latest
+  PLUGIN_NAME: Plugin
+  QT_VERSION: 6.6.0
+  QT_CREATOR_VERSION: 13.0.0
+  QT_CREATOR_SNAPSHOT: NO
   CMAKE_VERSION: 3.21.1
-  NINJA_VERSION: 1.10.2
+  NINJA_VERSION: 1.10.1
 
 jobs:
   build:
@@ -19,10 +18,10 @@ jobs:
       matrix:
         config:
         - {
-            name: "Windows MSVC 2019", artifact: "Windows-x64",
-            os: windows-2019,
+            name: "Windows Latest MSVC", artifact: "Windows-x64",
+            os: windows-latest,
             cc: "cl", cxx: "cl",
-            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
           }
         - {
             name: "Ubuntu Latest GCC", artifact: "Linux-x64",
@@ -36,7 +35,7 @@ jobs:
           }
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Download Ninja and CMake
       shell: cmake -P {0}
@@ -128,17 +127,17 @@ jobs:
         string(REGEX MATCH "<Name>qt.qt6.*<Version>([0-9+-.]+)</Version>" updates_xml_output "${updates_xml}")
         set(qt_package_version ${CMAKE_MATCH_1})
 
-        file(MAKE_DIRECTORY qt)
+        file(MAKE_DIRECTORY qt6)
 
         # Save the path for other steps
-        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qt/${qt_dir_prefix}" qt_dir)
-        message("::set-output name=qt_dir::${qt_dir}")
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qt6/${qt_dir_prefix}" qt_dir)
+        file(APPEND "$ENV{GITHUB_OUTPUT}" "qt_dir=${qt_dir}")
 
         message("Downloading Qt to ${qt_dir}")
         function(downloadAndExtract url archive)
           message("Downloading ${url}")
           file(DOWNLOAD "${url}" ./${archive} SHOW_PROGRESS)
-          execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../${archive} WORKING_DIRECTORY qt)
+          execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../${archive} WORKING_DIRECTORY qt6)
         endfunction()
 
         foreach(package qtbase qtdeclarative)
@@ -185,7 +184,7 @@ jobs:
 
         file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qtcreator" qtc_dir)
         # Save the path for other steps
-        message("::set-output name=qtc_dir::${qtc_dir}")
+        file(APPEND "$ENV{GITHUB_OUTPUT}" "qtc_dir=${qtc_dir}")
 
         file(MAKE_DIRECTORY qtcreator)
 
@@ -203,7 +202,7 @@ jobs:
       run: |
         set(ENV{CC} ${{ matrix.config.cc }})
         set(ENV{CXX} ${{ matrix.config.cxx }})
-        set(ENV{MACOSX_DEPLOYMENT_TARGET} "${{ env.MACOS_DEPLOYMENT_TARGET }}")
+        set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.13")
 
         if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
           execute_process(
@@ -228,21 +227,16 @@ jobs:
           endif()
         endforeach()
 
-        if("${{ runner.os }}" STREQUAL "macOS")
-          set(architecture_config "--add-config=-DCMAKE_OSX_ARCHITECTURES=x86_64\;arm64")
-        endif()
-
         execute_process(
           COMMAND python
             -u
-            ${{ steps.qt_creator.outputs.qtc_dir }}/${build_plugin_py}
+            "${{ steps.qt_creator.outputs.qtc_dir }}/${build_plugin_py}"
             --name "$ENV{PLUGIN_NAME}-$ENV{QT_CREATOR_VERSION}-${{ matrix.config.artifact }}"
             --src .
             --build build
             --qt-path "${{ steps.qt.outputs.qt_dir }}"
             --qtc-path "${{ steps.qt_creator.outputs.qtc_dir }}"
             --output-path "$ENV{GITHUB_WORKSPACE}"
-            ${architecture_config}
           RESULT_VARIABLE result
         )
         if (NOT result EQUAL 0)
@@ -252,7 +246,7 @@ jobs:
           message(FATAL_ERROR "Build failed")
         endif()
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       id: upload_artifact
       with:
         path: ./${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
@@ -266,7 +260,7 @@ jobs:
     steps:
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1.0.0
+      uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -279,7 +273,7 @@ jobs:
       run: |
         echo "${{ steps.create_release.outputs.upload_url }}" > ./upload_url
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       with:
         path: ./upload_url
         name: upload_url
@@ -308,24 +302,24 @@ jobs:
 
     steps:
     - name: Download artifact
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v3
       with:
         name: ${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}
         path: ./
 
     - name: Download URL
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v3
       with:
         name: upload_url
         path: ./
     - id: set_upload_url
       run: |
         upload_url=`cat ./upload_url`
-        echo ::set-output name=upload_url::$upload_url
+        echo upload_url=$upload_url >> $GITHUB_OUTPUT
 
     - name: Upload to Release
       id: upload_to_release
-      uses: actions/upload-release-asset@v1.0.1
+      uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
