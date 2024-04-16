@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 list(APPEND CMAKE_PREFIX_PATH "./dev")
 
-project(MesonProjectPlugin)
+project(XmakeProjectManagerForQtCreator)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -30,7 +30,7 @@ if(WITH_TESTS)
   enable_testing()
 endif()
 
-add_qtc_plugin(MesonProjectPlugin
+add_qtc_plugin(XmakeProjectManagerForQtCreator
     PLUGIN_CLASS MesonProjectPlugin
   DEPENDS QmlJS
   PLUGIN_DEPENDS QtCreator::Core QtCreator::CppEditor QtCreator::ProjectExplorer QtCreator::TextEditor QtCreator::QtSupport
