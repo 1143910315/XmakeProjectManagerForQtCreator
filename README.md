@@ -1,36 +1,42 @@
-# EmptyQtCreatorPlugin
+# Haskell Support for Qt Creator
 
-## How to Build
+This Qt Creator plugin adds basic support for the Haskell programming language.
 
-Create a build directory and run
+## Features
 
-    cmake -DCMAKE_PREFIX_PATH=<path_to_qtcreator> -DCMAKE_BUILD_TYPE=RelWithDebInfo <path_to_plugin_source>
-    cmake --build .
+* Syntax highlighting
+* Basic .cabal project support
+* Basic build configuration
+* Basic run configuration
 
-where `<path_to_qtcreator>` is the relative or absolute path to a Qt Creator build directory, or to a
-combined binary and development package (Windows / Linux), or to the `Qt Creator.app/Contents/Resources/`
-directory of a combined binary and development package (macOS), and `<path_to_plugin_source>` is the
-relative or absolute path to this plugin directory.
+Other editing features like code completion and navigation are provided via
+[haskell-ide-engine](https://github.com/haskell/haskell-ide-engine) and Qt Creator's
+Language Server Protocol client.
 
-## How to Run
+## Requirements
 
-Run a compatible Qt Creator with the additional command line argument
+### Projects
 
-    -pluginpath <path_to_plugin>
+The plugin currently only supports projects using [Haskell Stack](https://haskellstack.org).
 
-where `<path_to_plugin>` is the path to the resulting plugin library in the build directory
-(`<plugin_build>/lib/qtcreator/plugins` on Windows and Linux,
-`<plugin_build>/Qt Creator.app/Contents/PlugIns` on macOS).
+* The plugin looks for the `stack` executable in the default installation directory of the Haskell
+  Stack installers. If this is not correct for you, adapt the path in *Options* > *Haskell*.
 
-You might want to add `-temporarycleansettings` (or `-tcs`) to ensure that the opened Qt Creator
-instance cannot mess with your user-global Qt Creator settings.
+Linux: Note that Haskell Stack from the Ubuntu distribution and probably others is hopelessly
+outdated. Use the installers provided by the [Haskell Stack](https://haskellstack.org) project.
 
-When building and running the plugin from Qt Creator, you can use
+### Editing
 
-    -pluginpath "%{buildDir}/lib/qtcreator/plugins" -tcs
+Install [haskell-ide-engine](https://github.com/haskell/haskell-ide-engine) for the GHC version
+that your project uses and [configure it](https://doc.qt.io/qtcreator/creator-language-servers.html)
+in Qt Creator's language client:
 
-on Windows and Linux, or
+* Open *Options* > *Language Client*
+* Add a new server
+* Set *Language* to the MIME types `text/x-haskell`, `text/x-haskell-project` and
+  `text/x-literate-haskell`
+* Set *Startup behavior* to *Start Server per Project*
+* Set *Executable* to `hie-wrapper`, for example to `/home/myself/.local/bin/hie-wrapper`
+* Set *Arguments* to `-lsp`
 
-    -pluginpath "%{buildDir}/Qt Creator.app/Contents/PlugIns" -tcs
-
-for the `Command line arguments` field in the run settings.
+Note that HIE compiles your project before providing any information, so it might take some time.
