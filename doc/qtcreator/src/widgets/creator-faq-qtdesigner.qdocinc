@@ -1,0 +1,19 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+//! [qt designer faq]
+
+    \section1 Qt Designer Integration Questions
+
+    \b {Why are custom widgets not loaded in the \uicontrol Design mode even though
+     it works in standalone \QD?}
+
+    \QD fetches plugins from standard locations and loads the plugins
+    that match its build key. The locations are different for standalone and
+    integrated \QD.
+
+    For more information, see \l{Adding Qt Designer Plugins}.
+
+//! [qt designer faq]
+*/

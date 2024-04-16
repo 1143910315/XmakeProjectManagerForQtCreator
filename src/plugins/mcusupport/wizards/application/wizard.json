@@ -1,0 +1,66 @@
+{
+    "version": 1,
+    "supportedProjectTypes": [ "CMakeProjectManager.CMakeProject" ],
+    "id": "M.McuSupportCmakeApplication",
+    "category": "D.ApplicationMCU",
+    "trDescription": "Suitable for Qt for MCUs versions up to 2.3.x. Creates a Qt for MCUs application with an empty UI, based on CMake APIs that are deprecated in version 2.4.",
+    "trDisplayName": "Qt for MCUs Application (deprecated since 2.4)",
+    "trDisplayCategory": "Application (Qt for MCUs) (Versions 2.3.x and lower)",
+    "icon": "../icon.png",
+    "iconKind": "Themed",
+    "enabled": true,
+
+    "options":
+    [
+        { "key": "CorrectedProjectName", "value": "%{JS: '%{ProjectName}'.replace(/-/g, '_')}"},
+        { "key": "MainQmlFile", "value": "%{JS: '%{CorrectedProjectName}.qml'}" },
+        { "key": "RootItemName", "value": "%{JS: '%{CorrectedProjectName}'}" },
+        { "key": "CMakeFile", "value": "%{ProjectDirectory}/CMakeLists.txt" }
+    ],
+
+    "pages":
+    [
+        {
+            "trDisplayName": "Project Location",
+            "trShortTitle": "Location",
+            "typeId": "Project"
+        },
+        {
+            "trDisplayName": "Kit Selection",
+            "trShortTitle": "Kits",
+            "typeId": "Kits",
+            "enabled": "%{JS: !value('IsSubproject')}",
+            "data": {
+                "projectFilePath": "%{CMakeFile}"
+            }
+        },
+        {
+            "trDisplayName": "Project Management",
+            "trShortTitle": "Summary",
+            "typeId": "Summary"
+        }
+    ],
+    "generators":
+    [
+        {
+            "typeId": "File",
+            "data":
+            [
+                {
+                    "source": "CMakeLists.txt",
+                    "openAsProject": true
+                },
+                {
+                    "source": "main.qml.tpl",
+                    "target": "%{ProjectDirectory}/%{MainQmlFile}",
+                    "openInEditor": true
+                },
+                {
+                    "source": "%{IDE:ResourcePath}/templates/wizards/projects/git.ignore",
+                    "target": ".gitignore",
+                    "condition": "%{JS: !value('IsSubproject') && value('VersionControl') === 'G.Git'}"
+                }
+            ]
+        }
+    ]
+}

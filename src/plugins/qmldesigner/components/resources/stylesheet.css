@@ -1,0 +1,138 @@
+QFrame,
+QScrollArea,
+QStackedWidget,
+QGraphicsView,
+QTabWidget,
+QTabWidget::pane { /* The tab widget frame */
+    border: 0px;
+    background-color: creatorTheme.DSpanelBackground;
+}
+
+QLabel {
+    border: none;
+    border-image: none;
+    padding: 0;
+    background: none;
+    color: creatorTheme.DStextColor;
+    selection-color: creatorTheme.DStextSelectedTextColor;
+    selection-background-color: creatorTheme.DSinteraction;
+}
+
+QFrame {
+    border: 2px;
+}
+
+QTreeView,
+QListView {
+    color: creatorTheme.DStextColor;
+    selection-color: creatorTheme.DStextSelectedTextColor;
+    selection-background-color: creatorTheme.DSinteraction;
+}
+
+QPushButton {
+    color: creatorTheme.DStextColor;
+    border: 1px solid creatorTheme.DScontrolOutline;
+    background: creatorTheme.DScontrolBackground;
+    padding: 4px 2px 4px 2px;
+    min-width: 70px;
+}
+
+QPushButton:hover {
+    background: creatorTheme.DScontrolBackgroundHover;
+}
+
+QPushButton:pressed {
+    border-color: creatorTheme.DScontrolOutlineInteraction;
+    background: creatorTheme.DScontrolBackgroundInteraction;
+    color: creatorTheme.DSiconColorInteraction;
+}
+
+QCheckBox {
+    color: creatorTheme.DStextColor;
+}
+
+QComboBox QAbstractItemView {
+    show-decoration-selected: 1; /* make the selection span the entire width of the view */
+    background-color: creatorTheme.DSpopupBackground; /* sets background of the menu */
+    border: 1px solid creatorTheme.DScontrolOutline;
+    margin: 0px; /* some spacing around the menu */
+    color: creatorTheme.DStextColor;
+    selection-color: creatorTheme.DStextSelectedTextColor;
+    selection-background-color: creatorTheme.DSinteraction;
+}
+
+QTabBar::tab {
+    width: 92px;
+    height: 22px;
+
+    border-image: none;
+    background-color: creatorTheme.DStabInactiveBackground;
+    color: creatorTheme.DStabInactiveText;
+    margin: 0px;
+    font: bold;
+    font-size: creatorTheme.captionFontPixelSize;
+}
+
+QTabBar::tab:selected {
+    border: none; /* no border for a flat push button */
+    background-color: creatorTheme.DStabActiveBackground;
+    color: creatorTheme.DStabActiveText;
+}
+
+QLineEdit {
+    color: creatorTheme.DStextColor;
+    background-color: creatorTheme.DScontrolBackground;
+    border: 1px solid creatorTheme.DScontrolOutline;
+    selection-color: creatorTheme.DStextSelectedTextColor;
+    selection-background-color: creatorTheme.DStextSelectionColor;
+}
+
+QLineEdit:hover {
+    background-color: creatorTheme.DScontrolBackgroundHover;
+}
+
+QLineEdit:focus {
+    background-color: creatorTheme.DScontrolBackgroundInteraction;
+    border-color: creatorTheme.DScontrolOutlineInteraction;
+}
+
+QToolBar QLineEdit {
+    height: 27px; min-height: 27px; max-height: 27px;
+    border-radius: 4;
+    color: creatorTheme.DStextColor;
+    border: 1px solid creatorTheme.DScontrolOutline_topToolbarIdle;
+    background: creatorTheme.DStoolbarBackground;
+    /*font-size: 12px;*/
+}
+
+QToolBar QLineEdit:hover {
+    color: creatorTheme.DStextColor;
+    border: 1px solid creatorTheme.DScontrolOutline_topToolbarHover;
+    background: creatorTheme.DScontrolBackground_toolbarHover;
+}
+
+QToolBar QLineEdit:focus {
+    color: creatorTheme.DStextColor;
+    border: 1px solid creatorTheme.DSinteraction;
+    background: creatorTheme.DStoolbarBackground;
+}
+
+QToolBar QToolButton {
+    border: none;
+    padding: 0px;
+    width: 29px; min-width: 29px; max-width: 29px;
+    height: 29px; min-height: 29px; max-height: 29px;
+    border-radius: 4px;
+}
+
+QToolBar QToolButton:hover {
+    background-color: creatorTheme.DScontrolBackground_topToolbarHover;
+}
+
+QToolBar QToolButton:pressed {
+    background-color: creatorTheme.DSinteraction;
+}
+
+QToolBar QToolButton:checked {
+    background-color: creatorTheme.DSinteraction;
+}

@@ -1,0 +1,72 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+// **********************************************************************
+// NOTE: the sections are not ordered by their logical order to avoid
+// reshuffling the file each time the index order changes (i.e., often).
+// Run the fixnavi.pl script to adjust the links to the index order.
+// **********************************************************************
+
+/*!
+    \previouspage creator-custom-output-parsers.html
+    \page creator-sharing-project-settings.html
+    \nextpage creator-project-managing-sessions.html
+
+    \title Sharing Project Settings
+
+    \QC stores user-specific project settings in a \e {.user} file. You can
+    share these settings between several projects as a \e {.shared} file. It
+    has the same XML structure as a \e {.user} file, but only has the
+    settings to share.
+
+    \section1 Creating Shared Settings File
+
+    The easiest way to create a \e {.shared} file is to copy settings from the
+    \e {.user} file. Typically, you would share some of the values in the
+    \c ProjectExplorer.Project.EditorSettings section.
+
+    \note You must always specify the
+    \c ProjectExplorer.Project.Updater.FileVersion variable and use the same
+    value for it as in the \e {.user} file.
+
+    You can then deliver the \e {.shared} file to other developers or copy it to
+    other development PCs.
+
+    The following is an example of a \e {.shared} file:
+
+    \code
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE QtCreatorProject>
+    <qtcreator>
+        <data>
+            <variable>ProjectExplorer.Project.EditorSettings</variable>
+            <valuemap type="QVariantMap">
+                <value type="bool" key="EditorConfiguration.SpacesForTabs">true</value>
+                <value type="bool" key="EditorConfiguration.AutoSpacesForTabs">false</value>
+                <value type="int" key="EditorConfiguration.TabSize">14</value>
+                <value type="int" key="EditorConfiguration.IndentSize">4</value>
+            </valuemap>
+            </data>
+        <data>
+            <variable>ProjectExplorer.Project.Updater.FileVersion</variable>
+            <value type="int">10</value>
+        </data>
+    </qtcreator>
+    \endcode
+
+    \section1 Updating Shared Settings
+
+    The first time \QC loads the project after you add shared settings,
+    it overwrites the user settings with them. If you open the project for
+    the first time and \QC has not created a \e {.user} file, the settings
+    in the \e {.shared} file take effect immediately.
+
+    If you receive a \e {.shared} file and do not want to use a particular
+    setting in it, you can change it. \QC marks it a \e sticky setting. The next
+    time you open a project, the setting is not updated. \QC tracks sticky
+    settings in the \e {.user} file and removes the mark if the values in the
+    user and shared files eventually become identical. This is to avoid
+    a permanent sticky setting that was created just because you wanted to try
+    something out.
+
+*/

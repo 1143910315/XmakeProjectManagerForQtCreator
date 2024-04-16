@@ -1,0 +1,6 @@
+add_subdirectory(auto)
+add_subdirectory(manual)
+add_subdirectory(tools/qml-ast2dot)
+if (WITH_QMLDESIGNER)
+  add_subdirectory(unit)
+endif()

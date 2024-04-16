@@ -1,0 +1,65 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page creator-open-documents-view.html
+
+    \if defined(qtdesignstudio)
+    \previouspage creator-file-system-view.html
+    \nextpage studio-content-library.html
+    \else
+    \previouspage creator-reference.html
+    \endif
+
+    \ingroup creator-reference-sidebar-views
+    \ingroup studio-views
+
+    \title Open Documents
+
+    \brief Shows currently open files.
+
+    \image qtcreator-open-documents-view.png {Open Documents view}
+
+    You can use the context menu to apply some of the functions also available
+    in the \uicontrol File menu and in the \l {File System Context Menu}
+    {File System} view to the file that you select in the view.
+
+    In addition, you can:
+
+    \list
+        \li Copy the full path of the file or just the filename to the
+            clipboard.
+        \li Pin files to the top of the list to keep them open when you
+            select \uicontrol {Close All}.
+    \endlist
+
+    \section1 Setting Preferences for Opening Files
+
+    To set preferences for opening files and handling open files, select
+    \preferences > \uicontrol Environment > \uicontrol System:
+
+    \image qtcreator-preferences-environment-system.webp {System tab in Environment preferences}
+
+    \list
+        \li In the \uicontrol {When files are externally modified} field,
+            select whether you want to be prompted to reload open files
+            that were modified externally. For example, when you pull
+            changes from a version control system.
+        \li Select the \uicontrol {Auto-save modified files} check box to
+            automatically save changed files at the intervals specified in
+            the \uicontrol Interval field.
+        \li Select the \uicontrol {Auto-save files after refactoring} check
+            box to automatically save \l{Refactoring}{refactored files}.
+        \li Select the \uicontrol {Auto-suspend unmodified files} check
+            box to automatically free the resources of open files after
+            prolonged inactivity. The files are still listed in the
+            \uicontrol {Open Documents} view. Set the minimum number of files
+            that should be kept in memory in the \uicontrol {Files to keep open}
+            field.
+        \li Select the \uicontrol {Warn before opening text files greater than}
+            check box to receive warnings about opening big text files.
+        \li In the \uicontrol {Maximum number of entries in "Recent Files"}
+            field, set the number of recently opened files listed in
+            \uicontrol File > \uicontrol {Recent Files}.
+    \endlist
+*/

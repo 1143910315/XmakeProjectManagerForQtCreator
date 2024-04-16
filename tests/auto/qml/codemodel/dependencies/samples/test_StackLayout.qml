@@ -1,0 +1,21 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+
+import QtQuick 2.0
+import QtQuick.Layouts 1.3
+
+StackLayout {
+    id: layout
+    anchors.fill: parent
+    currentIndex: 1
+    Rectangle {
+        color: 'teal'
+        implicitWidth: 200
+        implicitHeight: 200
+    }
+    Rectangle {
+        color: 'plum'
+        implicitWidth: 300
+        implicitHeight: 200
+    }
+}

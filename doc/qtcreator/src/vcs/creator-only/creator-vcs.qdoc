@@ -1,0 +1,207 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+// **********************************************************************
+// NOTE: the sections are not ordered by their logical order to avoid
+// reshuffling the file each time the index order changes (i.e., often).
+// Run the fixnavi.pl script to adjust the links to the index order.
+// **********************************************************************
+
+/*!
+    \page creator-version-control.html
+    \previouspage creator-reference.html
+
+    \ingroup creator-reference
+
+    \title Version Control Systems
+
+    \brief Version control systems that you can use from \QC.
+
+    The recommended way to set up a project is to use a
+    \e {version control system}. Store and edit only project source files and
+    configuration files. Do not store generated files. To use version control
+    systems from \QC, you need to set them up.
+
+    \QC integrates the following version control systems:
+    \table
+        \header
+            \li  Version Control System
+            \li  Address
+            \li  Notes
+        \row
+            \li \l{Bazaar}
+            \li \l{http://bazaar.canonical.com/}
+            \li
+        \row
+            \li \l{ClearCase}
+            \li \l{http://www-01.ibm.com/software/awdtools/clearcase/}
+            \li Enable the plugin to use it.
+        \row
+            \li \l{CVS}
+            \li \l{http://www.nongnu.org/cvs/}
+            \li Enable the plugin to use it.
+        \row
+            \li \l{Fossil}
+            \li \l{https://fossil-scm.org/index.html/doc/trunk/www/index.wiki}
+            \li Enable the plugin to use it.
+             \row
+            \li \l{Git}
+            \li \l{http://git-scm.com/}
+            \li Git version 1.9.0, or later
+
+                Gerrit version 2.6, or later
+        \row
+            \li \l{GitLab}
+            \li \l{http://gitlab.com/}
+            \li Enable the plugin to use it.
+        \row
+            \li \l{Mercurial}
+            \li \l{http://mercurial.selenic.com/}
+            \li
+        \row
+            \li \l{Perforce}
+            \li \l{http://www.perforce.com}
+            \li Server version 2006.1 and later
+
+                Enable the plugin to use it.
+        \row
+            \li \l{Subversion}
+            \li \l{http://subversion.apache.org/}
+            \li Subversion version 1.7.0 and later
+    \endtable
+
+    \sa {Create VCS repositories for new projects}, {Enable and disable plugins},
+    {Set up version control systems}, {Use common VCS functions}
+*/
+
+/*!
+    \page creator-how-to-create-vcs-repositories.html
+    \previouspage creator-how-tos.html
+
+    \ingroup creator-how-to-projects-create
+
+    \title Create VCS repositories for new projects
+
+    \QC allows you to create repositories for version control systems that
+    support local repository creation, such as Git, Mercurial, or Bazaar.
+    When creating a new project by selecting \uicontrol File > \uicontrol{New File or
+    Project}, you can choose a version control system on the final wizard page.
+
+    You can also select \uicontrol Tools and then select \uicontrol {Create Repository}
+    in the submenu for the version control system.
+
+    To import a project that is under version control, choose \uicontrol File >
+    \uicontrol {New Project} > \uicontrol {Project from Version Control}
+    and select the version control system that you use. Follow the instructions
+    of the wizard to import the project.
+
+    \sa {Creating Projects}, {Use project wizards}, {Version Control Systems}
+*/
+
+/*!
+    \page creator-how-to-use-common-vcs-functions.html
+    \previouspage creator-how-tos.html
+
+    \ingroup creator-how-to-use
+
+    \title Use common VCS functions
+
+    The \uicontrol{Tools} menu has a submenu for each supported version
+    control system. This section describes using the functions that are
+    available for all the supported version control systems. The additional
+    functions and options available for a particular version control system
+    are described in separate topics.
+
+    \sa {Bazaar}, {ClearCase}, {CVS}, {Fossil}, {Git}, {GitLab}, {Mercurial},
+    {Perforce}, {Subversion}
+
+    The \uicontrol{Version Control} view displays the commands that are
+    executed, a timestamp, and the relevant output. Select \uicontrol View >
+    \uicontrol Output > \uicontrol {Version Control} to open the view.
+
+    \image qtcreator-vcs-pane.png
+
+    \section1 Add files
+
+    When you create a new file or a new project, the wizard displays a page
+    asking whether the files should be added to a version control system.
+    This happens when the parent directory or the project is already
+    under version control and the system supports the concept of adding files,
+    for example, Perforce and Subversion. Alternatively, you can
+    add files later by using the version control tool menus.
+
+    \section1 View diff output
+
+    All version control systems have menu options to \e{diff} the current
+    file or project: to compare it with the latest version stored in the
+    repository and to display the differences. In \QC, a diff is displayed in a
+    read-only editor. If the file is accessible, you can double-click on a
+    selected diff chunk and \QC opens an editor displaying the file, scrolled to
+    the line in question.
+
+    \image qtcreator-vcs-diff.png
+
+    With Git, Mercurial, and Subversion, the diff is displayed side-by-side in
+    a \l{Comparing Files}{diff editor} by default. To use the inline diff view
+    instead, select the \uicontrol {Switch to Text Diff Editor} (1) option from
+    the toolbar. In the inline
+    diff view, you can use context menu commands to apply, revert, stage, and
+    unstage chunks or selected lines, as well as send chunks to a code pasting
+    service.
+
+    \section1 View versioning history and change details
+
+    Display the versioning history of a file by selecting \uicontrol{Log}
+    or \uicontrol{Filelog}. Typically, the log output has the date, commit
+    message, and a change or revision identifier.
+
+    \section1 Annotate files
+
+    To open annotation views, select \uicontrol {Annotate} or \uicontrol {Blame}.
+    They show the lines of the file and the identifier of the change the lines
+    originate from. Click the change identifier to see a detailed description of
+    the change.
+
+    To show the annotation of a previous version, right-click on the
+    version identifier at the beginning of a line and choose one of the
+    revisions shown at the bottom of the context menu. This allows you to
+    navigate through the history of the file and obtain previous versions of
+    it. It also works for Git and Mercurial using SHA-1.
+
+    The same context menu is available when right-clicking on a version
+    identifier in the file log view of a single file.
+
+    \section1 Commit changes
+
+    Once you have finished making changes, submit them to the version control
+    system by choosing \uicontrol{Commit} or \uicontrol{Submit}. \QC displays a
+    commit page that has a text editor where you can enter your commit
+    message and a checkable list of modified files to include.
+
+    \section1 Revert changes
+
+    All supported version control systems support reverting your project to
+    known states. This functionality is generally called \e reverting.
+
+    The changes discarded depend on the version control system.
+
+    A version control system can replace the \uicontrol Revert menu option with other
+    options.
+
+    \section1 View status
+
+    You can select \uicontrol{Status} to view the status of the project or
+    repository.
+
+    \section1 Update the working tree
+
+    You can select \uicontrol Update to update your working tree with the latest
+    changes from the branch. Some version control systems allow you to choose
+    between updating the current project and updating all projects.
+
+    \section1 Delete files
+
+    You can select \uicontrol Delete to delete obsolete files from the repository.
+
+    \sa {Set up version control systems}, {Version Control Systems}
+*/

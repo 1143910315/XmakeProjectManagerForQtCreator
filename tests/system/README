@@ -1,0 +1,72 @@
+Prerequisites - general information
+-----------------------------------
+Squish tests inside this folder have several prerequisites to get them running.
+
+First - and most important - you have to own a valid Squish license. At least Squish 6.0 is
+required. It must be configured to run tests written in Python3.
+
+Second - some of the test suites/test cases expect Qt versions to be installed in their default
+locations. For Qt5, this is ~/Qt5.x.1 on Linux/macOS or C:\Qt\Qt5.x.1 on Windows. For Qt6, this is
+an installation from the online installer located in ~/Qt on Linux/macOS or C:\Qt on Windows.
+Alternatively, you can set the environment variable SYSTEST_QTOI_BASEPATH to a different base path
+of the Qt installation from the online installer.
+It's easiest to use installations of the official opensource Qt packages. Just install the
+Qt version for the respective toolchain with the components (if available):
+- (Desktop) <toolchain> <bitness>, e.g. Desktop gcc 64-bit
+- Qt Script (Qt5 only)
+
+The exact versions and toolchains are:
+
+Linux:
+Qt 5.4.1 (gcc)
+Qt 5.10.1 (gcc)
+Qt 5.14.1 (gcc)
+Qt 6.2.4 (gcc)
+
+macOS:
+Qt 5.10.1 (clang)
+Qt 5.14.1 (clang)
+Qt 6.2.4  (clang)
+
+Windows:
+Qt 5.4.1 (gcc)
+Qt 5.10.1 (MSVC2015, 32 bit)
+Qt 5.14.1 (MSVC2017, 64 bit)
+Qt 6.2.4 (MSVC2019, 64bit)
+
+Third - you'll have to provide some additional repositories.
+These additional repositories are located inside ~/squish-data or C:\Users\<user>\squish-data (depending on the OS you're on).
+You can also just provide them inside a different folder and specify the folder with the environment variable SYSTEST_SRCPATH.
+This folder must contain a QtCreator repository (or source copy) of tag v6.0.1 named 'creator'
+without any submodules initialized.
+
+Fourth - you'll have to make sure that some needed tools are available (no matter on which OS you're on).
+ * the compilers and debuggers of the toolchains listed in step 2
+ * git with globally configured user.name and user.email
+ * cmake 3.14 or newer
+ * wget or curl, capable of HTTPS
+Normally it should be okay to just install them as usual and add their executables' path(s) to the PATH variable.
+
+Fifth - Qt Creator must be built on a Qt without Qt WebEngine or Qt WebKit.
+
+On macOS make sure you are using the correct keyboard layout to avoid problems when using keyboard interaction. Tested and known to be
+working would be 'U.S. International - PC', while pure 'U.S.' had problems.
+Use the settings in System Preferences > Keyboard > Input Sources to install missing keyboard layouts and ensure you have set it as default.
+
+Attention! If any of these prerequisites cannot be satisfied the tests will likely fail (or not run at all).
+
+
+Prerequisites - debugging and analyzing
+-----------------------------------------
+In tst_simple_debug from suite_debugger, Creator needs to read data from an application it
+started. On Windows, this has the following prerequisites:
+Either:
+    * have no firewall at all enabled (sure that's a bad idea)
+Or:
+    * run Windows with English UI
+    * have the Windows Firewall enabled (no other firewalls are handled by the scripts)
+    * run the Squish tests with administrator privileges
+    * additionally the UAC should be disabled, too
+
+Otherwise you'll have some trouble with popping up dialogs from the firewall.
+If you're using a different firewall - try to figure out and add a rule for this.

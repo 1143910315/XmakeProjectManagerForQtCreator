@@ -1,0 +1,32 @@
+// Copyright (C) 2018 Blackberry
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \previouspage creator-developing-mcu.html
+    \page creator-developing-qnx.html
+    \nextpage creator-developing-generic-linux.html
+
+    \title Connecting QNX Devices
+
+    You can connect QNX devices to the development PC to deploy, run and debug
+    applications on them from within \QC. The QNX Neutrino RTOS has additional
+    command-line tools and services, as described in \l {Qt for QNX}.
+
+    \note In Qt 6, \QC support for QNX is considered experimental.
+
+    \section1 Adding a QNX Neutrino Device in \QC
+
+    Adding a QNX Neutrino device is very similar to
+    \l{Connecting Remote Linux Devices}, except that
+    you need to select \uicontrol {QNX Device} in the
+    \uicontrol {Device Configuration} wizard.
+
+    \section1 Add kits for QNX Devices
+
+    To view QNX device settings, select \preferences >
+    \uicontrol Devices > \uicontrol QNX. Select the \uicontrol {Generate kits}
+    check box to allow \QC to generate kits for QNX development.
+
+    \sa {Add kits}
+*/

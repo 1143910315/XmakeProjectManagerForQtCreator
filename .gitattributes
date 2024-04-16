@@ -1,2 +1,4 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+dist/clang/patches/*.patch -diff -merge -text
+.tag                    export-subst
+.gitattributes          export-ignore
+.gitignore              export-ignore

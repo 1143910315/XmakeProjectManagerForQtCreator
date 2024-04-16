@@ -1,0 +1,204 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+// **********************************************************************
+// NOTE: the sections are not ordered by their logical order to avoid
+// reshuffling the file each time the index order changes (i.e., often).
+// Run the fixnavi.pl script to adjust the links to the index order.
+// **********************************************************************
+
+/*!
+    \previouspage creator-visual-editor.html
+    \page quick-projects.html
+    \nextpage creator-qtquickdesigner-plugin.html
+
+    \title Creating Qt Quick Projects
+
+    Use the following wizard templates to create new Qt Quick projects:
+
+    \list
+        \li \uicontrol {Application (Qt)} > \uicontrol {Qt Quick Application}
+        \li \uicontrol {Application (Qt for Python)} >
+            \uicontrol {Qt for Python - Qt Quick Application}
+        \li \uicontrol {Other Project} > \uicontrol {Qt Quick UI Prototype}
+        \li \uicontrol {Library} > \uicontrol {Qt Quick 2 Extension Plugin}
+    \endlist
+
+    The \uicontrol {New Project} dialog shows detailed information about each
+    project wizard template.
+
+    \note The SDK for a particular target platform might install additional
+    templates for that platform. For example, the QNX templates are installed
+    as part of the QNX SDK.
+
+    \QC creates the necessary boilerplate files. Some of the files are
+    specific to a particular target platform. You can use wizard templates
+    also to \l{Create files}{add files} to the projects.
+
+    \section1 Qt Quick Applications
+
+    \list 1
+
+        \li Select \uicontrol File > \uicontrol {New Project} >
+            \uicontrol {Application (Qt)} > \uicontrol {Qt Quick Application}
+            > \uicontrol Choose.
+
+            \image qtcreator-project-qt-quick.webp {New Project dialog}
+
+            \note To use \l qmake as the build system, develop with Qt 5,
+            or add translations to the application, select
+            \uicontrol {Qt Quick Application (compat)}.
+
+        \li In the \uicontrol {Project Location} dialog, \uicontrol Name field,
+            enter a name for the project. Keep in mind that you cannot easily
+            change the project name later.
+
+        \li In the \uicontrol {Create in} field, enter the path for the project
+            files. Select the \uicontrol {Use as default project location} check
+            box to create new projects in this folder by default. You can move
+            project folders later without problems.
+
+        \li Select \uicontrol Next (or \uicontrol Continue on \macos) to open
+            the \uicontrol {Define Build System} dialog.
+
+            \image qtcreator-project-qt-quick-details.webp {Define Project Details dialog}
+
+            To create a project that you can develop with a visual editor in
+            \QDS, select \uicontrol {Create a project that you can open in \QDS}.
+
+        \li In the \uicontrol {Build system} field, select the build system to
+            use for building and running the project: \l {CMake}
+            {CMake} or \l {Setting Up Qbs}{Qbs}.
+
+        \li Select \uicontrol Next to open the
+            \uicontrol {Define Project Details} dialog.
+
+        \li Select the Qt version to develop with in the
+            \uicontrol {Minimum required Qt version} field.
+            The Qt version determines the Qt Quick imports
+            that are used in the QML files.
+
+        \li Select the \uicontrol {Use Qt Virtual Keyboard} check box to add
+            support for \l{Qt Virtual Keyboard} to the application.
+
+            \note If you have not installed the Qt Virtual Keyboard module when
+            you installed Qt, an error message will appear when you try to open
+            \e Main.qml for editing. You can use \l {Installing Qt}
+            {\QMT} to install Qt Virtual Keyboard.
+
+        \li Select \uicontrol Next to open the \uicontrol {Kit Selection}
+            dialog.
+
+        \li Select \l{glossary-buildandrun-kit}{kits} for the platforms that
+            you want to build the application for.
+
+            \note Kits are listed if they have been specified in \preferences >
+            \uicontrol Kits.
+            For more information, see \l {Add kits} and \l {Kits}.
+
+        \li Select \uicontrol Next to open the \uicontrol {Project Management}
+            dialog.
+
+        \li Review the project settings, and select \uicontrol Finish
+            (on Windows and Linux) or \uicontrol Done (on \macos) to
+            create the project.
+
+    \endlist
+
+    \QC creates a QML file, \e Main.qml, that you can modify in the
+    \uicontrol Edit mode.
+
+    \sa {Creating a Qt for Python Application with Qt Quick}
+
+    \section1 Qt Quick UI Projects
+
+    Qt Quick UI Prototype projects are useful for testing or prototyping user
+    interfaces,
+    or for setting up a separate project just for QML editing, for example. You
+    cannot use them for application development because they do not have:
+
+    \list
+        \li C++ code
+        \li Resource files (.qrc)
+        \li Code needed for deploying applications to \l{glossary-device}
+            {devices}
+    \endlist
+
+    For more information about how to turn Qt Quick UI Prototype projects into
+    Qt Quick Application projects, see
+    \l{Converting UI Projects to Applications}.
+
+    To create a Qt Quick UI Prototype project:
+
+    \list 1
+
+        \li Select \uicontrol File > \uicontrol {New Project} >
+            \uicontrol {Other Project} > \uicontrol {Qt Quick UI Prototype}.
+
+        \li Select \uicontrol Choose to open the \uicontrol {Project Location}
+            dialog.
+
+        \li In the \uicontrol Name field, enter a name for the application.
+
+        \li In the \uicontrol {Create in} field, enter the path for the project
+            files. Select the \uicontrol {Use as default project location} check
+            box to create new projects in this folder by default.
+
+        \li Select \uicontrol Next (or \uicontrol Continue on \macos) to open
+            the \uicontrol {Define Project Details} dialog.
+
+        \li In the \uicontrol {Minimum required Qt version} field, select the Qt
+            version to develop with. The Qt version determines the Qt Quick
+            imports that are used in the QML files.
+
+            You can add imports later to combine Qt Quick basic types with
+            Qt Quick Controls, Qt Quick Dialogs, and Qt Quick Layouts (available
+            since Qt 5.1).
+
+        \li Select the \uicontrol {Use Qt Virtual Keyboard} check box to add
+            support for \l{Qt Virtual Keyboard} to the application.
+
+            \note If you have not installed the Qt Virtual Keyboard module when
+            you installed Qt, an error message will appear when you try to open
+            \e main.qml.
+
+        \li Select \uicontrol Next to open the \uicontrol {Kit Selection}
+            dialog.
+
+        \li Select \l{glossary-buildandrun-kit}{kits} for the platforms that
+            you want to build the application for.
+
+            \note Kits are listed if they have been specified in \preferences >
+            \uicontrol Kits.
+            For more information, see \l {Add kits} and \l {Kits}.
+
+        \li Select \uicontrol Next to open the \uicontrol {Project Management}
+            dialog.
+
+        \li Review the project settings, and select \uicontrol Finish
+            (on Windows and Linux) or \uicontrol Done (on \macos) to
+            create the project.
+
+    \endlist
+
+    \QC creates the following files:
+
+    \list
+
+        \li .qmlproject project file defines that all QML, JavaScript, and image
+            files in the project folder belong to the project. Therefore, you do
+            not need to individually list all the files in the project.
+
+        \li .qml file defines a UI item, such as a component or the
+            whole application UI.
+
+        \li ui.qml file defines a form for the application UI. This file is
+            created if you selected the \uicontrol {With .ui.qml file} check
+            box.
+
+    \endlist
+
+    To use JavaScript and image files in the application, copy them to the
+    project folder.
+
+*/

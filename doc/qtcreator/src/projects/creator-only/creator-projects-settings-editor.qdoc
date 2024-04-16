@@ -1,0 +1,43 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+// **********************************************************************
+// NOTE: the sections are not ordered by their logical order to avoid
+// reshuffling the file each time the index order changes (i.e., often).
+// Run the fixnavi.pl script to adjust the links to the index order.
+// **********************************************************************
+
+/*!
+    \page creator-editor-settings.html
+    \previouspage creator-how-tos.html
+
+    \ingroup creator-how-to-projects-configure
+
+    \title Specify editor settings
+
+    \QC uses the \l{Editing MIME Types}{MIME type} of the file to
+    determine which mode and editor to use for opening the file. For example,
+    \QC opens .txt files in \uicontrol Edit mode in the text editor.
+
+    To configure the text editor behavior for the current project:
+
+    \list 1
+
+        \li Select \uicontrol Projects > \uicontrol {Project Settings} >
+            \uicontrol Editor.
+
+        \li Deselect \uicontrol {Use global settings}.
+
+        \li Specify text editor settings for the project.
+
+    \endlist
+
+    \image qtcreator-editor-settings.webp {Editor settings for a project}
+
+    Click \uicontrol {Restore Global} to revert to the global settings.
+
+    \sa {Configuring Fonts}, {File Encoding},
+    {Moving to Symbol Definition or Declaration}, {Indent text or code},
+    {Selecting Line Ending Style}, {Semantic Highlighting},
+    {View function tooltips}
+*/
