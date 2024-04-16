@@ -198,12 +198,12 @@ jobs:
             ${CMAKE_COMMAND} -E tar xvf ../${package}.7z WORKING_DIRECTORY qtcreator)
         endforeach()
 
-    - name: Find Qt6Config.cmake and set as environment variable
-      run: |
-        search_dir="${GITHUB_WORKSPACE}"
-        Qt6ConfigPath=$(find "${search_dir}" -type f -name "Qt6Config.cmake")
-        echo "Found Qt6Config.cmake at: ${Qt6ConfigPath}"
-        echo "Qt6_DIR=${Qt6ConfigPath}" >> $GITHUB_ENV
+#    - name: Find Qt6Config.cmake and set as environment variable
+#      run: |
+#        search_dir="${GITHUB_WORKSPACE}"
+#        Qt6ConfigPath=$(find "${search_dir}" -type f -name "Qt6Config.cmake")
+#        echo "Found Qt6Config.cmake at: ${Qt6ConfigPath}"
+#        echo "Qt6_DIR=${Qt6ConfigPath}" >> $GITHUB_ENV
 
     - name: Build
       shell: cmake -P {0}
