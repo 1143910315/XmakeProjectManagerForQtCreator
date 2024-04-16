@@ -45,7 +45,7 @@ namespace XmakeProjectManagerForQtCreator::Internal {
         connect(action, &QAction::triggered, this, &XmakeProjectManagerForQtCreatorPlugin::triggerAction);
 
         Core::ActionContainer *menu = Core::ActionManager::createMenu(Constants::MENU_ID);
-        menu->menu()->setTitle(Tr::tr("Plugin"));
+        menu->menu()->setTitle(Tr::tr("XmakeProjectManagerForQtCreator"));
         menu->addAction(cmd);
         Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
     }
