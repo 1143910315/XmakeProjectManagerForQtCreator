@@ -4,7 +4,7 @@ on: [push]
 
 env:
   PLUGIN_NAME: XmakeProjectManagerForQtCreator
-  QT_VERSION: 6.7.0
+  QT_VERSION: 6.6.0
   QT_CREATOR_VERSION: 13.0.0
   QT_CREATOR_SNAPSHOT: NO
   CMAKE_VERSION: 3.21.1
@@ -110,9 +110,9 @@ jobs:
           set(qt_package_suffix "-Windows-Windows_10_22H2-MSVC2019-Windows-Windows_10_22H2-X86_64")
         elseif ("${{ runner.os }}" STREQUAL "Linux")
           set(url_os "linux_x64")
-          set(qt_package_arch_suffix "linux_gcc_64")
+          set(qt_package_arch_suffix "gcc_64")
           set(qt_dir_prefix "${qt_version}/gcc_64")
-          set(qt_package_suffix "-Linux-RHEL_8_8-GCC-Linux-RHEL_8_8-X86_64")
+          set(qt_package_suffix "-Linux-RHEL_8_6-GCC-Linux-RHEL_8_6-X86_64")
         elseif ("${{ runner.os }}" STREQUAL "macOS")
           set(url_os "mac_x64")
           set(qt_package_arch_suffix "clang_64")
