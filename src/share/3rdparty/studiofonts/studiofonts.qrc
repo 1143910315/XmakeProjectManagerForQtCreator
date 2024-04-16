@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="studiofonts">
-        <file>TitilliumWeb-Light.ttf</file>
-        <file>TitilliumWeb-Regular.ttf</file>
-        <file>StudioFonts/qmldir</file>
-        <file>StudioFonts/StudioFonts.qml</file>
-    </qresource>
-</RCC>

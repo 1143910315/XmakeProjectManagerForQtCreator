@@ -1,4 +1,0 @@
-"widget"	"baseclass"	"signal"	"slot"
-":FormEditorStack.PushButton_QPushButton"	"QAbstractButton"	"clicked()"	"void MainWindow::on_pushButton_clicked()"
-":FormEditorStack.CheckBox_QCheckBox"	"QAbstractButton"	"toggled(bool)"	"void MainWindow::on_checkBox_toggled(bool checked)"
-":FormEditorStack.centralWidget_QDesignerWidget"	"QObject"	"destroyed()"	"void MainWindow::on_MainWindow_destroyed()"

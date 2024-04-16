@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/eventlistplugin">
-        <file>eventlistplugin.metainfo</file>
-    </qresource>
-</RCC>

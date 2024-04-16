@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/connectionview">
-        <file>stylesheet.css</file>
-    </qresource>
-</RCC>

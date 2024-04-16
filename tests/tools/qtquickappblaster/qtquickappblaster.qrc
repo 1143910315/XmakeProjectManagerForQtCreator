@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>qtquickapps.xml</file>
-    </qresource>
-</RCC>

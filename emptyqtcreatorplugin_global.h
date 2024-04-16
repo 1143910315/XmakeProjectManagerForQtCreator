@@ -1,0 +1,9 @@
+#pragma once
+
+#include <qglobal.h>
+
+#if defined(EMPTYQTCREATORPLUGIN_LIBRARY)
+#define EMPTYQTCREATORPLUGIN_EXPORT Q_DECL_EXPORT
+#else
+#define EMPTYQTCREATORPLUGIN_EXPORT Q_DECL_IMPORT
+#endif

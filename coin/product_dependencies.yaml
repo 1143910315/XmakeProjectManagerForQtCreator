@@ -1,4 +1,0 @@
-dependencies:
-  ../../qt/qt5.git:
-    ref: "6.6"
-

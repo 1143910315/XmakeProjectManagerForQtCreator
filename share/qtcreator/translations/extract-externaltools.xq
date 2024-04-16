@@ -1,6 +1,0 @@
-let $prefix := string("QT_TRANSLATE_NOOP(&quot;QtC::Core&quot;, &quot;")
-let $suffix := concat("&quot;)", codepoints-to-string(10))
-for $file in tokenize($files, string("\|"))
-    let $doc := doc($file)
-    for $text in ($doc/*:externaltool/*:description, $doc/*:externaltool/*:displayname, $doc/*:externaltool/*:category)
-        return fn:concat($prefix, data($text), $suffix)
