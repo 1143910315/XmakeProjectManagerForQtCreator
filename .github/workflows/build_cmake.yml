@@ -3,7 +3,7 @@ name: Build plugin
 on: [push]
 
 env:
-  PLUGIN_NAME: Plugin
+  PLUGIN_NAME: XmakeProjectManagerForQtCreator
   QT_VERSION: 6.7.0
   QT_CREATOR_VERSION: 13.0.0
   QT_CREATOR_SNAPSHOT: NO
