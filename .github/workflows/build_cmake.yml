@@ -203,7 +203,7 @@ jobs:
 #            ${CMAKE_COMMAND} -E tar xvf ../${package}.7z WORKING_DIRECTORY qtcreator)
 
     - name: Find Qt6Config.cmake
-      if: matrix.os == 'ubuntu-latest' 
+      if: ${{matrix.config.os}} == 'ubuntu-latest' 
       run: |
         search_dir="${GITHUB_WORKSPACE}"
         Qt6ConfigPath=$(find "${search_dir}" -type f -name "Qt6Config.cmake")
