@@ -209,7 +209,9 @@ jobs:
         Qt6ConfigPath=$(find "${search_dir}" -type f -name "Qt6Config.cmake")
         echo "Found Qt6Config.cmake at: ${Qt6ConfigPath}"
         nowPath=$(ls)
-        echo "Found Qt6Config.cmake at: ${nowPath}"
+        echo "nowPath: ${nowPath}"
+        prePath=$(ls ../)
+        echo "prePath: ${prePath}"
 
     - name: Build
       shell: cmake -P {0}
