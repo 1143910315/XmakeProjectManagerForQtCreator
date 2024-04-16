@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
-list(APPEND CMAKE_PREFIX_PATH "./qtcreator_dev")
+list(APPEND CMAKE_PREFIX_PATH "./dev")
 
-project(Plugin)
+project(XmakeProjectManagerForQtCreator)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -30,7 +30,7 @@ if(WITH_TESTS)
   enable_testing()
 endif()
 
-add_qtc_plugin(Plugin
+add_qtc_plugin(XmakeProjectManagerForQtCreator
   PLUGIN_DEPENDS
     QtCreator::Core
   DEPENDS
@@ -41,9 +41,9 @@ add_qtc_plugin(Plugin
     .github/workflows/build_cmake.yml
     .github/workflows/README.md
     README.md
-    plugin.cpp
-    plugin.h
-    plugin_global.h
-    pluginconstants.h
-    plugintr.h
+    XmakeProjectManagerForQtCreator.cpp
+    XmakeProjectManagerForQtCreator.h
+    XmakeProjectManagerForQtCreator_global.h
+    XmakeProjectManagerForQtCreatorconstants.h
+    XmakeProjectManagerForQtCreatortr.h
 )
