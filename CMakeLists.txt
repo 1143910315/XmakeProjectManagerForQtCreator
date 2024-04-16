@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
+list(APPEND CMAKE_PREFIX_PATH "./qtcreator_dev")
+
 project(Plugin)
 
 set(CMAKE_AUTOMOC ON)
