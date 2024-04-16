@@ -1,83 +1,147 @@
-cmake_minimum_required(VERSION 3.18)
+add_qtc_plugin(MesonProjectManager
+  PLUGIN_CLASS MesonProjectPlugin
+  DEPENDS QmlJS
+  PLUGIN_DEPENDS Core CppEditor ProjectExplorer TextEditor QtSupport
+  SOURCES
+  arrayoptionlineedit.cpp
+  arrayoptionlineedit.h
+  buildoptions.h
+  buildoptionsmodel.cpp
+  buildoptionsmodel.h
+  buildoptionsparser.h
+  buildsystemfilesparser.h
+  common.h
+  infoparser.h
+  kitdata.h
+  mesonactionsmanager.cpp
+  mesonactionsmanager.h
+  mesonbuildconfiguration.cpp
+  mesonbuildconfiguration.h
+  mesonbuildsystem.cpp
+  mesonbuildsystem.h
+  mesoninfo.h
+  mesoninfoparser.h
+  mesonoutputparser.cpp
+  mesonoutputparser.h
+  mesonproject.cpp
+  mesonproject.h
+  mesonprojectimporter.cpp
+  mesonprojectimporter.h
+  mesonprojectmanagertr.h
+  mesonprojectnodes.cpp
+  mesonprojectnodes.h
+  mesonprojectparser.cpp
+  mesonprojectparser.h
+  mesonprojectplugin.cpp
+  mesonrunconfiguration.cpp
+  mesonrunconfiguration.h
+  mesontoolkitaspect.cpp
+  mesontoolkitaspect.h
+  mesontools.cpp
+  mesontools.h
+  mesonwrapper.cpp
+  mesonwrapper.h
+  ninjabuildstep.cpp
+  ninjabuildstep.h
+  ninjaparser.cpp
+  ninjaparser.h
+  ninjatoolkitaspect.cpp
+  ninjatoolkitaspect.h
+  ninjawrapper.h
+  projecttree.cpp
+  projecttree.h
+  resources_meson.qrc
+  settings.cpp
+  settings.h
+  target.h
+  targetparser.h
+  toolitemsettings.cpp
+  toolitemsettings.h
+  toolkitaspectwidget.cpp
+  toolkitaspectwidget.h
+  toolsmodel.cpp
+  toolsmodel.h
+  toolssettingsaccessor.cpp
+  toolssettingsaccessor.h
+  toolssettingspage.cpp
+  toolssettingspage.h
+  tooltreeitem.cpp
+  tooltreeitem.h
+  toolwrapper.cpp
+  toolwrapper.h
+  versionhelper.h
+)
 
-project(XMakeProjectManager VERSION 12.0.2
-                            DESCRIPTION "QtCreator XMake project support"
-                            LANGUAGES CXX)
-
-list(APPEND CMAKE_PREFIX_PATH "${QTC_BUILD_PATH}")
-
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_CXX_STANDARD 17)
-
-find_package(QtCreator REQUIRED COMPONENTS Core)
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-set(QtX Qt${QT_VERSION_MAJOR})
-
-# Add a CMake option that enables building your plugin with tests.
-# You don't want your released plugin binaries to contain tests,
-# so make that default to 'NO'.
-# Enable tests by passing -DWITH_TESTS=ON to CMake.
-option(WITH_TESTS "Builds with tests" NO)
+file(RELATIVE_PATH RELATIVE_TEST_PATH "${PROJECT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
+file(RELATIVE_PATH TEST_RELATIVE_LIBEXEC_PATH "/${RELATIVE_TEST_PATH}" "/${IDE_LIBEXEC_PATH}")
 
 if(WITH_TESTS)
-  # Look for QtTest
-  find_package(${QtX} REQUIRED COMPONENTS Test)
-
-  # Tell CMake functions like add_qtc_plugin about the QtTest component.
-  set(IMPLICIT_DEPENDS Qt::Test)
-
-  # Enable ctest for auto tests.
-  enable_testing()
-endif()
-
-file(GLOB_RECURSE
-    source_files
-    src/*.cpp
-    src/*.hpp
-    src/*.inl
+add_qtc_test(tst_mesonwrapper
+  EXCLUDE_FROM_PRECHECK
+  INCLUDES
+    BEFORE "."
+  DEPENDS
+    Qt::Core Qt::Test Core
+    Utils
+  DEFINES
+     MESON_SAMPLES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/resources"
+     MESON_SAMPLES_BUILD_DIR="${CMAKE_CURRENT_BINARY_DIR}"
+     TEST_RELATIVE_LIBEXEC_PATH="${TEST_RELATIVE_LIBEXEC_PATH}"
+  SOURCES
+    tests/testmesonwrapper.cpp
+    mesonwrapper.cpp
+    mesonwrapper.h
+    ninjawrapper.h
+    toolwrapper.h
+    toolwrapper.cpp
+    mesontools.h
 )
 
-file(GLOB_RECURSE
-    ui_files
-    src/*.ui
+add_qtc_test(tst_mesoninfoparser
+  EXCLUDE_FROM_PRECHECK
+  INCLUDES
+    BEFORE "."
+  DEPENDS
+    Qt::Core Qt::Test Core
+    Utils
+  DEFINES
+     MESON_SAMPLES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/resources"
+     MESON_SAMPLES_BUILD_DIR="${CMAKE_CURRENT_BINARY_DIR}"
+     TEST_RELATIVE_LIBEXEC_PATH="${TEST_RELATIVE_LIBEXEC_PATH}"
+  SOURCES
+    tests/testmesoninfoparser.cpp
+    mesonwrapper.cpp
+    mesonwrapper.h
+    ninjawrapper.h
+    toolwrapper.h
+    toolwrapper.cpp
+    mesontools.h
+    mesoninfoparser.h
 )
 
-file(GLOB_RECURSE
-    assets_files
-    assets/*.lua
+add_qtc_test(tst_ninjaparser
+  INCLUDES
+    BEFORE "."
+  DEPENDS
+    Qt::Core Qt::Test Core
+    Utils ProjectExplorer
+  SOURCES
+    tests/testninjaparser.cpp
+    ninjaparser.cpp
+)
+
+add_qtc_test(tst_mesonparser
+  INCLUDES
+    BEFORE "."
+  DEFINES
+    MESONPARSER_DISABLE_TASKS_FOR_TESTS
+  DEPENDS
+    Qt::Core Qt::Test Core
+    Utils ProjectExplorer
+  SOURCES
+    tests/testmesonparser.cpp
+    mesonoutputparser.cpp
 )
 
 
-add_qtc_plugin(
-    ${PROJECT_NAME}
-    PLUGIN_DEPENDS
-        QtCreator::Core
-        QtCreator::CppEditor
-        QtCreator::ProjectExplorer
-        QtCreator::QtSupport
-    PLUGIN_RECOMMENDS
-        QtCreator::Designer
-        QtCreator::LangageClient
-    DEPENDS
-        Qt6::Core
-        Qt6::Widgets
-        QtCreator::Core
-        QtCreator::ExtensionSystem
-        QtCreator::Utils
-        QtCreator::QmlJS
-    SOURCES
-        ${source_files}
-
-        ${ui_files}
-
-        ${assets_files}
-
-        resources.qrc
-)
-
-#target_compile_options(${PROJECT_NAME} PUBLIC "/fsanitize=address")
-target_include_directories(${PROJECT_NAME} PRIVATE src/)
-
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+endif(WITH_TESTS)

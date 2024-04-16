@@ -1,48 +1,78 @@
-name: Build plugin
+name: CMake Build Matrix
 
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - 'dist/**'
+      - 'doc/**'
 
 env:
-  PLUGIN_NAME: XMakeProjectManager
   QT_VERSION: 6.6.0
-  QT_CREATOR_VERSION: 12.0.2
-  QT_CREATOR_SNAPSHOT: NO
-  CMAKE_VERSION: 3.22.5
-  NINJA_VERSION: 1.11.0
+  MACOS_DEPLOYMENT_TARGET: 11.0
+  CLANG_VERSION: 17.0.1
+  ELFUTILS_VERSION: 0.175
+  CMAKE_VERSION: 3.21.1
+  NINJA_VERSION: 1.10.2
+  BUILD_TYPE: Release
+  CCACHE_VERSION: 4.6
+  QT_MIRRORS: download.qt.io;mirrors.ocf.berkeley.edu/qt;ftp.fau.de/qtproject;mirror.bit.edu.cn/qtproject
 
 jobs:
   build:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
+    outputs:
+        tag: ${{ steps.git.outputs.tag }}
     strategy:
+      fail-fast: false
       matrix:
         config:
         - {
-            name: "Windows Latest MSVC", artifact: "Windows-x64",
+            name: "Windows Latest MSVC", artifact: "windows-x64-msvc",
             os: windows-latest,
+            cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+            is_msvc: true
           }
         - {
-            name: "Ubuntu Latest GCC", artifact: "Linux-GCCLatest-x64",
+            name: "Windows Latest MinGW", artifact: "windows-x64-mingw",
+            os: windows-latest,
+            toolchain: "https://github.com/cristianadam/mingw-builds/releases/download/v11.2.0-rev1/x86_64-11.2.0-release-posix-seh-rt_v9-rev1.7z",
+            toolchain_path: "mingw64/bin",
+            cc: "gcc", cxx: "g++",
+            is_msvc: false
+          }
+        - {
+            name: "Ubuntu Latest GCC", artifact: "linux-x64",
             os: ubuntu-latest,
             cc: "gcc", cxx: "g++"
           }
         - {
-            name: "Ubuntu Qt SDK GCC", artifact: "Linux-GCC10-x64",
-            os: ubuntu-latest,
-            cc: "gcc-10", cxx: "g++-10"
-          }
-        - {
-            name: "macOS Latest Clang", artifact: "macOS-x64",
+            name: "macOS Latest Clang", artifact: "macos-universal",
             os: macos-latest,
             cc: "clang", cxx: "clang++"
           }
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+    - uses: actions/checkout@v3
+    - name: Checkout submodules
+      id: git
+      shell: cmake -P {0}
+      run: |
+        execute_process(COMMAND git submodule set-url -- perfparser https://code.qt.io/qt-creator/perfparser.git)
+        execute_process(COMMAND git submodule update --init --recursive)
+        file(MAKE_DIRECTORY release)
+        if (${{github.ref}} MATCHES "tags/v([0-9.]+)")
+            file(APPEND "$ENV{GITHUB_OUTPUT}" "tag=${CMAKE_MATCH_1}\n")
+            if (EXISTS "dist/changelog/changes-${CMAKE_MATCH_1}.md")
+                file(READ "dist/changelog/changes-${CMAKE_MATCH_1}.md" changelog_md)
+            endif()
+            file(WRITE "release/changelog.md" "These packages are not officially supported, for official packages please check out https://download.qt.io/official_releases/qtcreator\n\n")
+            file(APPEND "release/changelog.md" "${changelog_md}")
+        else()
+            file(APPEND "$ENV{GITHUB_OUTPUT}" "tag=${{github.run_id}}\n")
+        endif()
+
 
     - name: Download Ninja and CMake
       shell: cmake -P {0}
@@ -54,29 +84,35 @@ jobs:
           set(ninja_suffix "win.zip")
           set(cmake_suffix "windows-x86_64.zip")
           set(cmake_dir "cmake-${cmake_version}-windows-x86_64/bin")
-
-          if(EXISTS "${{ matrix.config.environment_script }}")
-              message(STATUS "${{ matrix.config.environment_script }} EXISTS !")
-          else()
-              message(FATAL "${{ matrix.config.environment_script }} NOT EXISTS !")
-          endif()
-          
         elseif ("${{ runner.os }}" STREQUAL "Linux")
           set(ninja_suffix "linux.zip")
-          set(cmake_suffix "Linux-x86_64.tar.gz")
-          set(cmake_dir "cmake-${cmake_version}-Linux-x86_64/bin")
+          set(cmake_suffix "linux-x86_64.tar.gz")
+          set(cmake_dir "cmake-${cmake_version}-linux-x86_64/bin")
         elseif ("${{ runner.os }}" STREQUAL "macOS")
           set(ninja_suffix "mac.zip")
-          set(cmake_suffix "Darwin-x86_64.tar.gz")
-          set(cmake_dir "cmake-${cmake_version}-Darwin-x86_64/CMake.app/Contents/bin")
+          set(cmake_suffix "macos-universal.tar.gz")
+          set(cmake_dir "cmake-${cmake_version}-macos-universal/CMake.app/Contents/bin")
         endif()
 
         set(ninja_url "https://github.com/ninja-build/ninja/releases/download/v${ninja_version}/ninja-${ninja_suffix}")
-        file(DOWNLOAD "${ninja_url}" ./ninja.zip SHOW_PROGRESS)
+        foreach(retry RANGE 10)
+          file(DOWNLOAD "${ninja_url}" ./ninja.zip SHOW_PROGRESS)
+          file(SIZE ./ninja.zip fileSize)
+          if (fileSize GREATER 0)
+            break()
+          endif()
+        endforeach()
+
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ninja.zip)
 
         set(cmake_url "https://github.com/Kitware/CMake/releases/download/v${cmake_version}/cmake-${cmake_version}-${cmake_suffix}")
-        file(DOWNLOAD "${cmake_url}" ./cmake.zip SHOW_PROGRESS)
+        foreach(retry RANGE 10)
+          file(DOWNLOAD "${cmake_url}" ./cmake.zip SHOW_PROGRESS)
+          file(SIZE ./cmake.zip fileSize)
+          if (fileSize GREATER 0)
+            break()
+          endif()
+        endforeach()
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./cmake.zip)
 
         # Add to PATH environment variable
@@ -102,12 +138,45 @@ jobs:
             COMMAND sudo apt update
           )
           execute_process(
-            COMMAND sudo apt install libgl1-mesa-dev libvulkan-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-xkb1 xvfb gcc-10 g++-10
+            COMMAND
+              sudo apt install chrpath
+                               libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev
+                               libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xkb1 libxcb-randr0 libxcb-icccm4
+                               xvfb
             RESULT_VARIABLE result
           )
           if (NOT result EQUAL 0)
             message(FATAL_ERROR "Failed to install dependencies")
           endif()
+        endif()
+
+        if ("${{ runner.os }}" STREQUAL "Windows")
+          file(MAKE_DIRECTORY build/build/bin)
+          foreach(retry RANGE 10)
+            file(DOWNLOAD "https://download.qt.io/development_releases/prebuilt/llvmpipe/windows/opengl32sw-64.7z" ./opengl32sw-64.7z SHOW_PROGRESS)
+            file(SIZE ./opengl32sw-64.7z fileSize)
+            if (fileSize GREATER 0)
+              break()
+            endif()
+          endforeach()
+          execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../../../opengl32sw-64.7z WORKING_DIRECTORY build/build/bin)
+        endif()
+
+        if (NOT "x${{ matrix.config.toolchain }}" STREQUAL "x")
+          foreach(retry RANGE 10)
+            file(DOWNLOAD "${{ matrix.config.toolchain }}" ./toolchain.7z SHOW_PROGRESS)
+            file(SIZE ./toolchain.7z fileSize)
+            if (fileSize GREATER 0)
+              break()
+            endif()
+          endforeach()
+          execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./toolchain.7z)
+        endif()
+
+        # For tests update the docker image
+        find_program(docker_executable docker)
+        if (docker_executable)
+          execute_process(COMMAND ${docker_executable} pull alpine:latest COMMAND_ECHO STDOUT)
         endif()
 
     - name: Download Qt
@@ -116,7 +185,6 @@ jobs:
       run: |
         set(qt_version "$ENV{QT_VERSION}")
 
-        string(REGEX MATCH "^[0-9]+" qt_version_major "${qt_version}")
         string(REPLACE "." "" qt_version_dotless "${qt_version}")
         if ("${{ runner.os }}" STREQUAL "Windows")
           set(url_os "windows_x86")
@@ -141,96 +209,307 @@ jobs:
           set(qt_package_suffix "-MacOS-MacOS_12-Clang-MacOS-MacOS_12-X86_64-ARM64")
         endif()
 
-        set(qt_base_url "https://download.qt.io/online/qtsdkrepository/${url_os}/desktop/qt${qt_version_major}_${qt_version_dotless}")
-        file(DOWNLOAD "${qt_base_url}/Updates.xml" ./Updates.xml SHOW_PROGRESS)
+        set(qt_base_url "https://\${qt_mirror}/online/qtsdkrepository/${url_os}/desktop/qt6_${qt_version_dotless}")
+        foreach(qt_mirror $ENV{QT_MIRRORS})
+          cmake_language(EVAL CODE "
+            message(\"Downloading: ${qt_base_url}/Updates.xml\")
+            file(DOWNLOAD \"${qt_base_url}/Updates.xml\" ./Updates.xml)
+          ")
+          file(SIZE ./Updates.xml fileSize)
+          if (fileSize GREATER 0)
+            break()
+          endif()
+        endforeach()
 
         file(READ ./Updates.xml updates_xml)
-        string(REGEX MATCH "<Name>qt.qt${qt_version_major}.*<Version>([0-9+-.]+)</Version>" updates_xml_output "${updates_xml}")
+        string(REGEX MATCH "<Name>qt.qt6.*<Version>([0-9+-.]+)</Version>" updates_xml_output "${updates_xml}")
         set(qt_package_version ${CMAKE_MATCH_1})
 
-        file(MAKE_DIRECTORY qt)
+        file(MAKE_DIRECTORY qt6)
 
         # Save the path for other steps
-        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qt/${qt_dir_prefix}" qt_dir)
-        execute_process(COMMAND echo "qt_dir=${qt_dir}" OUTPUT_FILE $ENV{GITHUB_OUTPUT})
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qt6/${qt_dir_prefix}" qt_dir)
+        file(APPEND "$ENV{GITHUB_OUTPUT}" "qt_dir=${qt_dir}")
 
-        message("Downloading Qt to ${qt_dir}")
         function(downloadAndExtract url archive)
-          message("Downloading ${url}")
-          file(DOWNLOAD "${url}" ./${archive} SHOW_PROGRESS)
-          execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../${archive} WORKING_DIRECTORY qt)
+          foreach(qt_mirror $ENV{QT_MIRRORS})
+            cmake_language(EVAL CODE "
+              message(\"Downloading ${url}\")
+              file(DOWNLOAD \"${url}\" ./${archive})
+            ")
+            file(SIZE ./${archive} fileSize)
+            if (fileSize GREATER 0)
+              break()
+            endif()
+          endforeach()
+          execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../${archive} WORKING_DIRECTORY qt6)
         endfunction()
 
-        foreach(package qtbase qtdeclarative)
+        foreach(package qtbase qtdeclarative qttools qtsvg qttranslations)
           downloadAndExtract(
-            "${qt_base_url}/qt.qt${qt_version_major}.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
+            "${qt_base_url}/qt.qt6.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
             ${package}.7z
           )
         endforeach()
 
-        if("${qt_version_major}" STREQUAL "6")
-          foreach(package qt5compat qtshadertools)
-            downloadAndExtract(
-              "${qt_base_url}/qt.qt6.${qt_version_dotless}.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
-              ${package}.7z
-            )
-          endforeach()
-        endif()
+        foreach(package qtimageformats qtserialport)
+          downloadAndExtract(
+            "${qt_base_url}/qt.qt6.${qt_version_dotless}.addons.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
+            ${package}.7z
+          )
+        endforeach()
+
+        foreach(package qtquicktimeline qtquick3d qt5compat qtshadertools)
+          downloadAndExtract(
+            "${qt_base_url}/qt.qt6.${qt_version_dotless}.${package}.${qt_package_arch_suffix}/${qt_package_version}${package}${qt_package_suffix}.7z"
+            ${package}.7z
+          )
+        endforeach()
 
         # uic depends on libicu56.so
         if ("${{ runner.os }}" STREQUAL "Linux")
           downloadAndExtract(
-            "${qt_base_url}/qt.qt${qt_version_major}.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}icu-linux-Rhel7.2-x64.7z"
+            "${qt_base_url}/qt.qt6.${qt_version_dotless}.${qt_package_arch_suffix}/${qt_package_version}icu-linux-Rhel7.2-x64.7z"
             icu.7z
           )
         endif()
 
-    - name: Download Qt Creator
-      id: qt_creator
-      shell: cmake -P {0}
-      run: |
-        string(REGEX MATCH "([0-9]+.[0-9]+).[0-9]+" outvar "$ENV{QT_CREATOR_VERSION}")
-
-        set(qtc_base_url "https://download.qt.io/official_releases/qtcreator/${CMAKE_MATCH_1}/$ENV{QT_CREATOR_VERSION}/installer_source")
-        set(qtc_snapshot "$ENV{QT_CREATOR_SNAPSHOT}")
-        if (qtc_snapshot)
-          set(qtc_base_url "https://download.qt.io/snapshots/qtcreator/${CMAKE_MATCH_1}/$ENV{QT_CREATOR_VERSION}/installer_source/${qtc_snapshot}")
-        endif()
+        file(READ "qt6/${qt_dir_prefix}/mkspecs/qconfig.pri" qtconfig)
+        string(REPLACE "Enterprise" "OpenSource" qtconfig "${qtconfig}")
+        string(REPLACE "licheck.exe" "" qtconfig "${qtconfig}")
+        string(REPLACE "licheck64" "" qtconfig "${qtconfig}")
+        string(REPLACE "licheck_mac" "" qtconfig "${qtconfig}")
+        file(WRITE "qt6/${qt_dir_prefix}/mkspecs/qconfig.pri" "${qtconfig}")
 
         if ("${{ runner.os }}" STREQUAL "Windows")
-          set(qtc_platform "windows_x64")
-        elseif ("${{ runner.os }}" STREQUAL "Linux")
-          set(qtc_platform "linux_x64")
-        elseif ("${{ runner.os }}" STREQUAL "macOS")
-          set(qtc_platform "mac_x64")
+          # deploy "system" runtimes into Qt, so they get deployed as well
+          if ("x${{ matrix.config.environment_script }}" STREQUAL "x")
+            # deploy MinGW
+            foreach(file libwinpthread-1.dll libstdc++-6.dll libgcc_s_seh-1.dll)
+              file(INSTALL "$ENV{GITHUB_WORKSPACE}/${{ matrix.config.toolchain_path }}/${file}"
+                   DESTINATION "qt6/${qt_dir_prefix}/bin"
+                   USE_SOURCE_PERMISSIONS)
+            endforeach()
+          else()
+            # deploy MSVC
+            foreach(file vcruntime140.dll concrt140.dll msvcp140_1.dll msvcp140_2.dll
+                         msvcp140_codecvt_ids.dll vcruntime140_1.dll msvcp140.dll)
+              file(INSTALL "C:/Windows/System32/${file}"
+                   DESTINATION "qt6/${qt_dir_prefix}/bin")
+            endforeach()
+          endif()
         endif()
 
-        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qtcreator" qtc_dir)
-        # Save the path for other steps
-        execute_process(COMMAND echo "qtc_dir=${qtc_dir}" OUTPUT_FILE $ENV{GITHUB_OUTPUT})
+    - name: Download OpenSSL
+      shell: cmake -P {0}
+      run: |
+        if ("${{ runner.os }}" STREQUAL "Windows")
+          set(url_os "windows_x86")
+          set(openssl_localdir "Tools/OpenSSL/Win_x64/bin")
+          set(openssl_dest_dir "${{ steps.qt.outputs.qt_dir }}/bin")
+          set(shared_suffix ".dll")
+        elseif ("${{ runner.os }}" STREQUAL "Linux")
+          set(url_os "linux_x64")
+          set(openssl_localdir "Tools/OpenSSL/binary/lib")
+          set(openssl_dest_dir "${{ steps.qt.outputs.qt_dir }}/lib/Qt/lib")
+          set(shared_suffix ".so*")
+        elseif ("${{ runner.os }}" STREQUAL "macOS")
+          # Not needed on macOS
+          return()
+        endif()
 
-        file(MAKE_DIRECTORY qtcreator)
-
-        message("Downloading Qt Creator from ${qtc_base_url}/${qtc_platform}")
-
-        foreach(package qtcreator qtcreator_dev)
-          message("Downloading ${package} from ${qtc_base_url}/${qtc_platform}/${package}.7z")
-          file(DOWNLOAD
-            "${qtc_base_url}/${qtc_platform}/${package}.7z" ./${package}.7z SHOW_PROGRESS)
-          execute_process(COMMAND
-            ${CMAKE_COMMAND} -E tar xvf ../${package}.7z WORKING_DIRECTORY qtcreator)
+        set(openssl_base_url "https://\${qt_mirror}/online/qtsdkrepository/${url_os}/desktop/tools_openssl_x64")
+        foreach(qt_mirror $ENV{QT_MIRRORS})
+          cmake_language(EVAL CODE "
+            message(\"Downloading ${openssl_base_url}/Updates.xml}\")
+            file(DOWNLOAD \"${openssl_base_url}/Updates.xml\" ./Updates.xml)
+          ")
+          file(SIZE ./Updates.xml fileSize)
+          if (fileSize GREATER 0)
+            break()
+          endif()
         endforeach()
 
-    - name: debug
-      run: |
-         echo "${{steps.qt_creator.outputs.qtc_dir}}"
+        file(READ ./Updates.xml updates_xml)
+        string(REGEX MATCH
+          "<Name>(qt.tools.openssl.*)</Name>.*<Version>([0-9+-.]+)</Version>.*<DownloadableArchives>(.*)</DownloadableArchives>" updates_xml_output "${updates_xml}")
 
-    - name: Configure & Build
+        set(openssl_directory ${CMAKE_MATCH_1})
+        set(openssl_version ${CMAKE_MATCH_2})
+        set(openssl_archive ${CMAKE_MATCH_3})
+
+        set(url "${openssl_base_url}/${openssl_directory}/${openssl_version}${openssl_archive}")
+
+        file(MAKE_DIRECTORY openssl)
+        file(MAKE_DIRECTORY ${openssl_dest_dir})
+
+        foreach(qt_mirror $ENV{QT_MIRRORS})
+          cmake_language(EVAL CODE "
+            message(\"Downloading ${url}\")
+            file(DOWNLOAD \"${url}\" ./openssl.7z)
+          ")
+          file(SIZE ./openssl.7z fileSize)
+          if (fileSize GREATER 0)
+            break()
+          endif()
+        endforeach()
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../openssl.7z WORKING_DIRECTORY openssl)
+
+        file(GLOB openssl_shared_objects "openssl/${openssl_localdir}/*${shared_suffix}")
+        execute_process(
+          COMMAND ${CMAKE_COMMAND} -E copy ${openssl_shared_objects} ${openssl_dest_dir})
+
+    - name: Download libclang
+      id: libclang
+      shell: cmake -P {0}
+      run: |
+        set(clang_version "$ENV{CLANG_VERSION}")
+
+        if ("${{ runner.os }}" STREQUAL "Windows")
+          if ("x${{ matrix.config.environment_script }}" STREQUAL "x")
+            set(libclang "libclang-release_${clang_version}-based-windows-mingw_64.7z")
+          elseif ("${{ matrix.config.environment_script }}" MATCHES "vcvars64.bat")
+            set(libclang "libclang-release_${clang_version}-based-windows-vs2019_64.7z")
+          elseif ("${{ matrix.config.environment_script }}" MATCHES "vcvars32.bat")
+            set(libclang "libclang-release_${clang_version}-based-windows-vs2019_32.7z")
+          endif()
+        elseif ("${{ runner.os }}" STREQUAL "Linux")
+          set(libclang "libclang-release_${clang_version}-based-linux-Ubuntu22.04-gcc11.4-x86_64.7z")
+        elseif ("${{ runner.os }}" STREQUAL "macOS")
+          set(libclang "libclang-release_${clang_version}-based-macos-universal.7z")
+        endif()
+
+        set(libclang_url "https://\${qt_mirror}/development_releases/prebuilt/libclang/${libclang}")
+        foreach(qt_mirror $ENV{QT_MIRRORS})
+          cmake_language(EVAL CODE "
+            message(\"Downloading ${libclang_url}\")
+            file(DOWNLOAD \"${libclang_url}\" ./libclang.7z)
+          ")
+          file(SIZE ./libclang.7z fileSize)
+          if (fileSize GREATER 0)
+            break()
+          endif()
+        endforeach()
+
+        # Comes with libclang inside the archive
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./libclang.7z)
+
+        # Save the path for other steps
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/libclang" libclang_dir)
+        file(APPEND "$ENV{GITHUB_OUTPUT}" "libclang_dir=${libclang_dir}")
+
+    - name: Download elfutils
+      if: runner.os == 'Windows' && matrix.config.is_msvc || runner.os == 'Linux'
+      id: elfutils
+      shell: cmake -P {0}
+      run: |
+        set(elfutils_version "$ENV{ELFUTILS_VERSION}")
+
+        if ("${{ runner.os }}" STREQUAL "Windows")
+          if ("${{ matrix.config.environment_script }}" MATCHES "vcvars64.bat")
+            set(elfutils "elfutils-release_${elfutils_version}qt-windows-x86_64.7z")
+          elseif ("${{ matrix.config.environment_script }}" MATCHES "vcvars32.bat")
+            set(elfutils "elfutils-release_${elfutils_version}qt-windows-i686.7z")
+          endif()
+        elseif ("${{ runner.os }}" STREQUAL "Linux")
+          set(elfutils "elfutils-release_${elfutils_version}qt-linux-x86_64.7z")
+        endif()
+
+        set(elfutils_url "https://\${qt_mirror}/development_releases/prebuilt/elfutils/${elfutils}")
+
+        foreach(qt_mirror $ENV{QT_MIRRORS})
+          cmake_language(EVAL CODE "
+            message(\"Downloading ${elfutils_url}\")
+            file(DOWNLOAD \"${elfutils_url}\" ./elfutils.7z)
+          ")
+          file(SIZE ./elfutils.7z fileSize)
+          if (fileSize GREATER 0)
+            break()
+          endif()
+        endforeach()
+        file(MAKE_DIRECTORY elfutils)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ../elfutils.7z WORKING_DIRECTORY elfutils)
+
+        # Save the path for other steps
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/elfutils" elfutils_dir)
+        file(APPEND "$ENV{GITHUB_OUTPUT}" "elfutils_dir=${elfutils_dir}")
+
+    - name: Download ccache
+      shell: cmake -P {0}
+      run: |
+        set(ccache_url "https://github.com/cristianadam/ccache/releases/download/v$ENV{CCACHE_VERSION}/${{ runner.os }}.tar.xz")
+        foreach(retry RANGE 10)
+          file(DOWNLOAD "${ccache_url}" ./ccache.tar.xz SHOW_PROGRESS)
+          file(SIZE ./ccache.tar.xz fileSize)
+          if (fileSize GREATER 0)
+            break()
+          endif()
+        endforeach()
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ccache.tar.xz)
+
+    - name: Prepare ccache archive name
+      id: ccache
+      shell: cmake -P {0}
+      run: |
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}" github_workspace)
+        include(${github_workspace}/cmake/QtCreatorIDEBranding.cmake)
+        string(REPLACE "." ";" IDE_VERSION_LIST ${IDE_VERSION_DISPLAY})
+        list(GET IDE_VERSION_LIST 0 IDE_VERSION_MAJOR)
+        file(APPEND "$ENV{GITHUB_OUTPUT}" "archive_name=ccache-${{ matrix.config.os }}-${{ matrix.config.cc }}-qtc${IDE_VERSION_MAJOR}")
+
+    - name: Download ccache archive
+      shell: cmake -P {0}
+      run: |
+        file(WRITE $ENV{GITHUB_WORKSPACE}/netrc.txt
+          "default login runneradmin password ${{ secrets.GITHUB_TOKEN }}")
+
+        foreach(page_id RANGE 1 10)
+          file(
+            DOWNLOAD "https://api.github.com/repos/${{ github.repository }}/actions/artifacts?per_page=100&page=${page_id}"
+            HTTPHEADER "Accept: application/vnd.github.v3+json"
+            NETRC_FILE "$ENV{GITHUB_WORKSPACE}/netrc.txt"
+            NETRC REQUIRED
+            SHOW_PROGRESS
+            artifacts.json)
+          file(READ artifacts.json artifacts_json)
+
+          string(JSON artifacts_length LENGTH "${artifacts_json}" "artifacts")
+          math(EXPR artifacts_length "${artifacts_length} - 1")
+          if(${artifacts_length} GREATER_EQUAL 0)
+            foreach(idx RANGE 0 ${artifacts_length})
+              string(JSON artifact_js GET "${artifacts_json}" "artifacts" ${idx})
+              string(JSON name GET "${artifact_js}" "name")
+              if ("${name}" STREQUAL "${{ steps.ccache.outputs.archive_name }}")
+                string(JSON download_url GET "${artifact_js}" "archive_download_url")
+
+                foreach(retry RANGE 10)
+                  file(DOWNLOAD "${download_url}"
+                    "${{ steps.ccache.outputs.archive_name }}.zip"
+                    NETRC_FILE "$ENV{GITHUB_WORKSPACE}/netrc.txt"
+                    NETRC REQUIRED
+                    SHOW_PROGRESS)
+                  file(SIZE "${{ steps.ccache.outputs.archive_name }}.zip" fileSize)
+                  if (fileSize GREATER 0)
+                    break()
+                  endif()
+                endforeach()
+
+                execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "${{ steps.ccache.outputs.archive_name }}.zip")
+                file(MAKE_DIRECTORY .ccache)
+                execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "../${{ steps.ccache.outputs.archive_name }}.tar" WORKING_DIRECTORY .ccache)
+
+                return()
+              endif()
+            endforeach()
+          endif()
+        endforeach()
+
+    - name: Build
       shell: cmake -P {0}
       run: |
         set(ENV{CC} ${{ matrix.config.cc }})
         set(ENV{CXX} ${{ matrix.config.cxx }})
-        set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.13")
+        set(ENV{MACOSX_DEPLOYMENT_TARGET} "${{ env.MACOS_DEPLOYMENT_TARGET }}")
 
         if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
           execute_process(
@@ -247,25 +526,91 @@ jobs:
 
         set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
 
-        set(build_plugin_py "scripts/build_plugin.py")
-        foreach(dir "share/qtcreator/scripts" "Qt Creator.app/Contents/Resources/scripts" "Contents/Resources/scripts")
-          if(EXISTS "${{ steps.qt_creator.outputs.qtc_dir }}/${dir}/build_plugin.py")
-            set(build_plugin_py "${dir}/build_plugin.py")
-            break()
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}" ccache_basedir)
+        set(ENV{CCACHE_BASEDIR} "${ccache_basedir}")
+        set(ENV{CCACHE_DIR} "${ccache_basedir}/.ccache")
+        set(ENV{CCACHE_SLOPPINESS} "pch_defines,time_macros")
+        set(ENV{CCACHE_COMPRESS} "true")
+        set(ENV{CCACHE_COMPRESSLEVEL} "9")
+        set(ENV{CCACHE_MAXSIZE} "400M")
+        if ("${{ matrix.config.cxx }}" STREQUAL "cl")
+          set(ENV{CCACHE_MAXSIZE} "600M")
+        endif()
+
+        execute_process(
+          COMMAND git log --format=%B -n 1 ${{ github.event.after }}
+          OUTPUT_VARIABLE git_commit_msg
+        )
+        if ("${git_commit_msg}" MATCHES "ccache:[ ]*clea[r|n]")
+          execute_process(COMMAND ccache --clear COMMAND_ECHO STDOUT)
+        endif()
+
+        execute_process(COMMAND ccache -p)
+        execute_process(COMMAND ccache -z)
+
+        if ("x${{ matrix.config.environment_script }}" STREQUAL "x")
+          set(CDB_OPTION "--no-cdb")
+        else()
+          set(CDB_OPTION)
+        endif()
+
+        if (NOT "${{ steps.elfutils.outputs.elfutils_dir }}" STREQUAL "")
+          set(ELFUTILS_OPTION "--elfutils-path;${{ steps.elfutils.outputs.elfutils_dir }}")
+        else()
+          set(ELFUTILS_OPTION)
+        endif()
+
+        find_package(Python3 REQUIRED COMPONENTS Interpreter)
+        string(REPLACE "x86" "x64" Python3_EXECUTABLE "${Python3_EXECUTABLE}")
+
+        set(WITH_TESTS "--with-tests")
+        set(NO_DMG "--no-dmg")
+        if (${{github.ref}} MATCHES "tags/v")
+          unset(WITH_TESTS)
+          unset(NO_DMG)
+        endif()
+
+        if (NOT "x${{ matrix.config.toolchain_path }}" STREQUAL "x")
+          set(path_separator ":")
+          if ("${{ runner.os }}" STREQUAL "Windows")
+            set(path_separator ";")
           endif()
-        endforeach()
+          set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}/${{ matrix.config.toolchain_path }}${path_separator}$ENV{PATH}")
+        endif()
+
+        if ("${{ runner.os }}" STREQUAL "macOS")
+            if (${{github.ref}} MATCHES "tags/v(.*)")
+                set(ENV{CMAKE_OSX_ARCHITECTURES} "x86_64;arm64")
+            else()
+                set(ENV{CMAKE_OSX_ARCHITECTURES} "x86_64")
+            endif()
+        endif()
 
         execute_process(
           COMMAND python
             -u
-            "${{ steps.qt_creator.outputs.qtc_dir }}/${build_plugin_py}"
-            --name "$ENV{PLUGIN_NAME}-$ENV{QT_CREATOR_VERSION}-${{ matrix.config.artifact }}"
+            scripts/build.py
+            --build-type Release
             --src .
             --build build
             --qt-path "${{ steps.qt.outputs.qt_dir }}"
-            --qtc-path "${{ steps.qt_creator.outputs.qtc_dir }}"
-            --output-path "$ENV{GITHUB_WORKSPACE}"
+            --llvm-path "${{ steps.libclang.outputs.libclang_dir }}"
+            --python3 "${Python3_EXECUTABLE}"
+            ${WITH_TESTS}
+            ${CDB_OPTION}
+            ${ELFUTILS_OPTION}
+            ${NO_DMG}
+            --add-config=-DCMAKE_C_COMPILER_LAUNCHER=ccache
+            --add-config=-DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            --add-config=-DIDE_REVISION_URL=https://github.com/$ENV{GITHUB_REPOSITORY}/commits/$ENV{GITHUB_SHA}
+            --zip-infix=-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}
+            --no-qbs
+            --with-cpack
           RESULT_VARIABLE result
+          COMMAND_ECHO STDOUT
+          OUTPUT_VARIABLE output
+          ERROR_VARIABLE output
+          ECHO_OUTPUT_VARIABLE ECHO_ERROR_VARIABLE
         )
         if (NOT result EQUAL 0)
           string(REGEX MATCH "FAILED:.*$" error_message "${output}")
@@ -274,9 +619,136 @@ jobs:
           message(FATAL_ERROR "Build failed")
         endif()
 
-    - name: Upload artifacts
+    - name: ccache statistics
+      shell: cmake -P {0}
+      run: |
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}" ccache_basedir)
+        set(ENV{CCACHE_BASEDIR} "${ccache_basedir}")
+        set(ENV{CCACHE_DIR} "${ccache_basedir}/.ccache")
+        set(ENV{CCACHE_SLOPPINESS} "pch_defines,time_macros")
+        set(ENV{CCACHE_COMPRESS} "true")
+        set(ENV{CCACHE_COMPRESSLEVEL} "9")
+        set(ENV{CCACHE_MAXSIZE} "400M")
+        if ("${{ matrix.config.cxx }}" STREQUAL "cl")
+          set(ENV{CCACHE_MAXSIZE} "600M")
+        endif()
+        execute_process(COMMAND ccache -s)
+
+    - name: Run tests
+      shell: cmake -P {0}
+      run: |
+        include(ProcessorCount)
+        ProcessorCount(N)
+
+        set(ENV{CTEST_OUTPUT_ON_FAILURE} "ON")
+
+        if ("${{ runner.os }}" STREQUAL "Linux")
+          set(ENV{DISPLAY} ":1")
+          set(ENV{LIBGL_ALWAYS_SOFTWARE} "1")
+          set(ctest_launcher xvfb-run --auto-servernum --server-num=1)
+        elseif ("${{ runner.os }}" STREQUAL "Windows")
+          set(ENV{QT_OPENGL} "software")
+          set(ENV{QT_ASSUME_STDERR_HAS_CONSOLE} "1")
+        endif()
+
+        execute_process(
+          COMMAND ${ctest_launcher} ctest -j ${N} --timeout 300 --label-exclude exclude_from_precheck --exclude-regex tst_perfdata
+          WORKING_DIRECTORY build/build
+          RESULT_VARIABLE result
+          OUTPUT_VARIABLE output
+          ERROR_VARIABLE output
+          ECHO_OUTPUT_VARIABLE ECHO_ERROR_VARIABLE
+          TIMEOUT 600
+        )
+        if (NOT result EQUAL 0)
+          string(REGEX MATCH "[0-9]+% tests.*[0-9.]+ sec.*$" test_results "${output}")
+          string(REPLACE "\n" "%0A" test_results "${test_results}")
+          message("::error::${test_results}")
+          message(FATAL_ERROR "Tests failed")
+        endif()
+
+    - name: Upload
       uses: actions/upload-artifact@v3
-      id: upload_artifact
       with:
-        path: ./${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
-        name: ${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
+        path: build/qtcreator-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}.7z
+        name: qtcreator-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}.7z
+
+    - name: Upload Devel
+      uses: actions/upload-artifact@v3
+      with:
+        path: build/qtcreator-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}_dev.7z
+        name: qtcreator-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}_dev.7z
+
+    - name: Upload wininterrupt
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v3
+      with:
+        path: build/wininterrupt-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}.7z
+        name: wininterrupt-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}.7z
+
+    - name: Upload qtcreatorcdbext
+      if: runner.os == 'Windows' && matrix.config.is_msvc
+      uses: actions/upload-artifact@v3
+      with:
+        path: build/qtcreatorcdbext-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}.7z
+        name: qtcreatorcdbext-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}.7z
+
+    - name: Upload Debian package
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v3
+      with:
+        path: build/build/qtcreator-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}.deb
+        name: qtcreator-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}.deb
+
+    - name: Upload disk image
+      if: runner.os == 'macOS' && contains(github.ref, 'tags/v')
+      uses: actions/upload-artifact@v3
+      with:
+        path: build/qt-creator-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}.dmg
+        name: qt-creator-${{ matrix.config.artifact }}-${{ steps.git.outputs.tag }}.dmg
+
+    - name: Create ccache archive
+      working-directory: .ccache
+      run: cmake -E tar cf ../${{ steps.ccache.outputs.archive_name }}.tar .
+
+    - name: Upload ccache archive
+      uses: actions/upload-artifact@v3
+      with:
+        path: ./${{ steps.ccache.outputs.archive_name }}.tar
+        name: ${{ steps.ccache.outputs.archive_name }}
+
+    - name: Upload Release Changelog
+      if: contains(github.ref, 'tags/v')
+      uses: actions/upload-artifact@v3
+      with:
+        path: ./release/changelog.md
+        name: changelog.md
+
+  release:
+    if: contains(github.ref, 'tags/v')
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: release-with-dirs
+
+    - name: Fixup artifacts
+      run: |
+        mkdir release
+        mv release-with-dirs/*/* release/
+        rm release/ccache*
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ needs.build.outputs.tag }}
+        body_path: release/changelog.md
+        files: release/*
+        draft: false
+        prerelease: false
