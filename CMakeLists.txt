@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
 list(APPEND CMAKE_PREFIX_PATH "./dev")
-link_directories(./dev/qtcreator/bin)
 
 ## Add paths to check for cmake modules:
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -35,53 +34,147 @@ if(WITH_TESTS)
   enable_testing()
 endif()
 
-add_qtc_plugin(CMakeProjectManager
-  PLUGIN_CLASS CMakeProjectPlugin
+if(WITH_TESTS)
+add_qtc_test(tst_mesonwrapper
+  EXCLUDE_FROM_PRECHECK
+  INCLUDES
+    BEFORE "."
+  DEPENDS
+    Qt::Core Qt::Test Core
+    Utils
+  DEFINES
+     MESON_SAMPLES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/resources"
+     MESON_SAMPLES_BUILD_DIR="${CMAKE_CURRENT_BINARY_DIR}"
+     TEST_RELATIVE_LIBEXEC_PATH="${TEST_RELATIVE_LIBEXEC_PATH}"
+  SOURCES
+    tests/testmesonwrapper.cpp
+    mesonwrapper.cpp
+    mesonwrapper.h
+    ninjawrapper.h
+    toolwrapper.h
+    toolwrapper.cpp
+    mesontools.h
+)
+
+add_qtc_test(tst_mesoninfoparser
+  EXCLUDE_FROM_PRECHECK
+  INCLUDES
+    BEFORE "."
+  DEPENDS
+    Qt::Core Qt::Test Core
+    Utils
+  DEFINES
+     MESON_SAMPLES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/resources"
+     MESON_SAMPLES_BUILD_DIR="${CMAKE_CURRENT_BINARY_DIR}"
+     TEST_RELATIVE_LIBEXEC_PATH="${TEST_RELATIVE_LIBEXEC_PATH}"
+  SOURCES
+    tests/testmesoninfoparser.cpp
+    mesonwrapper.cpp
+    mesonwrapper.h
+    ninjawrapper.h
+    toolwrapper.h
+    toolwrapper.cpp
+    mesontools.h
+    mesoninfoparser.h
+)
+
+add_qtc_test(tst_ninjaparser
+  INCLUDES
+    BEFORE "."
+  DEPENDS
+    Qt::Core Qt::Test Core
+    Utils ProjectExplorer
+  SOURCES
+    tests/testninjaparser.cpp
+    ninjaparser.cpp
+)
+
+add_qtc_test(tst_mesonparser
+  INCLUDES
+    BEFORE "."
+  DEFINES
+    MESONPARSER_DISABLE_TASKS_FOR_TESTS
+  DEPENDS
+    Qt::Core Qt::Test Core
+    Utils ProjectExplorer
+  SOURCES
+    tests/testmesonparser.cpp
+    mesonoutputparser.cpp
+)
+
+
+endif(WITH_TESTS)
+
+add_qtc_plugin(MesonProjectPlugin
+    PLUGIN_CLASS MesonProjectPlugin
   DEPENDS QmlJS
   PLUGIN_DEPENDS QtCreator::Core QtCreator::CppEditor QtCreator::ProjectExplorer QtCreator::TextEditor QtCreator::QtSupport
-  SYSTEM_INCLUDES 3dparty/cmake
   SOURCES
-    builddirparameters.cpp builddirparameters.h
-    cmake_global.h
-    cmakeabstractprocessstep.cpp cmakeabstractprocessstep.h
-    cmakeautocompleter.cpp cmakeautocompleter.h
-    cmakebuildconfiguration.cpp cmakebuildconfiguration.h
-    cmakebuildsystem.cpp cmakebuildsystem.h
-    cmakebuildstep.cpp cmakebuildstep.h
-    cmakebuildtarget.h
-    cmakeconfigitem.cpp cmakeconfigitem.h
-    cmakeeditor.cpp cmakeeditor.h
-    cmakefilecompletionassist.cpp cmakefilecompletionassist.h
-    cmakeformatter.cpp cmakeformatter.h
-    cmakeindenter.cpp cmakeindenter.h
-    cmakeinstallstep.cpp cmakeinstallstep.h
-    cmakekitaspect.cpp cmakekitaspect.h
-    cmakelocatorfilter.cpp cmakelocatorfilter.h
-    cmakeparser.cpp cmakeparser.h
-    cmakeprocess.cpp cmakeprocess.h
-    cmakeproject.cpp cmakeproject.h
-    cmakeproject.qrc
-    cmakeprojectconstants.h
-    cmakeprojectimporter.cpp cmakeprojectimporter.h
-    cmakeprojectmanager.cpp cmakeprojectmanager.h
-    cmakeprojectmanagertr.h
-    cmakeprojectnodes.cpp cmakeprojectnodes.h
-    cmakeprojectplugin.cpp
-    cmakesettingspage.cpp cmakesettingspage.h
-    cmakespecificsettings.cpp cmakespecificsettings.h
-    cmaketool.cpp cmaketool.h
-    cmaketoolmanager.cpp cmaketoolmanager.h
-    cmaketoolsettingsaccessor.cpp cmaketoolsettingsaccessor.h
-    configmodel.cpp configmodel.h
-    configmodelitemdelegate.cpp configmodelitemdelegate.h
-    fileapidataextractor.cpp fileapidataextractor.h
-    fileapiparser.cpp fileapiparser.h
-    fileapireader.cpp fileapireader.h
-    presetsparser.cpp presetsparser.h
-    presetsmacros.cpp presetsmacros.h
-    projecttreehelper.cpp projecttreehelper.h
-    3rdparty/cmake/cmListFileCache.cxx
-    3rdparty/cmake/cmListFileLexer.cxx
-    3rdparty/cmake/cmListFileCache.h
-    3rdparty/rstparser/rstparser.cc 3rdparty/rstparser/rstparser.h
+  arrayoptionlineedit.cpp
+  arrayoptionlineedit.h
+  buildoptions.h
+  buildoptionsmodel.cpp
+  buildoptionsmodel.h
+  buildoptionsparser.h
+  buildsystemfilesparser.h
+  common.h
+  infoparser.h
+  kitdata.h
+  mesonactionsmanager.cpp
+  mesonactionsmanager.h
+  mesonbuildconfiguration.cpp
+  mesonbuildconfiguration.h
+  mesonbuildsystem.cpp
+  mesonbuildsystem.h
+  mesoninfo.h
+  mesoninfoparser.h
+  mesonoutputparser.cpp
+  mesonoutputparser.h
+  mesonproject.cpp
+  mesonproject.h
+  mesonprojectimporter.cpp
+  mesonprojectimporter.h
+  mesonprojectmanagertr.h
+  mesonprojectnodes.cpp
+  mesonprojectnodes.h
+  mesonprojectparser.cpp
+  mesonprojectparser.h
+  mesonprojectplugin.cpp
+  mesonrunconfiguration.cpp
+  mesonrunconfiguration.h
+  mesontoolkitaspect.cpp
+  mesontoolkitaspect.h
+  mesontools.cpp
+  mesontools.h
+  mesonwrapper.cpp
+  mesonwrapper.h
+  ninjabuildstep.cpp
+  ninjabuildstep.h
+  ninjaparser.cpp
+  ninjaparser.h
+  ninjatoolkitaspect.cpp
+  ninjatoolkitaspect.h
+  ninjawrapper.h
+  projecttree.cpp
+  projecttree.h
+  resources_meson.qrc
+  settings.cpp
+  settings.h
+  target.h
+  targetparser.h
+  toolitemsettings.cpp
+  toolitemsettings.h
+  toolkitaspectwidget.cpp
+  toolkitaspectwidget.h
+  toolsmodel.cpp
+  toolsmodel.h
+  toolssettingsaccessor.cpp
+  toolssettingsaccessor.h
+  toolssettingspage.cpp
+  toolssettingspage.h
+  tooltreeitem.cpp
+  tooltreeitem.h
+  toolwrapper.cpp
+  toolwrapper.h
+  versionhelper.h
 )
