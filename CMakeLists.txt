@@ -31,19 +31,75 @@ if(WITH_TESTS)
 endif()
 
 add_qtc_plugin(XmakeProjectManagerForQtCreator
-  PLUGIN_DEPENDS
-    QtCreator::Core
-  DEPENDS
-    ${QtX}::Widgets
-    QtCreator::ExtensionSystem
-    QtCreator::Utils
+    PLUGIN_CLASS MesonProjectPlugin
+  DEPENDS QmlJS
+  PLUGIN_DEPENDS QtCreator::Core QtCreator::CppEditor QtCreator::ProjectExplorer QtCreator::TextEditor QtCreator::QtSupport
   SOURCES
-    .github/workflows/build_cmake.yml
-    .github/workflows/README.md
-    README.md
-    XmakeProjectManagerForQtCreator.cpp
-    XmakeProjectManagerForQtCreator.h
-    XmakeProjectManagerForQtCreator_global.h
-    XmakeProjectManagerForQtCreatorconstants.h
-    XmakeProjectManagerForQtCreatortr.h
+  arrayoptionlineedit.cpp
+  arrayoptionlineedit.h
+  buildoptions.h
+  buildoptionsmodel.cpp
+  buildoptionsmodel.h
+  buildoptionsparser.h
+  buildsystemfilesparser.h
+  common.h
+  infoparser.h
+  kitdata.h
+  mesonactionsmanager.cpp
+  mesonactionsmanager.h
+  mesonbuildconfiguration.cpp
+  mesonbuildconfiguration.h
+  mesonbuildsystem.cpp
+  mesonbuildsystem.h
+  mesoninfo.h
+  mesoninfoparser.h
+  mesonoutputparser.cpp
+  mesonoutputparser.h
+  mesonproject.cpp
+  mesonproject.h
+  mesonprojectimporter.cpp
+  mesonprojectimporter.h
+  mesonprojectmanagertr.h
+  mesonprojectnodes.cpp
+  mesonprojectnodes.h
+  mesonprojectparser.cpp
+  mesonprojectparser.h
+  mesonprojectplugin.cpp
+  mesonrunconfiguration.cpp
+  mesonrunconfiguration.h
+  mesontoolkitaspect.cpp
+  mesontoolkitaspect.h
+  mesontools.cpp
+  mesontools.h
+  mesonwrapper.cpp
+  mesonwrapper.h
+  ninjabuildstep.cpp
+  ninjabuildstep.h
+  ninjaparser.cpp
+  ninjaparser.h
+  ninjatoolkitaspect.cpp
+  ninjatoolkitaspect.h
+  ninjawrapper.h
+  projecttree.cpp
+  projecttree.h
+  resources_meson.qrc
+  settings.cpp
+  settings.h
+  target.h
+  targetparser.h
+  toolitemsettings.cpp
+  toolitemsettings.h
+  toolkitaspectwidget.cpp
+  toolkitaspectwidget.h
+  toolsmodel.cpp
+  toolsmodel.h
+  toolssettingsaccessor.cpp
+  toolssettingsaccessor.h
+  toolssettingspage.cpp
+  toolssettingspage.h
+  tooltreeitem.cpp
+  tooltreeitem.h
+  toolwrapper.cpp
+  toolwrapper.h
+  versionhelper.h
 )
