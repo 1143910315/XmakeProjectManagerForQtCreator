@@ -1,6 +1,7 @@
 #include "XmakeProjectManagerForQtCreator.h"
 #include "XmakeProjectManagerForQtCreatorconstants.h"
 #include "XmakeProjectManagerForQtCreatortr.h"
+#include "settingPage/settings.h"
 
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -48,6 +49,7 @@ namespace XmakeProjectManagerForQtCreator::Internal {
         menu->menu()->setTitle(Tr::tr("XmakeProjectManagerForQtCreator"));
         menu->addAction(cmd);
         Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
+        settings();
     }
 
     void XmakeProjectManagerForQtCreatorPlugin::extensionsInitialized() {
