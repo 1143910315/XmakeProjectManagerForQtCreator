@@ -10,8 +10,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(QtCreator REQUIRED COMPONENTS Core)
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools)
-# find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 set(QtX Qt${QT_VERSION_MAJOR})
 
 set(TS_FILES XmakeProjectManagerForQtCreator_zh_CN.ts)
@@ -60,18 +59,19 @@ target_sources(XmakeProjectManagerForQtCreator
     XmakeProjectManagerForQtCreator.qrc
 )
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-
-#    qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
-    qt_add_lupdate(XmakeProjectManagerForQtCreator TS_FILES ${TS_FILES})
-    qt_add_lrelease(XmakeProjectManagerForQtCreator
-        TS_FILES ${TS_FILES}
-        QM_FILES_OUTPUT_VARIABLE QM_FILES)
-    qt_add_resources(XmakeProjectManagerForQtCreator "translations"
-        PREFIX "/i18n"
-        BASE "${CMAKE_CURRENT_BINARY_DIR}"
-        FILES "${qm_files}")
-else()
-
-    qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
-endif()
+#find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
+#if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+#
+##    qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+#    qt_add_lupdate(XmakeProjectManagerForQtCreator TS_FILES ${TS_FILES})
+#    qt_add_lrelease(XmakeProjectManagerForQtCreator
+#        TS_FILES ${TS_FILES}
+#        QM_FILES_OUTPUT_VARIABLE QM_FILES)
+#    qt_add_resources(XmakeProjectManagerForQtCreator "translations"
+#        PREFIX "/i18n"
+#        BASE "${CMAKE_CURRENT_BINARY_DIR}"
+#        FILES "${qm_files}")
+#else()
+#
+#    qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+#endif()
