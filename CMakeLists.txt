@@ -47,3 +47,9 @@ add_qtc_plugin(XmakeProjectManagerForQtCreator
     XmakeProjectManagerForQtCreatorconstants.h
     XmakeProjectManagerForQtCreatortr.h
 )
+
+target_sources(XmakeProjectManagerForQtCreator
+  PRIVATE
+    settingPage/settings.cpp settingPage/settings.h
+    XmakeProjectManagerForQtCreator.qrc
+)
