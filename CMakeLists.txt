@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(QtCreator REQUIRED COMPONENTS Core)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
+# find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
 set(QtX Qt${QT_VERSION_MAJOR})
 
 set(TS_FILES XmakeProjectManagerForQtCreator_zh_CN.ts)
