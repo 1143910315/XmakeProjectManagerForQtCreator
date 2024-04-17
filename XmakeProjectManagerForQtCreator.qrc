@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/xmakeproject/icons">
-        <file>icons/meson_bw_logo.png</file>
-        <file>icons/meson_bw_logo@2x.png</file>
+        <file>icons/xmake_logo.png</file>
     </qresource>
 </RCC>

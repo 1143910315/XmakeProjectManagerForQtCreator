@@ -45,7 +45,7 @@ public:
         MesonSettingsPage() {
             setId("A.MesonProjectManager.SettingsPage.General");
             setDisplayName(Tr::tr("General"));
-            setDisplayCategory("Meson");
+            setDisplayCategory(Tr::tr("Xmake"));
             setCategory(Constants::SettingsPage::CATEGORY);
             setCategoryIconPath(Constants::Icons::MESON_BW);
             setSettingsProvider([] {

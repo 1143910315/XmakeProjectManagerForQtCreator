@@ -10,8 +10,13 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(QtCreator REQUIRED COMPONENTS Core)
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
 set(QtX Qt${QT_VERSION_MAJOR})
+
+set(TS_FILES XmakeProjectManagerForQtCreator_zh_CN.ts)
+
+
 
 # Add a CMake option that enables building your plugin with tests.
 # You don't want your released plugin binaries to contain tests,
@@ -46,6 +51,7 @@ add_qtc_plugin(XmakeProjectManagerForQtCreator
     XmakeProjectManagerForQtCreator_global.h
     XmakeProjectManagerForQtCreatorconstants.h
     XmakeProjectManagerForQtCreatortr.h
+    ${TS_FILES}
 )
 
 target_sources(XmakeProjectManagerForQtCreator
@@ -53,3 +59,19 @@ target_sources(XmakeProjectManagerForQtCreator
     settingPage/settings.cpp settingPage/settings.h
     XmakeProjectManagerForQtCreator.qrc
 )
+
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+
+#    qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+    qt_add_lupdate(XmakeProjectManagerForQtCreator TS_FILES ${TS_FILES})
+    qt_add_lrelease(XmakeProjectManagerForQtCreator
+        TS_FILES ${TS_FILES}
+        QM_FILES_OUTPUT_VARIABLE QM_FILES)
+    qt_add_resources(XmakeProjectManagerForQtCreator "translations"
+        PREFIX "/i18n"
+        BASE "${CMAKE_CURRENT_BINARY_DIR}"
+        FILES "${qm_files}")
+else()
+
+    qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+endif()
