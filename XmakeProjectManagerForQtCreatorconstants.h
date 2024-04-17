@@ -9,7 +9,7 @@ namespace XmakeProjectManagerForQtCreator::Constants {
         const char CATEGORY[] = "Z.Xmake";
     } // namespace SettingsPage
     namespace Icons {
-        const char MESON[] = ":/xmakeproject/icons/icons/xmake_logo.png";
-        const char MESON_BW[] = ":/xmakeproject/icons/icons/xmake_logo.png";
+        const char MESON[] = ":/xmakeproject/icons/xmake_logo.png";
+        const char MESON_BW[] = ":/xmakeproject/icons/xmake_logo.png";
     }     // namespace Icons
 } // namespace XmakeProjectManagerForQtCreator::Constants

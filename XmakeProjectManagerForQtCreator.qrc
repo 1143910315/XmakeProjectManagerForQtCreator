@@ -1,5 +1,9 @@
 <RCC>
-    <qresource prefix="/xmakeproject/icons">
+    <qresource prefix="/xmakeproject">
         <file>icons/xmake_logo.png</file>
+    </qresource>
+    <qresource prefix="/i18n">
+        <file>XmakeProjectManagerForQtCreator_zh_CN.qm</file>
+        <file>translations/XmakeProjectManagerForQtCreator_zh_CN.qm</file>
     </qresource>
 </RCC>
