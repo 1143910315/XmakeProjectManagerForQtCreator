@@ -62,6 +62,11 @@ target_sources(XmakeProjectManagerForQtCreator
     XmakeProjectManagerForQtCreator.qrc
 )
 
+qt_add_resources(XmakeProjectManagerForQtCreator "translations"
+    PREFIX "/i18n"
+    BASE "${CMAKE_CURRENT_BINARY_DIR}"
+    FILES "${qm_files}")
+
 #find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
 #if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 #
