@@ -20,19 +20,14 @@ namespace XmakeProjectManagerForQtCreator::Internal {
         setAutoApply(false);
         setSettingsGroup("XmakeProjectManager");
 
-        autorunXmake.setSettingsKey("Xmake.autorun");
-        autorunXmake.setLabelText(Tr::tr("Autorun Xmake"));
-        autorunXmake.setToolTip(Tr::tr("Automatically run Xmake when needed."));
-
-        verboseNinja.setSettingsKey("ninja.verbose");
-        verboseNinja.setLabelText(Tr::tr("Ninja verbose mode"));
-        verboseNinja.setToolTip(Tr::tr("Enables verbose mode by default when invoking Ninja."));
+        xmakePath.setSettingsKey("Xmake.path");
+        xmakePath.setLabelText(Tr::tr("Xmake path"));
+        xmakePath.setToolTip(Tr::tr("Xmake path."));
 
         setLayouter([this] {
                         using namespace Layouting;
                         return Column {
-                            autorunXmake,
-                            verboseNinja,
+                            xmakePath,
                             st,
                         };
                     });
@@ -40,10 +35,10 @@ namespace XmakeProjectManagerForQtCreator::Internal {
         readSettings();
     }
 
-    class MesonSettingsPage final : public Core::IOptionsPage {
+    class XmakeSettingsPage final : public Core::IOptionsPage {
 public:
-        MesonSettingsPage() {
-            setId("A.MesonProjectManager.SettingsPage.General");
+        XmakeSettingsPage() {
+            setId("A.XmakeProjectManager.SettingsPage.General");
             setDisplayName(Tr::tr("General"));
             setDisplayCategory(Tr::tr("Xmake"));
             setCategory(Constants::SettingsPage::CATEGORY);
@@ -54,5 +49,5 @@ public:
         }
     };
 
-    const MesonSettingsPage settingsPage;
+    const XmakeSettingsPage settingsPage;
 } // MesonProjectManager::Internal

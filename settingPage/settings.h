@@ -10,8 +10,7 @@ namespace XmakeProjectManagerForQtCreator::Internal {
 public:
         XmakeSettings();
 
-        Utils::BoolAspect autorunXmake { this };
-        Utils::BoolAspect verboseNinja { this };
+        Utils::StringAspect xmakePath { this };
     };
 
     XmakeSettings &settings();
