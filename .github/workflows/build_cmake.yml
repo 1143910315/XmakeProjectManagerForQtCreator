@@ -212,6 +212,12 @@ jobs:
         echo "nowPath: ${nowPath}"
         prePath=$(ls ../)
         echo "prePath: ${prePath}"
+        qt6Path=$(ls ./qt6)
+        echo "qt6Path: ${qt6Path}"
+        qtcreatorPath=$(ls ./qtcreator)
+        echo "qtcreatorPath: ${qtcreatorPath}"
+        LinguistToolsPath=$(find "${search_dir}" -type f -name "*inguist*")
+        echo "Found LinguistToolsPath at: ${LinguistToolsPath}"
 
     - name: Build
       shell: cmake -P {0}

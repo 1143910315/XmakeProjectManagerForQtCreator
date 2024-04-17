@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 list(APPEND CMAKE_PREFIX_PATH "./dev")
 list(APPEND CMAKE_PREFIX_PATH "./qtcreator")
+list(APPEND CMAKE_PREFIX_PATH "./qt6")
 
 project(XmakeProjectManagerForQtCreator)
 
