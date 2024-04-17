@@ -55,6 +55,8 @@ add_qtc_plugin(XmakeProjectManagerForQtCreator
     XmakeProjectManagerForQtCreatorconstants.h
     XmakeProjectManagerForQtCreatortr.h
     ${TS_FILES}
+    XmakeProjectManagerForQtCreator_zh_CN.qm
+    translations/XmakeProjectManagerForQtCreator_zh_CN.qm
 )
 
 target_sources(XmakeProjectManagerForQtCreator
