@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
 list(APPEND CMAKE_PREFIX_PATH "./dev")
-list(APPEND CMAKE_PREFIX_PATH "./qtcreator")
-list(APPEND CMAKE_PREFIX_PATH "./qt6")
 
 project(XmakeProjectManagerForQtCreator)
 
@@ -55,8 +53,6 @@ add_qtc_plugin(XmakeProjectManagerForQtCreator
     XmakeProjectManagerForQtCreatorconstants.h
     XmakeProjectManagerForQtCreatortr.h
     ${TS_FILES}
-    XmakeProjectManagerForQtCreator_zh_CN.qm
-    translations/XmakeProjectManagerForQtCreator_zh_CN.qm
 )
 
 target_sources(XmakeProjectManagerForQtCreator
