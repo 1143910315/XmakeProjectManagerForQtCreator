@@ -2186,57 +2186,57 @@ namespace CMakeProjectManager::Internal {
 
     void CMakeBuildSystem::updateQmlJSCodeModel(const QStringList &extraHeaderPaths,
                                                 const QList<QByteArray> &moduleMappings) {
-        // QmlJS::ModelManagerInterface *modelManager = QmlJS::ModelManagerInterface::instance();
+        // TODO QmlJS::ModelManagerInterface *modelManager = QmlJS::ModelManagerInterface::instance();
 
-        // if (!modelManager) {
-        // return;
-        // }
+        // TODO if (!modelManager) {
+        // TODO return;
+        // TODO }
 
-        // Project *p = project();
-        // QmlJS::ModelManagerInterface::ProjectInfo projectInfo
-        // = modelManager->defaultProjectInfoForProject(p, p->files(Project::HiddenRccFolders));
+        // TODO Project *p = project();
+        // TODO QmlJS::ModelManagerInterface::ProjectInfo projectInfo
+        // TODO = modelManager->defaultProjectInfoForProject(p, p->files(Project::HiddenRccFolders));
 
-        // projectInfo.importPaths.clear();
+        // TODO projectInfo.importPaths.clear();
 
-        // auto addImports = [&projectInfo](const QString &imports) {
-        // const QStringList importList = CMakeConfigItem::cmakeSplitValue(imports);
-        // for (const QString &import : importList) {
-        // projectInfo.importPaths.maybeInsert(FilePath::fromUserInput(import), QmlJS::Dialect::Qml);
-        // }
-        // };
+        // TODO auto addImports = [&projectInfo](const QString &imports) {
+        // TODO const QStringList importList = CMakeConfigItem::cmakeSplitValue(imports);
+        // TODO for (const QString &import : importList) {
+        // TODO projectInfo.importPaths.maybeInsert(FilePath::fromUserInput(import), QmlJS::Dialect::Qml);
+        // TODO }
+        // TODO };
 
-        // const CMakeConfig &cm = configurationFromCMake();
-        // addImports(cm.stringValueOf("QML_IMPORT_PATH"));
-        // addImports(kit()->value(QtSupport::Constants::KIT_QML_IMPORT_PATH).toString());
+        // TODO const CMakeConfig &cm = configurationFromCMake();
+        // TODO addImports(cm.stringValueOf("QML_IMPORT_PATH"));
+        // TODO addImports(kit()->value(QtSupport::Constants::KIT_QML_IMPORT_PATH).toString());
 
-        // for (const QString &extraHeaderPath : extraHeaderPaths) {
-        // projectInfo.importPaths.maybeInsert(FilePath::fromString(extraHeaderPath),
-        // QmlJS::Dialect::Qml);
-        // }
+        // TODO for (const QString &extraHeaderPath : extraHeaderPaths) {
+        // TODO projectInfo.importPaths.maybeInsert(FilePath::fromString(extraHeaderPath),
+        // TODO QmlJS::Dialect::Qml);
+        // TODO }
 
-        // for (const QByteArray &mm : moduleMappings) {
-        // auto kvPair = mm.split('=');
-        // if (kvPair.size() != 2) {
-        // continue;
-        // }
-        // QString from = QString::fromUtf8(kvPair.at(0).trimmed());
-        // QString to = QString::fromUtf8(kvPair.at(1).trimmed());
-        // if (!from.isEmpty() && !to.isEmpty() && from != to) {
-        //// The QML code-model does not support sub-projects, so if there are multiple mappings for a single module,
-        //// choose the shortest one.
-        // if (projectInfo.moduleMappings.contains(from)) {
-        // if (to.size() < projectInfo.moduleMappings.value(from).size()) {
-        // projectInfo.moduleMappings.insert(from, to);
-        // }
-        // } else {
-        // projectInfo.moduleMappings.insert(from, to);
-        // }
-        // }
-        // }
+        // TODO for (const QByteArray &mm : moduleMappings) {
+        // TODO auto kvPair = mm.split('=');
+        // TODO if (kvPair.size() != 2) {
+        // TODO continue;
+        // TODO }
+        // TODO QString from = QString::fromUtf8(kvPair.at(0).trimmed());
+        // TODO QString to = QString::fromUtf8(kvPair.at(1).trimmed());
+        // TODO if (!from.isEmpty() && !to.isEmpty() && from != to) {
+        // TODO// The QML code-model does not support sub-projects, so if there are multiple mappings for a single module,
+        // TODO// choose the shortest one.
+        // TODO if (projectInfo.moduleMappings.contains(from)) {
+        // TODO if (to.size() < projectInfo.moduleMappings.value(from).size()) {
+        // TODO projectInfo.moduleMappings.insert(from, to);
+        // TODO }
+        // TODO } else {
+        // TODO projectInfo.moduleMappings.insert(from, to);
+        // TODO }
+        // TODO }
+        // TODO }
 
-        // project()->setProjectLanguage(ProjectExplorer::Constants::QMLJS_LANGUAGE_ID,
-        // !projectInfo.sourceFiles.isEmpty());
-        // modelManager->updateProjectInfo(projectInfo, p);
+        // TODO project()->setProjectLanguage(ProjectExplorer::Constants::QMLJS_LANGUAGE_ID,
+        // TODO !projectInfo.sourceFiles.isEmpty());
+        // TODO modelManager->updateProjectInfo(projectInfo, p);
     }
 
     void CMakeBuildSystem::updateInitialCMakeExpandableVars() {
