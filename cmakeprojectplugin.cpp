@@ -43,45 +43,42 @@ using namespace ProjectExplorer;
 using namespace Utils;
 
 namespace CMakeProjectManager::Internal {
+    class CMakeProjectPlugin final : public ExtensionSystem::IPlugin {
+        Q_OBJECT
+        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "XmakeProjectManagerForQtCreator.json")
 
-class CMakeProjectPlugin final : public ExtensionSystem::IPlugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "CMakeProjectManager.json")
+        void initialize() final {
+            setupCMakeToolManager(this);
 
-    void initialize() final
-    {
-        setupCMakeToolManager(this);
+            setupCMakeSettingsPage();
+            setupCMakeKitAspects();
 
-        setupCMakeSettingsPage();
-        setupCMakeKitAspects();
+            setupCMakeBuildConfiguration();
+            setupCMakeBuildStep();
+            setupCMakeInstallStep();
 
-        setupCMakeBuildConfiguration();
-        setupCMakeBuildStep();
-        setupCMakeInstallStep();
+            setupCMakeEditor();
 
-        setupCMakeEditor();
+            setupCMakeLocatorFilters();
+            setupCMakeFormatter();
 
-        setupCMakeLocatorFilters();
-        setupCMakeFormatter();
-
-        setupCMakeManager();
+            setupCMakeManager();
 
 #ifdef WITH_TESTS
-        addTestCreator(createCMakeConfigTest);
-        addTestCreator(createCMakeParserTest);
-        addTestCreator(createCMakeProjectImporterTest);
+            addTestCreator(createCMakeConfigTest);
+            addTestCreator(createCMakeParserTest);
+            addTestCreator(createCMakeProjectImporterTest);
 #endif
 
-        FileIconProvider::registerIconOverlayForSuffix(Constants::Icons::FILE_OVERLAY, "cmake");
-        FileIconProvider::registerIconOverlayForFilename(Constants::Icons::FILE_OVERLAY,
-                                                         Constants::CMAKE_LISTS_TXT);
+            FileIconProvider::registerIconOverlayForSuffix(Constants::Icons::FILE_OVERLAY, "cmake");
+            FileIconProvider::registerIconOverlayForFilename(Constants::Icons::FILE_OVERLAY,
+                                                             Constants::CMAKE_LISTS_TXT);
 
-        TextEditor::SnippetProvider::registerGroup(Constants::CMAKE_SNIPPETS_GROUP_ID,
-                                                   Tr::tr("CMake", "SnippetProvider"));
-        ProjectManager::registerProjectType<CMakeProject>(Utils::Constants::CMAKE_PROJECT_MIMETYPE);
+            TextEditor::SnippetProvider::registerGroup(Constants::CMAKE_SNIPPETS_GROUP_ID,
+                                                       Tr::tr("CMake", "SnippetProvider"));
+            ProjectManager::registerProjectType<CMakeProject>(Utils::Constants::CMAKE_PROJECT_MIMETYPE);
 
-        ActionBuilder(this, Constants::BUILD_TARGET_CONTEXT_MENU)
+            ActionBuilder(this, Constants::BUILD_TARGET_CONTEXT_MENU)
             .setParameterText(Tr::tr("Build \"%1\""), Tr::tr("Build"), ActionBuilder::AlwaysEnabled)
             .setContext(CMakeProjectManager::Constants::CMAKE_PROJECT_ID)
             .bindContextAction(&m_buildTargetContextAction)
@@ -91,36 +88,35 @@ class CMakeProjectPlugin final : public ExtensionSystem::IPlugin
             .addToContainer(ProjectExplorer::Constants::M_SUBPROJECTCONTEXT,
                             ProjectExplorer::Constants::G_PROJECT_BUILD)
             .addOnTriggered(this, [] {
-                if (auto bs = qobject_cast<CMakeBuildSystem *>(ProjectTree::currentBuildSystem())) {
-                    auto targetNode = dynamic_cast<const CMakeTargetNode *>(ProjectTree::currentNode());
-                    bs->buildCMakeTarget(targetNode ? targetNode->displayName() : QString());
-                }
-            });
+                                if (auto bs = qobject_cast<CMakeBuildSystem *>(ProjectTree::currentBuildSystem())) {
+                                    auto targetNode = dynamic_cast<const CMakeTargetNode *>(ProjectTree::currentNode());
+                                    bs->buildCMakeTarget(targetNode ? targetNode->displayName() : QString());
+                                }
+                            });
 
-        connect(ProjectTree::instance(), &ProjectTree::currentNodeChanged,
-                this, &CMakeProjectPlugin::updateContextActions);
-    }
+            connect(ProjectTree::instance(), &ProjectTree::currentNodeChanged,
+                    this, &CMakeProjectPlugin::updateContextActions);
+        }
 
-    void extensionsInitialized() final
-    {
-        // Delay the restoration to allow the devices to load first.
-        QTimer::singleShot(0, this, [] { CMakeToolManager::restoreCMakeTools(); });
-    }
+        void extensionsInitialized() final {
+            // Delay the restoration to allow the devices to load first.
+            QTimer::singleShot(0, this, [] {
+                                   CMakeToolManager::restoreCMakeTools();
+                               });
+        }
 
-    void updateContextActions(ProjectExplorer::Node *node)
-    {
-        auto targetNode = dynamic_cast<const CMakeTargetNode *>(node);
-        const QString targetDisplayName = targetNode ? targetNode->displayName() : QString();
+        void updateContextActions(ProjectExplorer::Node *node) {
+            auto targetNode = dynamic_cast<const CMakeTargetNode *>(node);
+            const QString targetDisplayName = targetNode ? targetNode->displayName() : QString();
 
-        // Build Target:
-        m_buildTargetContextAction->setParameter(targetDisplayName);
-        m_buildTargetContextAction->setEnabled(targetNode);
-        m_buildTargetContextAction->setVisible(targetNode);
-    }
+            // Build Target:
+            m_buildTargetContextAction->setParameter(targetDisplayName);
+            m_buildTargetContextAction->setEnabled(targetNode);
+            m_buildTargetContextAction->setVisible(targetNode);
+        }
 
-    Action *m_buildTargetContextAction = nullptr;
-};
-
+        Action *m_buildTargetContextAction = nullptr;
+    };
 } // CMakeProjectManager::Internal
 
 #include "cmakeprojectplugin.moc"
