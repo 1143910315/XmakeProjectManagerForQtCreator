@@ -6,16 +6,11 @@
 #include <projectexplorer/abstractprocessstep.h>
 
 namespace CMakeProjectManager::Internal {
-
-class CMakeAbstractProcessStep : public ProjectExplorer::AbstractProcessStep
-{
-    Q_OBJECT
+    class CMakeAbstractProcessStep : public ProjectExplorer::AbstractProcessStep {
 public:
-    CMakeAbstractProcessStep(ProjectExplorer::BuildStepList *bsl, Utils::Id id);
+        CMakeAbstractProcessStep(ProjectExplorer::BuildStepList *bsl, Utils::Id id);
 
 protected:
-    bool init() override;
-};
-
-
+        bool init() override;
+    };
 } // namespace CMakeProjectManager::Internal

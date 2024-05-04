@@ -13,124 +13,114 @@
 #include <qtsupport/qtbuildaspects.h>
 
 namespace CMakeProjectManager {
-class CMakeProject;
+    class CMakeProject;
 
-namespace Internal {
+    namespace Internal {
+        class CMakeBuildSystem;
+        class CMakeBuildSettingsWidget;
+        class CMakeProjectImporter;
 
-class CMakeBuildSystem;
-class CMakeBuildSettingsWidget;
-class CMakeProjectImporter;
-
-class InitialCMakeArgumentsAspect final : public Utils::StringAspect
-{
+        class InitialCMakeArgumentsAspect final : public Utils::StringAspect {
 public:
-    InitialCMakeArgumentsAspect(Utils::AspectContainer *container);
+            InitialCMakeArgumentsAspect(Utils::AspectContainer *container);
 
-    const CMakeConfig &cmakeConfiguration() const;
-    const QStringList allValues() const;
-    void setAllValues(const QString &values, QStringList &additionalArguments);
-    void setCMakeConfiguration(const CMakeConfig &config);
+            const CMakeConfig &cmakeConfiguration() const;
+            const QStringList allValues() const;
+            void setAllValues(const QString &values, QStringList &additionalArguments);
+            void setCMakeConfiguration(const CMakeConfig &config);
 
-    void fromMap(const Utils::Store &map) final;
-    void toMap(Utils::Store &map) const final;
+            void fromMap(const Utils::Store &map) final;
+            void toMap(Utils::Store &map) const final;
 
 private:
-    CMakeConfig m_cmakeConfiguration;
-};
+            CMakeConfig m_cmakeConfiguration;
+        };
 
-class ConfigureEnvironmentAspect final: public ProjectExplorer::EnvironmentAspect
-{
+        class ConfigureEnvironmentAspect final : public ProjectExplorer::EnvironmentAspect {
 public:
-    ConfigureEnvironmentAspect(Utils::AspectContainer *container,
-                               ProjectExplorer::BuildConfiguration *buildConfig);
+            ConfigureEnvironmentAspect(Utils::AspectContainer *container,
+                                       ProjectExplorer::BuildConfiguration *buildConfig);
 
-    void fromMap(const Utils::Store &map) override;
-    void toMap(Utils::Store &map) const override;
-};
+            void fromMap(const Utils::Store &map) override;
+            void toMap(Utils::Store &map) const override;
+        };
+    } // namespace Internal
 
-} // namespace Internal
-
-class CMAKE_EXPORT CMakeBuildConfiguration : public ProjectExplorer::BuildConfiguration
-{
-    Q_OBJECT
-
+    class CMAKE_EXPORT CMakeBuildConfiguration : public ProjectExplorer::BuildConfiguration {
 public:
-    CMakeBuildConfiguration(ProjectExplorer::Target *target, Utils::Id id);
-    ~CMakeBuildConfiguration() override;
+        CMakeBuildConfiguration(ProjectExplorer::Target *target, Utils::Id id);
+        ~CMakeBuildConfiguration() override;
 
-    static Utils::FilePath
-    shadowBuildDirectory(const Utils::FilePath &projectFilePath, const ProjectExplorer::Kit *k,
-                         const QString &bcName, BuildConfiguration::BuildType buildType);
-    static bool isIos(const ProjectExplorer::Kit *k);
-    static bool hasQmlDebugging(const CMakeConfig &config);
+        static Utils::FilePath shadowBuildDirectory(const Utils::FilePath &projectFilePath, const ProjectExplorer::Kit *k,
+                                                    const QString &bcName, BuildConfiguration::BuildType buildType);
+        static bool isIos(const ProjectExplorer::Kit *k);
+        static bool hasQmlDebugging(const CMakeConfig &config);
 
-    // Context menu action:
-    void buildTarget(const QString &buildTarget);
-    ProjectExplorer::BuildSystem *buildSystem() const final;
+        // Context menu action:
+        void buildTarget(const QString &buildTarget);
+        ProjectExplorer::BuildSystem *buildSystem() const final;
 
-    void addToEnvironment(Utils::Environment &env) const override;
+        void addToEnvironment(Utils::Environment &env) const override;
 
-    Utils::Environment configureEnvironment() const;
-    Internal::CMakeBuildSystem *cmakeBuildSystem() const;
+        Utils::Environment configureEnvironment() const;
+        Internal::CMakeBuildSystem *cmakeBuildSystem() const;
 
-    QStringList additionalCMakeArguments() const;
-    void setAdditionalCMakeArguments(const QStringList &args);
+        QStringList additionalCMakeArguments() const;
+        void setAdditionalCMakeArguments(const QStringList &args);
 
-    void setInitialCMakeArguments(const QStringList &args);
-    void setCMakeBuildType(const QString &cmakeBuildType, bool quiet = false);
+        void setInitialCMakeArguments(const QStringList &args);
+        void setCMakeBuildType(const QString &cmakeBuildType, bool quiet = false);
 
-    Internal::InitialCMakeArgumentsAspect initialCMakeArguments{this};
-    Utils::StringAspect additionalCMakeOptions{this};
-    Utils::FilePathAspect sourceDirectory{this};
-    Utils::StringAspect buildTypeAspect{this};
-    QtSupport::QmlDebuggingAspect qmlDebugging{this};
-    Internal::ConfigureEnvironmentAspect configureEnv{this, this};
+        Internal::InitialCMakeArgumentsAspect initialCMakeArguments { this };
+        Utils::StringAspect additionalCMakeOptions { this };
+        Utils::FilePathAspect sourceDirectory { this };
+        Utils::StringAspect buildTypeAspect { this };
+        QtSupport::QmlDebuggingAspect qmlDebugging { this };
+        Internal::ConfigureEnvironmentAspect configureEnv { this, this };
 
 signals:
-    void signingFlagsChanged();
-    void configureEnvironmentChanged();
+        void signingFlagsChanged();
+        void configureEnvironmentChanged();
 
 private:
-    BuildType buildType() const override;
+        BuildType buildType() const override;
 
-    ProjectExplorer::NamedWidget *createConfigWidget() override;
+        ProjectExplorer::NamedWidget *createConfigWidget() override;
 
-    virtual CMakeConfig signingFlags() const;
+        virtual CMakeConfig signingFlags() const;
 
-    void setInitialBuildAndCleanSteps(const ProjectExplorer::Target *target);
-    void setBuildPresetToBuildSteps(const ProjectExplorer::Target *target);
-    void filterConfigArgumentsFromAdditionalCMakeArguments();
+        void setInitialBuildAndCleanSteps(const ProjectExplorer::Target *target);
+        void setBuildPresetToBuildSteps(const ProjectExplorer::Target *target);
+        void filterConfigArgumentsFromAdditionalCMakeArguments();
 
-    Internal::CMakeBuildSystem *m_buildSystem = nullptr;
+        Internal::CMakeBuildSystem *m_buildSystem = nullptr;
 
-    friend class Internal::CMakeBuildSettingsWidget;
-    friend class Internal::CMakeBuildSystem;
-};
-
-class CMAKE_EXPORT CMakeBuildConfigurationFactory
-    : public ProjectExplorer::BuildConfigurationFactory
-{
-public:
-    CMakeBuildConfigurationFactory();
-
-    enum BuildType {
-        BuildTypeNone = 0,
-        BuildTypeDebug = 1,
-        BuildTypeRelease = 2,
-        BuildTypeRelWithDebInfo = 3,
-        BuildTypeProfile = 4,
-        BuildTypeMinSizeRel = 5,
-        BuildTypeLast = 6
+        friend class Internal::CMakeBuildSettingsWidget;
+        friend class Internal::CMakeBuildSystem;
     };
-    static BuildType buildTypeFromByteArray(const QByteArray &in);
-    static ProjectExplorer::BuildConfiguration::BuildType cmakeBuildTypeToBuildType(const BuildType &in);
+
+    class CMAKE_EXPORT CMakeBuildConfigurationFactory
+        : public ProjectExplorer::BuildConfigurationFactory {
+public:
+        CMakeBuildConfigurationFactory();
+
+        enum BuildType {
+            BuildTypeNone = 0,
+            BuildTypeDebug = 1,
+            BuildTypeRelease = 2,
+            BuildTypeRelWithDebInfo = 3,
+            BuildTypeProfile = 4,
+            BuildTypeMinSizeRel = 5,
+            BuildTypeLast = 6
+        };
+        static BuildType buildTypeFromByteArray(const QByteArray &in);
+        static ProjectExplorer::BuildConfiguration::BuildType cmakeBuildTypeToBuildType(const BuildType &in);
 
 private:
-    static ProjectExplorer::BuildInfo createBuildInfo(BuildType buildType);
+        static ProjectExplorer::BuildInfo createBuildInfo(BuildType buildType);
 
-    friend class Internal::CMakeProjectImporter;
-};
+        friend class Internal::CMakeProjectImporter;
+    };
 
-namespace Internal { void setupCMakeBuildConfiguration(); }
-
+    namespace Internal { void setupCMakeBuildConfiguration(); }
 } // namespace CMakeProjectManager

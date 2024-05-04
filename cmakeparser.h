@@ -15,46 +15,40 @@
 #include <optional>
 
 namespace CMakeProjectManager {
-
-class CMAKE_EXPORT CMakeParser : public ProjectExplorer::OutputTaskParser
-{
-    Q_OBJECT
-
+    class CMAKE_EXPORT CMakeParser : public ProjectExplorer::OutputTaskParser {
 public:
-    explicit CMakeParser();
-    void setSourceDirectory(const Utils::FilePath &sourceDir);
+        explicit CMakeParser();
+        void setSourceDirectory(const Utils::FilePath &sourceDir);
 
 private:
-    Result handleLine(const QString &line, Utils::OutputFormat type) override;
-    void flush() override;
-    Utils::FilePath resolvePath(const QString &path) const;
+        Result handleLine(const QString &line, Utils::OutputFormat type) override;
+        void flush() override;
+        Utils::FilePath resolvePath(const QString &path) const;
 
-    enum TripleLineError { NONE, LINE_LOCATION, LINE_DESCRIPTION, LINE_DESCRIPTION2 };
+        enum TripleLineError { NONE, LINE_LOCATION, LINE_DESCRIPTION, LINE_DESCRIPTION2 };
 
-    TripleLineError m_expectTripleLineErrorData = NONE;
+        TripleLineError m_expectTripleLineErrorData = NONE;
 
-    std::optional<Utils::FilePath> m_sourceDirectory;
-    ProjectExplorer::Task m_lastTask;
-    QRegularExpression m_commonError;
-    QRegularExpression m_nextSubError;
-    QRegularExpression m_commonWarning;
-    QRegularExpression m_locationLine;
-    QRegularExpression m_sourceLineAndFunction;
-    bool m_skippedFirstEmptyLine = false;
-    int m_lines = 0;
+        std::optional<Utils::FilePath> m_sourceDirectory;
+        ProjectExplorer::Task m_lastTask;
+        QRegularExpression m_commonError;
+        QRegularExpression m_nextSubError;
+        QRegularExpression m_commonWarning;
+        QRegularExpression m_locationLine;
+        QRegularExpression m_sourceLineAndFunction;
+        bool m_skippedFirstEmptyLine = false;
+        int m_lines = 0;
 
-    struct CallStackLine
-    {
-        Utils::FilePath file;
-        int line = -1;
-        QString function;
+        struct CallStackLine {
+            Utils::FilePath file;
+            int line = -1;
+            QString function;
+        };
+        std::optional<QList<CallStackLine>> m_callStack;
+        CallStackLine m_errorOrWarningLine;
     };
-    std::optional<QList<CallStackLine>> m_callStack;
-    CallStackLine m_errorOrWarningLine;
-};
 
 #ifdef WITH_TESTS
-namespace Internal { QObject *createCMakeParserTest(); }
+    namespace Internal { QObject *createCMakeParserTest(); }
 #endif
-
 } // CMakeProjectManager
