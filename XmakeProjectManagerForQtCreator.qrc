@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/xmakeproject">
-        <file>icons/xmake_logo.png</file>
-    </qresource>
-</RCC>

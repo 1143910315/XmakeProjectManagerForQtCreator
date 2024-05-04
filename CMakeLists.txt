@@ -9,8 +9,6 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 17)
 
-set(TS_FILES XmakeProjectManagerForQtCreator_zh_CN.ts)
-
 find_package(QtCreator REQUIRED COMPONENTS Core)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 
@@ -47,18 +45,54 @@ add_qtc_plugin(XmakeProjectManagerForQtCreator
     .github/workflows/build_cmake.yml
     .github/workflows/README.md
     README.md
-    XmakeProjectManagerForQtCreator.cpp
-    XmakeProjectManagerForQtCreator.h
-    XmakeProjectManagerForQtCreator_global.h
-    XmakeProjectManagerForQtCreatorconstants.h
-    XmakeProjectManagerForQtCreatortr.h
-    ${TS_FILES}
+    builddirparameters.cpp builddirparameters.h
+    cmake_global.h
+    cmakeabstractprocessstep.cpp cmakeabstractprocessstep.h
+    cmakeautocompleter.cpp cmakeautocompleter.h
+    cmakebuildconfiguration.cpp cmakebuildconfiguration.h
+    cmakebuildsystem.cpp cmakebuildsystem.h
+    cmakebuildstep.cpp cmakebuildstep.h
+    cmakebuildtarget.h
+    cmakeconfigitem.cpp cmakeconfigitem.h
+    cmakeeditor.cpp cmakeeditor.h
+    cmakefilecompletionassist.cpp cmakefilecompletionassist.h
+    cmakeformatter.cpp cmakeformatter.h
+    cmakeindenter.cpp cmakeindenter.h
+    cmakeinstallstep.cpp cmakeinstallstep.h
+    cmakekitaspect.cpp cmakekitaspect.h
+    cmakelocatorfilter.cpp cmakelocatorfilter.h
+    cmakeparser.cpp cmakeparser.h
+    cmakeprocess.cpp cmakeprocess.h
+    cmakeproject.cpp cmakeproject.h
+    cmakeproject.qrc
+    cmakeprojectconstants.h
+    cmakeprojectimporter.cpp cmakeprojectimporter.h
+    cmakeprojectmanager.cpp cmakeprojectmanager.h
+    cmakeprojectmanagertr.h
+    cmakeprojectnodes.cpp cmakeprojectnodes.h
+    cmakeprojectplugin.cpp
+    cmakesettingspage.cpp cmakesettingspage.h
+    cmakespecificsettings.cpp cmakespecificsettings.h
+    cmaketool.cpp cmaketool.h
+    cmaketoolmanager.cpp cmaketoolmanager.h
+    cmaketoolsettingsaccessor.cpp cmaketoolsettingsaccessor.h
+    configmodel.cpp configmodel.h
+    configmodelitemdelegate.cpp configmodelitemdelegate.h
+    fileapidataextractor.cpp fileapidataextractor.h
+    fileapiparser.cpp fileapiparser.h
+    fileapireader.cpp fileapireader.h
+    presetsparser.cpp presetsparser.h
+    presetsmacros.cpp presetsmacros.h
+    projecttreehelper.cpp projecttreehelper.h
+    3rdparty/cmake/cmListFileCache.cxx
+    3rdparty/cmake/cmListFileLexer.cxx
+    3rdparty/cmake/cmListFileCache.h
+    3rdparty/rstparser/rstparser.cc 3rdparty/rstparser/rstparser.h
 )
 
 target_sources(XmakeProjectManagerForQtCreator
   PRIVATE
-    settingPage/settings.cpp settingPage/settings.h
-    XmakeProjectManagerForQtCreator.qrc
+    cmakeproject.qrc
 )
 
 
