@@ -5,10 +5,16 @@
 
 #include <QtGlobal>
 
+#if defined(USE_CMAKE_EXPORT)
+
 #if defined(CMAKEPROJECTMANAGER_LIBRARY)
 #  define CMAKE_EXPORT Q_DECL_EXPORT
 #elif defined(CMAKEPROJECTMANAGER_STATIC_LIBRARY)
 #  define CMAKE_EXPORT
 #else
 #  define CMAKE_EXPORT Q_DECL_IMPORT
+#endif
+
+#else
+#define CMAKE_EXPORT
 #endif
