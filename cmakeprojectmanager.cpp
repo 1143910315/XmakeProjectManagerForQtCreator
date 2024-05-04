@@ -42,7 +42,6 @@
 #include <QMessageBox>
 
 using namespace Core;
-using namespace CppEditor;
 using namespace ProjectExplorer;
 using namespace Utils;
 
