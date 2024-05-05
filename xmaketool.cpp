@@ -634,15 +634,6 @@ public:
         }
     }
 
-    static int getVersion(const QVariantMap &obj, const QString &value) {
-        bool ok;
-        int result = obj.value(value).toInt(&ok);
-        if (!ok) {
-            return -1;
-        }
-        return result;
-    }
-
     void XMakeTool::parseFromCapabilities(const QString &input) const {
         int charPosition = 0;
         bool success = false;
