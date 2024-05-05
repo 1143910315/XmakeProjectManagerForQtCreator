@@ -32,6 +32,7 @@ private:
     };
 
     class CMakeBuildStep : public CMakeAbstractProcessStep {
+        Q_OBJECT
 public:
         CMakeBuildStep(ProjectExplorer::BuildStepList *bsl, Utils::Id id);
 
