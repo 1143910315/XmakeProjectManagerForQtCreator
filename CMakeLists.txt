@@ -9,6 +9,20 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 17)
 
+
+# 添加库目录
+include_directories("./dev/qtcreator/lib/qtcreator/plugins")
+
+# 获取目录下的所有库文件
+file(GLOB LIBRARIES "./dev/qtcreator/lib/qtcreator/plugins/*.lib")
+
+# 提取文件名（不包括扩展名）
+foreach(LIB ${LIBRARIES})
+    get_filename_component(LIB_NAME ${LIB} NAME_WE)
+    message(STATUS "Library name: ${LIB_NAME}")
+    list(APPEND depends ${LIB_NAME})
+endforeach()
+
 find_package(QtCreator REQUIRED COMPONENTS Core)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 
@@ -33,14 +47,6 @@ if(WITH_TESTS)
   # Enable ctest for auto tests.
   enable_testing()
 endif()
-
-include_directories("./dev/qtcreator/lib/qtcreator/plugins")
-
-file(GLOB LIBRARIES "./dev/qtcreator/lib/qtcreator/plugins/*.lib")
-
-foreach(LIB ${LIBRARIES})
-    list(APPEND depends ${LIB})
-endforeach()
 
 add_qtc_plugin(XmakeProjectManagerForQtCreator
   PLUGIN_DEPENDS
