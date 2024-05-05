@@ -10,6 +10,7 @@
 #include "projecttreehelper.h"
 
 #include <cppeditor/cppeditorconstants.h>
+#include <cppeditor/projectinfo.h>
 
 #include <projectexplorer/projecttree.h>
 
@@ -504,13 +505,15 @@ public:
                 }();
 
                 auto haveFileKindForLanguage = [&](const auto &kind) {
-                    // TODO if (kind == CppEditor::ProjectFile::AmbiguousHeader)
-                    // TODO     return true;
+                    if (kind == CppEditor::ProjectFile::AmbiguousHeader) {
+                        return true;
+                    }
 
-                    // TODO if (ci.language == "C")
-                    // TODO     return CppEditor::ProjectFile::isC(kind);
-                    // TODO else if (ci.language == "CXX")
-                    // TODO     return CppEditor::ProjectFile::isCxx(kind);
+                    if (ci.language == "C") {
+                        return CppEditor::ProjectFile::isC(kind);
+                    } else if (ci.language == "CXX") {
+                        return CppEditor::ProjectFile::isCxx(kind);
+                    }
 
                     return false;
                 };
@@ -521,15 +524,16 @@ public:
                             continue;
                         }
 
-                        // TODO const auto kind = CppEditor::ProjectFile::classify(si.path);
-                        // TODO const bool headerType = CppEditor::ProjectFile::isHeader(kind)
-                        // TODO                         && haveFileKindForLanguage(kind);
-                        // TODO const bool sourceUnityType = hasUnitySources
-                        // TODO                                  ? CppEditor::ProjectFile::isSource(kind)
-                        // TODO                                        && haveFileKindForLanguage(kind)
-                        // TODO                                  : false;
-                        // TODO if (headerType || sourceUnityType)
-                        sources.append(sourceDirectory.resolvePath(si.path));
+                        const auto kind = CppEditor::ProjectFile::classify(si.path);
+                        const bool headerType = CppEditor::ProjectFile::isHeader(kind)
+                            && haveFileKindForLanguage(kind);
+                        const bool sourceUnityType = hasUnitySources
+                                                          ? CppEditor::ProjectFile::isSource(kind)
+                            && haveFileKindForLanguage(kind)
+                                                          : false;
+                        if (headerType || sourceUnityType) {
+                            sources.append(sourceDirectory.resolvePath(si.path));
+                        }
                     }
                 }
                 FilePath::removeDuplicates(sources);
@@ -544,8 +548,9 @@ public:
                 rpp.setFiles(Utils::transform(filtered, &FilePath::toFSPathString),
                              {},
                              [headerMimeType](const QString &path) {
-                                 // TODO if (CppEditor::ProjectFile::isAmbiguousHeader(path))
-                                 // TODO     return headerMimeType;
+                                 if (CppEditor::ProjectFile::isAmbiguousHeader(path)) {
+                                     return headerMimeType;
+                                 }
                                  return Utils::mimeTypeForFile(path).name();
                              });
 

@@ -21,6 +21,8 @@
 #include <coreplugin/messagemanager.h>
 #include <coreplugin/modemanager.h>
 
+#include <cppeditor/cpptoolsreuse.h>
+
 #include <debugger/analyzer/analyzerconstants.h>
 #include <debugger/analyzer/analyzermanager.h>
 
@@ -42,6 +44,7 @@
 #include <QMessageBox>
 
 using namespace Core;
+using namespace CppEditor;
 using namespace ProjectExplorer;
 using namespace Utils;
 
@@ -405,7 +408,7 @@ private:
         FilePath filePath = fileNode->filePath();
         if (filePath.fileName().contains(".h")) {
             bool wasHeader = false;
-            const FilePath sourceFile = filePath;// TODO CppEditor::correspondingHeaderOrSource(filePath, &wasHeader);
+            const FilePath sourceFile = CppEditor::correspondingHeaderOrSource(filePath, &wasHeader);
             if (wasHeader && !sourceFile.isEmpty()) {
                 filePath = sourceFile;
             }
@@ -430,25 +433,27 @@ private:
         auto cbc = static_cast<CMakeBuildSystem *>(bc->buildSystem());
         const QString sourceFile = targetBase.pathAppended(relativeSource).toString();
         const QString objExtension = [&]() -> QString {
-            // TODO const auto sourceKind = ProjectFile::classify(relativeSource);
-            // TODO const QByteArray cmakeLangExtension = ProjectFile::isCxx(sourceKind)
-            // TODO                                           ? "CMAKE_CXX_OUTPUT_EXTENSION"
-            // TODO                                           : "CMAKE_C_OUTPUT_EXTENSION";
-            // TODO const QString extension = cbc->configurationFromCMake().stringValueOf(cmakeLangExtension);
-            // TODO if (!extension.isEmpty())
-            // TODO     return extension;
+            const auto sourceKind = ProjectFile::classify(relativeSource);
+            const QByteArray cmakeLangExtension = ProjectFile::isCxx(sourceKind)
+                                                      ? "CMAKE_CXX_OUTPUT_EXTENSION"
+                                                      : "CMAKE_C_OUTPUT_EXTENSION";
+            const QString extension = cbc->configurationFromCMake().stringValueOf(cmakeLangExtension);
+            if (!extension.isEmpty()) {
+                return extension;
+            }
 
-            // TODO const auto toolchain = ProjectFile::isCxx(sourceKind)
-            // TODO                            ? ToolchainKitAspect::cxxToolchain(target->kit())
-            // TODO                            : ToolchainKitAspect::cToolchain(target->kit());
-            // TODO using namespace ProjectExplorer::Constants;
-            // TODO static QSet<Id> objIds{
-            // TODO     CLANG_CL_TOOLCHAIN_TYPEID,
-            // TODO     MSVC_TOOLCHAIN_TYPEID,
-            // TODO     MINGW_TOOLCHAIN_TYPEID,
-            // TODO };
-            // TODO if (objIds.contains(toolchain->typeId()))
-            // TODO     return ".obj";
+            const auto toolchain = ProjectFile::isCxx(sourceKind)
+                                       ? ToolchainKitAspect::cxxToolchain(target->kit())
+                                       : ToolchainKitAspect::cToolchain(target->kit());
+            using namespace ProjectExplorer::Constants;
+            static QSet<Id> objIds {
+                CLANG_CL_TOOLCHAIN_TYPEID,
+                MSVC_TOOLCHAIN_TYPEID,
+                MINGW_TOOLCHAIN_TYPEID,
+            };
+            if (objIds.contains(toolchain->typeId())) {
+                return ".obj";
+            }
             return ".o";
         }();
 
