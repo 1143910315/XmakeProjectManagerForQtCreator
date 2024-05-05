@@ -729,5 +729,11 @@ public:
         m_introspection->m_version.minor = minor.toInt();
         m_introspection->m_version.patch = patch.toInt();
         m_introspection->m_version.fullVersion = fullVersion.toUtf8();
+        m_introspection->m_generators.append(Generator("xmake",
+                                                       QStringList(),
+                                                       true,
+                                                       true));
+        std::pair<int, int> highestVersion { 99, 99 };
+        m_introspection->m_fileApis.append({ "kind", highestVersion });
     }
 } // namespace XMakeProjectManager
