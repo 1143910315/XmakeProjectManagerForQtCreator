@@ -68,8 +68,8 @@ public:
                                        absolute.path = sfn;
 
                                        const auto mimeType = Utils::mimeTypeForFile(info.path);
-                                       if (mimeType.matchesName(Utils::Constants::XMAKE_MIMETYPE)
-                                           || mimeType.matchesName(Utils::Constants::XMAKE_PROJECT_MIMETYPE)) {
+                                       if (mimeType.matchesName(Utils::Constants::CMAKE_MIMETYPE)
+                                           || mimeType.matchesName(Utils::Constants::CMAKE_PROJECT_MIMETYPE)) {
                                            expected_str<QByteArray> fileContent = sfn.fileContents();
                                            std::string errorString;
                                            if (fileContent) {

@@ -1883,7 +1883,7 @@ XMakeBuildConfigurationFactory::XMakeBuildConfigurationFactory()
     registerBuildConfiguration<XMakeBuildConfiguration>(Constants::XMAKE_BUILDCONFIGURATION_ID);
 
     setSupportedProjectType(XMakeProjectManager::Constants::XMAKE_PROJECT_ID);
-    setSupportedProjectMimeTypeName(Utils::Constants::XMAKE_PROJECT_MIMETYPE);
+    setSupportedProjectMimeTypeName(Utils::Constants::CMAKE_PROJECT_MIMETYPE);
 
     setBuildGenerator([](const Kit *k, const FilePath &projectPath, bool forSetup) {
         QList<BuildInfo> result;

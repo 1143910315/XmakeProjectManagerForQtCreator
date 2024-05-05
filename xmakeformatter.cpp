@@ -61,7 +61,7 @@ public:
         autoFormatOnlyCurrentProject.setLabelPlacement(BoolAspect::LabelPlacement::AtCheckBox);
 
         autoFormatMime.setSettingsKey("autoFormatMime");
-        autoFormatMime.setDefaultValue(Utils::Constants::XMAKE_MIMETYPE);
+        autoFormatMime.setDefaultValue(Utils::Constants::CMAKE_MIMETYPE);
         autoFormatMime.setLabelText(Tr::tr("Restrict to MIME types:"));
         autoFormatMime.setDisplayStyle(StringAspect::LineEditDisplay);
 

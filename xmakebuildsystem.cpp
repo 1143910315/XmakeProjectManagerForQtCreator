@@ -98,8 +98,8 @@ namespace XMakeProjectManager::Internal {
                                          if (type == FileType::Unknown) {
                                              if (mimeType.isValid()) {
                                                  const QString mt = mimeType.name();
-                                                 if (mt == Utils::Constants::XMAKE_PROJECT_MIMETYPE
-                                                     || mt == Utils::Constants::XMAKE_MIMETYPE) {
+                                                 if (mt == Utils::Constants::CMAKE_PROJECT_MIMETYPE
+                                                     || mt == Utils::Constants::CMAKE_MIMETYPE) {
                                                      type = FileType::Project;
                                                  }
                                              }
