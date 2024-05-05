@@ -180,7 +180,7 @@ private:
         .bindContextAction(&m_xmakeDebuggerAction)
         .addToContainer(PEC::M_DEBUG_STARTDEBUGGING, Constants::XMAKE_DEBUGGING_GROUP)
         .addOnTriggered(this, [] {
-                            ProjectExplorerPlugin::runStartupProject(PEC::DAP_XMAKE_DEBUG_RUN_MODE,
+                            ProjectExplorerPlugin::runStartupProject(PEC::DAP_CMAKE_DEBUG_RUN_MODE,
                                                                      /*forceSkipDeploy=*/ true);
                         });
 
