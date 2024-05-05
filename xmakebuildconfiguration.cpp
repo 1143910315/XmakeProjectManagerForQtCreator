@@ -1966,7 +1966,7 @@ private:
             case BuildTypeXMake: {
                 info.typeName = "XMake";
                 info.displayName = ::ProjectExplorer::Tr::tr("XMake");
-                info.buildType = BuildConfiguration::XMake;
+                info.buildType = BuildConfiguration::Debug;
                 Store extraInfo;
                 // enable QML debugging by default
                 extraInfo.insert(Constants::QML_DEBUG_SETTING, TriState::Enabled.toVariant());
