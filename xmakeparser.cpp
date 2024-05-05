@@ -364,9 +364,9 @@ void XMakeParserTest::testXMakeParser_data()
     QTest::newRow("xmake error2")
             << QString::fromLatin1("XMake Error: Error required internal XMake variable not set, xmake may be not be built correctly.\n"
                                    "Missing variable is:\n"
-                                   "CMAKE_MAKE_PROGRAM\n")
+                                   "XMAKE_MAKE_PROGRAM\n")
             << OutputParserTester::STDERR
-            << QString() << QString("Missing variable is:\nCMAKE_MAKE_PROGRAM\n")
+            << QString() << QString("Missing variable is:\nXMAKE_MAKE_PROGRAM\n")
             << (Tasks()
                 << BuildSystemTask(Task::Error,
                                    "Error required internal XMake variable not set, "

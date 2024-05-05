@@ -51,7 +51,7 @@ bool XMakeAbstractProcessStep::init()
     // Warn if doing out-of-source builds with a XMakeCache.txt is the source directory
     const Utils::FilePath projectDirectory = bc->target()->project()->projectDirectory();
     if (bc->buildDirectory() != projectDirectory) {
-        if (projectDirectory.pathAppended(Constants::CMAKE_CACHE_TXT).exists()) {
+        if (projectDirectory.pathAppended(Constants::XMAKE_CACHE_TXT).exists()) {
             emit addTask(BuildSystemTask(
                 Task::Warning,
                 Tr::tr("There is a XMakeCache.txt file in \"%1\", which suggest an "

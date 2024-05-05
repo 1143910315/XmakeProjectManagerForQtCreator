@@ -53,7 +53,7 @@ using namespace Utils;
 namespace XMakeProjectManager::Internal {
 
 const char BUILD_TARGETS_KEY[] = "XMakeProjectManager.MakeStep.BuildTargets";
-const char CMAKE_ARGUMENTS_KEY[] = "XMakeProjectManager.MakeStep.XMakeArguments";
+const char XMAKE_ARGUMENTS_KEY[] = "XMakeProjectManager.MakeStep.XMakeArguments";
 const char TOOL_ARGUMENTS_KEY[] = "XMakeProjectManager.MakeStep.AdditionalArguments";
 const char USE_STAGING_KEY[] = "XMakeProjectManager.MakeStep.UseStaging";
 const char STAGING_DIR_KEY[] = "XMakeProjectManager.MakeStep.StagingDir";
@@ -216,7 +216,7 @@ static bool supportsStageForInstallation(const Kit *kit)
 XMakeBuildStep::XMakeBuildStep(BuildStepList *bsl, Id id) :
     XMakeAbstractProcessStep(bsl, id)
 {
-    xmakeArguments.setSettingsKey(CMAKE_ARGUMENTS_KEY);
+    xmakeArguments.setSettingsKey(XMAKE_ARGUMENTS_KEY);
     xmakeArguments.setLabelText(Tr::tr("XMake arguments:"));
     xmakeArguments.setDisplayStyle(StringAspect::LineEditDisplay);
 
@@ -754,7 +754,7 @@ QString XMakeBuildStep::currentInstallPrefix() const
     auto bs = qobject_cast<XMakeBuildSystem *>(buildSystem());
     QTC_ASSERT(bs, return {});
     const XMakeConfig config = bs->configurationFromXMake();
-    return QString::fromUtf8(config.valueOf("CMAKE_INSTALL_PREFIX"));
+    return QString::fromUtf8(config.valueOf("XMAKE_INSTALL_PREFIX"));
 }
 
 FilePath XMakeBuildStep::xmakeExecutable() const
@@ -809,9 +809,9 @@ class XMakeBuildStepFactory final : public BuildStepFactory
 public:
     XMakeBuildStepFactory()
     {
-        registerStep<XMakeBuildStep>(Constants::CMAKE_BUILD_STEP_ID);
+        registerStep<XMakeBuildStep>(Constants::XMAKE_BUILD_STEP_ID);
         setDisplayName(Tr::tr("XMake Build", "Display name for XMakeProjectManager::XMakeBuildStep id."));
-        setSupportedProjectType(Constants::CMAKE_PROJECT_ID);
+        setSupportedProjectType(Constants::XMAKE_PROJECT_ID);
     }
 };
 

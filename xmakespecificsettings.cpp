@@ -66,7 +66,7 @@ XMakeSpecificSettings::XMakeSpecificSettings()
     packageManagerAutoSetup.setSettingsKey("PackageManagerAutoSetup");
     packageManagerAutoSetup.setDefaultValue(true);
     packageManagerAutoSetup.setLabelText(::XMakeProjectManager::Tr::tr("Package manager auto setup"));
-    packageManagerAutoSetup.setToolTip(::XMakeProjectManager::Tr::tr("Add the CMAKE_PROJECT_INCLUDE_BEFORE variable "
+    packageManagerAutoSetup.setToolTip(::XMakeProjectManager::Tr::tr("Add the XMAKE_PROJECT_INCLUDE_BEFORE variable "
         "pointing to a XMake script that will install dependencies from the conanfile.txt, "
         "conanfile.py, or vcpkg.json file from the project source directory."));
 
@@ -99,8 +99,8 @@ XMakeSpecificSettings::XMakeSpecificSettings()
         "Create and use junctions for the source and build directories to overcome "
         "issues with long paths on Windows.<br><br>"
         "Junctions are stored under <tt>C:\\ProgramData\\QtCreator\\Links</tt> (overridable via "
-        "the <tt>QTC_CMAKE_JUNCTIONS_DIR</tt> environment variable).<br><br>"
-        "With <tt>QTC_CMAKE_JUNCTIONS_HASH_LENGTH</tt>, you can shorten the MD5 hash key length "
+        "the <tt>QTC_XMAKE_JUNCTIONS_DIR</tt> environment variable).<br><br>"
+        "With <tt>QTC_XMAKE_JUNCTIONS_HASH_LENGTH</tt>, you can shorten the MD5 hash key length "
         "to a value smaller than the default length value of 32.<br><br>"
         "Junctions are used for XMake configure, build and install operations."));
 

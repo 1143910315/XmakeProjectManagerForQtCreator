@@ -4,7 +4,7 @@
 
 Create a build directory and run
 
-    xmake -DCMAKE_PREFIX_PATH=<path_to_qtcreator> -DCMAKE_BUILD_TYPE=RelWithDebInfo <path_to_plugin_source>
+    xmake -DXMAKE_PREFIX_PATH=<path_to_qtcreator> -DXMAKE_BUILD_TYPE=RelWithDebInfo <path_to_plugin_source>
     xmake --build .
 
 where `<path_to_qtcreator>` is the relative or absolute path to a Qt Creator build directory, or to a

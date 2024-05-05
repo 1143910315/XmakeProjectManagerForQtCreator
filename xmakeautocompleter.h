@@ -9,7 +9,7 @@
 
 namespace XMakeProjectManager::Internal {
 
-class CMAKE_EXPORT XMakeAutoCompleter : public TextEditor::AutoCompleter
+class XMAKE_EXPORT XMakeAutoCompleter : public TextEditor::AutoCompleter
 {
 public:
     XMakeAutoCompleter();

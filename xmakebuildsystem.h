@@ -164,7 +164,7 @@ private:
             // Actually ask for parsing:
             enum ReparseParameters {
                 REPARSE_DEFAULT = 0, // Nothing special:-)
-                REPARSE_FORCE_CMAKE_RUN
+                REPARSE_FORCE_XMAKE_RUN
                     = (1 << 0), // Force xmake to run, apply extraXMakeArguments if non-empty
                 REPARSE_FORCE_INITIAL_CONFIGURATION
                     = (1 << 1), // Force initial configuration arguments to xmake

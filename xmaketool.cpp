@@ -33,16 +33,16 @@ namespace XMakeProjectManager {
 static Q_LOGGING_CATEGORY(xmakeToolLog, "qtc.xmake.tool", QtWarningMsg);
 
 
-const char CMAKE_INFORMATION_ID[] = "Id";
-const char CMAKE_INFORMATION_COMMAND[] = "Binary";
-const char CMAKE_INFORMATION_DISPLAYNAME[] = "DisplayName";
-const char CMAKE_INFORMATION_AUTORUN[] = "AutoRun";
-const char CMAKE_INFORMATION_QCH_FILE_PATH[] = "QchFile";
+const char XMAKE_INFORMATION_ID[] = "Id";
+const char XMAKE_INFORMATION_COMMAND[] = "Binary";
+const char XMAKE_INFORMATION_DISPLAYNAME[] = "DisplayName";
+const char XMAKE_INFORMATION_AUTORUN[] = "AutoRun";
+const char XMAKE_INFORMATION_QCH_FILE_PATH[] = "QchFile";
 // obsolete since Qt Creator 5. Kept for backward compatibility
-const char CMAKE_INFORMATION_AUTO_CREATE_BUILD_DIRECTORY[] = "AutoCreateBuildDirectory";
-const char CMAKE_INFORMATION_AUTODETECTED[] = "AutoDetected";
-const char CMAKE_INFORMATION_DETECTIONSOURCE[] = "DetectionSource";
-const char CMAKE_INFORMATION_READERTYPE[] = "ReaderType";
+const char XMAKE_INFORMATION_AUTO_CREATE_BUILD_DIRECTORY[] = "AutoCreateBuildDirectory";
+const char XMAKE_INFORMATION_AUTODETECTED[] = "AutoDetected";
+const char XMAKE_INFORMATION_DETECTIONSOURCE[] = "DetectionSource";
+const char XMAKE_INFORMATION_READERTYPE[] = "ReaderType";
 
 bool XMakeTool::Generator::matches(const QString &n) const
 {
@@ -110,22 +110,22 @@ XMakeTool::XMakeTool(Detection d, const Id &id)
 
 XMakeTool::XMakeTool(const Store &map, bool fromSdk) :
     XMakeTool(fromSdk ? XMakeTool::AutoDetection : XMakeTool::ManualDetection,
-              Id::fromSetting(map.value(CMAKE_INFORMATION_ID)))
+              Id::fromSetting(map.value(XMAKE_INFORMATION_ID)))
 {
-    m_displayName = map.value(CMAKE_INFORMATION_DISPLAYNAME).toString();
-    m_isAutoRun = map.value(CMAKE_INFORMATION_AUTORUN, true).toBool();
-    m_autoCreateBuildDirectory = map.value(CMAKE_INFORMATION_AUTO_CREATE_BUILD_DIRECTORY, false).toBool();
+    m_displayName = map.value(XMAKE_INFORMATION_DISPLAYNAME).toString();
+    m_isAutoRun = map.value(XMAKE_INFORMATION_AUTORUN, true).toBool();
+    m_autoCreateBuildDirectory = map.value(XMAKE_INFORMATION_AUTO_CREATE_BUILD_DIRECTORY, false).toBool();
     m_readerType = Internal::readerTypeFromString(
-        map.value(CMAKE_INFORMATION_READERTYPE).toString());
+        map.value(XMAKE_INFORMATION_READERTYPE).toString());
 
     //loading a XMakeTool from SDK is always autodetection
     if (!fromSdk)
-        m_isAutoDetected = map.value(CMAKE_INFORMATION_AUTODETECTED, false).toBool();
-    m_detectionSource = map.value(CMAKE_INFORMATION_DETECTIONSOURCE).toString();
+        m_isAutoDetected = map.value(XMAKE_INFORMATION_AUTODETECTED, false).toBool();
+    m_detectionSource = map.value(XMAKE_INFORMATION_DETECTIONSOURCE).toString();
 
-    setFilePath(FilePath::fromString(map.value(CMAKE_INFORMATION_COMMAND).toString()));
+    setFilePath(FilePath::fromString(map.value(XMAKE_INFORMATION_COMMAND).toString()));
 
-    m_qchFilePath = FilePath::fromSettings(map.value(CMAKE_INFORMATION_QCH_FILE_PATH));
+    m_qchFilePath = FilePath::fromSettings(map.value(XMAKE_INFORMATION_QCH_FILE_PATH));
 
     if (m_qchFilePath.isEmpty())
         m_qchFilePath = searchQchFile(m_executable);
@@ -179,17 +179,17 @@ void XMakeTool::runXMake(Process &xmake, const QStringList &args, int timeoutS) 
 Store XMakeTool::toMap() const
 {
     Store data;
-    data.insert(CMAKE_INFORMATION_DISPLAYNAME, m_displayName);
-    data.insert(CMAKE_INFORMATION_ID, m_id.toSetting());
-    data.insert(CMAKE_INFORMATION_COMMAND, m_executable.toString());
-    data.insert(CMAKE_INFORMATION_QCH_FILE_PATH, m_qchFilePath.toString());
-    data.insert(CMAKE_INFORMATION_AUTORUN, m_isAutoRun);
-    data.insert(CMAKE_INFORMATION_AUTO_CREATE_BUILD_DIRECTORY, m_autoCreateBuildDirectory);
+    data.insert(XMAKE_INFORMATION_DISPLAYNAME, m_displayName);
+    data.insert(XMAKE_INFORMATION_ID, m_id.toSetting());
+    data.insert(XMAKE_INFORMATION_COMMAND, m_executable.toString());
+    data.insert(XMAKE_INFORMATION_QCH_FILE_PATH, m_qchFilePath.toString());
+    data.insert(XMAKE_INFORMATION_AUTORUN, m_isAutoRun);
+    data.insert(XMAKE_INFORMATION_AUTO_CREATE_BUILD_DIRECTORY, m_autoCreateBuildDirectory);
     if (m_readerType)
-        data.insert(CMAKE_INFORMATION_READERTYPE,
+        data.insert(XMAKE_INFORMATION_READERTYPE,
                     Internal::readerTypeToString(m_readerType.value()));
-    data.insert(CMAKE_INFORMATION_AUTODETECTED, m_isAutoDetected);
-    data.insert(CMAKE_INFORMATION_DETECTIONSOURCE, m_detectionSource);
+    data.insert(XMAKE_INFORMATION_AUTODETECTED, m_isAutoDetected);
+    data.insert(XMAKE_INFORMATION_DETECTIONSOURCE, m_detectionSource);
     return data;
 }
 
@@ -257,7 +257,7 @@ XMakeKeywords XMakeTool::keywords()
 
         const FilePath findXMakeRoot = TemporaryDirectory::masterDirectoryFilePath()
                                        / "find-root.xmake";
-        findXMakeRoot.writeFileContents("message(${CMAKE_ROOT})");
+        findXMakeRoot.writeFileContents("message(${XMAKE_ROOT})");
 
         FilePath xmakeRoot;
         runXMake(proc, {"-P", findXMakeRoot.nativePath()}, 5);
@@ -523,9 +523,9 @@ QStringList XMakeTool::parseVariableOutput(const QString &output)
                                                      std::not_fn(&QString::isEmpty));
     QStringList result;
     for (const QString &v : variableList) {
-        if (v.startsWith("CMAKE_COMPILER_IS_GNU<LANG>")) { // This key takes a compiler name :-/
-            result << "CMAKE_COMPILER_IS_GNUCC"
-                   << "CMAKE_COMPILER_IS_GNUCXX";
+        if (v.startsWith("XMAKE_COMPILER_IS_GNU<LANG>")) { // This key takes a compiler name :-/
+            result << "XMAKE_COMPILER_IS_GNUCC"
+                   << "XMAKE_COMPILER_IS_GNUCXX";
         } else if (v.contains("<CONFIG>") && v.contains("<LANG>")) {
             const QString tmp = QString(v).replace("<CONFIG>", "%1").replace("<LANG>", "%2");
             result << tmp.arg("DEBUG").arg("C") << tmp.arg("DEBUG").arg("CXX")

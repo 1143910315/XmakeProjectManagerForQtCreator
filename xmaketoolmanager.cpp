@@ -459,7 +459,7 @@ FilePath XMakeToolManager::mappedFilePath(const FilePath &path)
         environment.modify(project->additionalEnvironment());
     const bool enableJunctions
         = QVariant(
-              environment.value_or("QTC_CMAKE_USE_JUNCTIONS",
+              environment.value_or("QTC_XMAKE_USE_JUNCTIONS",
                                    Internal::settings().useJunctionsForSourceAndBuildDirectories()
                                        ? "1"
                                        : "0"))
@@ -601,12 +601,12 @@ XMakeToolManagerPrivate::XMakeToolManagerPrivate()
         if (project)
             environment.modify(project->additionalEnvironment());
 
-        if (environment.hasKey("QTC_CMAKE_JUNCTIONS_DIR"))
-            m_junctionsDir = FilePath::fromUserInput(environment.value("QTC_CMAKE_JUNCTIONS_DIR"));
+        if (environment.hasKey("QTC_XMAKE_JUNCTIONS_DIR"))
+            m_junctionsDir = FilePath::fromUserInput(environment.value("QTC_XMAKE_JUNCTIONS_DIR"));
 
-        if (environment.hasKey("QTC_CMAKE_JUNCTIONS_HASH_LENGTH")) {
+        if (environment.hasKey("QTC_XMAKE_JUNCTIONS_HASH_LENGTH")) {
             bool ok = false;
-            const int hashLength = environment.value("QTC_CMAKE_JUNCTIONS_HASH_LENGTH").toInt(&ok);
+            const int hashLength = environment.value("QTC_XMAKE_JUNCTIONS_HASH_LENGTH").toInt(&ok);
             if (ok && hashLength >= 4 && hashLength < 32)
                 m_junctionsHashLength = hashLength;
         }

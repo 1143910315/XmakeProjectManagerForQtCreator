@@ -13,7 +13,7 @@ namespace XMakeProjectManager {
 
 class XMakeTool;
 
-class CMAKE_EXPORT XMakeKitAspect
+class XMAKE_EXPORT XMakeKitAspect
 {
 public:
     static Utils::Id id();
@@ -29,7 +29,7 @@ private:
     friend class XMakeToolManager;
 };
 
-class CMAKE_EXPORT XMakeGeneratorKitAspect
+class XMAKE_EXPORT XMakeGeneratorKitAspect
 {
 public:
     static QString generator(const ProjectExplorer::Kit *k);
@@ -47,7 +47,7 @@ public:
     static ProjectExplorer::KitAspect *createKitAspect(ProjectExplorer::Kit *k);
 };
 
-class CMAKE_EXPORT XMakeConfigurationKitAspect
+class XMAKE_EXPORT XMakeConfigurationKitAspect
 {
 public:
     static XMakeConfig configuration(const ProjectExplorer::Kit *k);

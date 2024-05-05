@@ -98,8 +98,8 @@ namespace XMakeProjectManager::Internal {
                                          if (type == FileType::Unknown) {
                                              if (mimeType.isValid()) {
                                                  const QString mt = mimeType.name();
-                                                 if (mt == Utils::Constants::CMAKE_PROJECT_MIMETYPE
-                                                     || mt == Utils::Constants::CMAKE_MIMETYPE) {
+                                                 if (mt == Utils::Constants::XMAKE_PROJECT_MIMETYPE
+                                                     || mt == Utils::Constants::XMAKE_MIMETYPE) {
                                                      type = FileType::Project;
                                                  }
                                              }
@@ -174,9 +174,9 @@ namespace XMakeProjectManager::Internal {
         qCDebug(xmakeBuildSystemLog) << "Parse called with flags:"
                                      << reparseParametersString(reparseParameters);
 
-        const FilePath cache = m_parameters.buildDirectory.pathAppended(Constants::CMAKE_CACHE_TXT);
+        const FilePath cache = m_parameters.buildDirectory.pathAppended(Constants::XMAKE_CACHE_TXT);
         if (!cache.exists()) {
-            reparseParameters |= REPARSE_FORCE_INITIAL_CONFIGURATION | REPARSE_FORCE_CMAKE_RUN;
+            reparseParameters |= REPARSE_FORCE_INITIAL_CONFIGURATION | REPARSE_FORCE_XMAKE_RUN;
             qCDebug(xmakeBuildSystemLog)
                 << "No" << cache
                 << "file found, new flags:" << reparseParametersString(reparseParameters);
@@ -184,7 +184,7 @@ namespace XMakeProjectManager::Internal {
 
         if ((0 == (reparseParameters & REPARSE_FORCE_EXTRA_CONFIGURATION))
             && mustApplyConfigurationChangesArguments(m_parameters)) {
-            reparseParameters |= REPARSE_FORCE_CMAKE_RUN | REPARSE_FORCE_EXTRA_CONFIGURATION;
+            reparseParameters |= REPARSE_FORCE_XMAKE_RUN | REPARSE_FORCE_EXTRA_CONFIGURATION;
         }
 
         // The code model will be updated after the XMake run. There is no need to have an
@@ -196,7 +196,7 @@ namespace XMakeProjectManager::Internal {
         const bool isDebuggable = (version.major == 3 && version.minor >= 27) || version.major > 3;
 
         qCDebug(xmakeBuildSystemLog) << "Asking reader to parse";
-        m_reader.parse(reparseParameters & REPARSE_FORCE_CMAKE_RUN,
+        m_reader.parse(reparseParameters & REPARSE_FORCE_XMAKE_RUN,
                        reparseParameters & REPARSE_FORCE_INITIAL_CONFIGURATION,
                        reparseParameters & REPARSE_FORCE_EXTRA_CONFIGURATION,
                        (reparseParameters & REPARSE_DEBUG) && isDebuggable,
@@ -205,7 +205,7 @@ namespace XMakeProjectManager::Internal {
 
     void XMakeBuildSystem::requestDebugging() {
         qCDebug(xmakeBuildSystemLog) << "Requesting parse due to \"Rescan Project\" command";
-        reparse(REPARSE_FORCE_CMAKE_RUN | REPARSE_FORCE_EXTRA_CONFIGURATION | REPARSE_URGENT
+        reparse(REPARSE_FORCE_XMAKE_RUN | REPARSE_FORCE_EXTRA_CONFIGURATION | REPARSE_URGENT
                 | REPARSE_DEBUG);
     }
 
@@ -393,7 +393,7 @@ namespace XMakeProjectManager::Internal {
             Core::EditorManager::openEditorAt({ xmakeFile,
                                                 int(snippetLocation.line),
                                                 int(snippetLocation.column) },
-                                              Constants::CMAKE_EDITOR_ID,
+                                              Constants::XMAKE_EDITOR_ID,
                                               Core::EditorManager::DoNotMakeVisible));
         if (!editor) {
             return make_unexpected("BaseTextEditor cannot be obtained for " + xmakeFile.toUserOutput()
@@ -863,7 +863,7 @@ namespace XMakeProjectManager::Internal {
                                                             static_cast<int>(filePos.value().argumentPosition.Line),
                                                             static_cast<int>(filePos.value().argumentPosition.Column
                                                                 - 1) },
-                                                          Constants::CMAKE_EDITOR_ID,
+                                                          Constants::XMAKE_EDITOR_ID,
                                                           Core::EditorManager::DoNotMakeVisible));
                     if (!editor) {
                         badFiles << file;
@@ -972,7 +972,7 @@ namespace XMakeProjectManager::Internal {
                         { fileToRename->xmakeFile,
                           static_cast<int>(fileToRename->argumentPosition.Line),
                           static_cast<int>(fileToRename->argumentPosition.Column - 1) },
-                        Constants::CMAKE_EDITOR_ID,
+                        Constants::XMAKE_EDITOR_ID,
                         Core::EditorManager::DoNotMakeVisible));
                 if (!editor) {
                     qCCritical(xmakeBuildSystemLog).noquote()
@@ -1013,7 +1013,7 @@ namespace XMakeProjectManager::Internal {
         FilePath baseDirectory = sourceFile.parentDir();
 
         while (baseDirectory.isChildOf(project)) {
-            const FilePath xmakeListsTxt = baseDirectory.pathAppended(Constants::CMAKE_LISTS_TXT);
+            const FilePath xmakeListsTxt = baseDirectory.pathAppended(Constants::XMAKE_LISTS_TXT);
             if (xmakeListsTxt.exists()) {
                 break;
             }
@@ -1070,8 +1070,8 @@ namespace XMakeProjectManager::Internal {
             if (reparseFlags & REPARSE_URGENT) {
                 result += " URGENT";
             }
-            if (reparseFlags & REPARSE_FORCE_CMAKE_RUN) {
-                result += " FORCE_CMAKE_RUN";
+            if (reparseFlags & REPARSE_FORCE_XMAKE_RUN) {
+                result += " FORCE_XMAKE_RUN";
             }
             if (reparseFlags & REPARSE_FORCE_INITIAL_CONFIGURATION) {
                 result += " FORCE_CONFIG";
@@ -1146,22 +1146,22 @@ namespace XMakeProjectManager::Internal {
 
     void XMakeBuildSystem::runXMake() {
         qCDebug(xmakeBuildSystemLog) << "Requesting parse due \"Run XMake\" command";
-        reparse(REPARSE_FORCE_CMAKE_RUN | REPARSE_URGENT);
+        reparse(REPARSE_FORCE_XMAKE_RUN | REPARSE_URGENT);
     }
 
     void XMakeBuildSystem::runXMakeAndScanProjectTree() {
         qCDebug(xmakeBuildSystemLog) << "Requesting parse due to \"Rescan Project\" command";
-        reparse(REPARSE_FORCE_CMAKE_RUN | REPARSE_URGENT);
+        reparse(REPARSE_FORCE_XMAKE_RUN | REPARSE_URGENT);
     }
 
     void XMakeBuildSystem::runXMakeWithExtraArguments() {
         qCDebug(xmakeBuildSystemLog) << "Requesting parse due to \"Rescan Project\" command";
-        reparse(REPARSE_FORCE_CMAKE_RUN | REPARSE_FORCE_EXTRA_CONFIGURATION | REPARSE_URGENT);
+        reparse(REPARSE_FORCE_XMAKE_RUN | REPARSE_FORCE_EXTRA_CONFIGURATION | REPARSE_URGENT);
     }
 
     void XMakeBuildSystem::runXMakeWithProfiling() {
         qCDebug(xmakeBuildSystemLog) << "Requesting parse due \"XMake Profiler\" command";
-        reparse(REPARSE_FORCE_CMAKE_RUN | REPARSE_URGENT | REPARSE_FORCE_EXTRA_CONFIGURATION
+        reparse(REPARSE_FORCE_XMAKE_RUN | REPARSE_URGENT | REPARSE_FORCE_EXTRA_CONFIGURATION
                 | REPARSE_PROFILING);
     }
 
@@ -1205,7 +1205,7 @@ namespace XMakeProjectManager::Internal {
 
         qCDebug(xmakeBuildSystemLog) << "Requesting parse to persist XMake State";
         setParametersAndRequestParse(parameters,
-                                     REPARSE_URGENT | REPARSE_FORCE_CMAKE_RUN | reparseFlags);
+                                     REPARSE_URGENT | REPARSE_FORCE_XMAKE_RUN | reparseFlags);
         return true;
     }
 
@@ -1216,8 +1216,8 @@ namespace XMakeProjectManager::Internal {
         stopParsingAndClearState();
 
         const FilePath pathsToDelete[] = {
-            m_parameters.buildDirectory / Constants::CMAKE_CACHE_TXT,
-            m_parameters.buildDirectory / Constants::CMAKE_CACHE_TXT_PREV,
+            m_parameters.buildDirectory / Constants::XMAKE_CACHE_TXT,
+            m_parameters.buildDirectory / Constants::XMAKE_CACHE_TXT_PREV,
             m_parameters.buildDirectory / "XMakeFiles",
             m_parameters.buildDirectory / ".xmake/api/v1/reply",
             m_parameters.buildDirectory / ".xmake/api/v1/reply.prev",
@@ -1394,7 +1394,7 @@ namespace XMakeProjectManager::Internal {
             QStringList cxxFlags = rpp.flagsForCxx.commandLineFlags;
             QStringList cFlags = rpp.flagsForC.commandLineFlags;
             addTargetFlagForIos(cFlags, cxxFlags, this, [this] {
-                                    return m_configurationFromXMake.stringValueOf("CMAKE_OSX_DEPLOYMENT_TARGET");
+                                    return m_configurationFromXMake.stringValueOf("XMAKE_OSX_DEPLOYMENT_TARGET");
                                 });
             if (kitInfo.cxxToolchain) {
                 rpp.setFlagsForCxx({ kitInfo.cxxToolchain, cxxFlags, includeFileBaseDir });
@@ -1640,7 +1640,7 @@ namespace XMakeProjectManager::Internal {
         connect(buildConfiguration(), &BuildConfiguration::environmentChanged, this, [this] {
                     // The environment on our BC has changed, force XMake run to catch up with possible changes
                     qCDebug(xmakeBuildSystemLog) << "Requesting parse due to environment change";
-                    reparse(XMakeBuildSystem::REPARSE_FORCE_CMAKE_RUN);
+                    reparse(XMakeBuildSystem::REPARSE_FORCE_XMAKE_RUN);
                 });
         connect(buildConfiguration(), &BuildConfiguration::buildDirectoryChanged, this, [this] {
                     // The build directory of our BC has changed:
@@ -1649,17 +1649,17 @@ namespace XMakeProjectManager::Internal {
                     qCDebug(xmakeBuildSystemLog) << "Requesting parse due to build directory change";
                     const BuildDirParameters parameters(this);
                     const FilePath xmakeCacheTxt = parameters.buildDirectory.pathAppended(
-                        Constants::CMAKE_CACHE_TXT);
+                        Constants::XMAKE_CACHE_TXT);
                     const bool hasXMakeCache = xmakeCacheTxt.exists();
                     const auto options = ReparseParameters(
                         hasXMakeCache
                     ? REPARSE_DEFAULT
-                    : (REPARSE_FORCE_INITIAL_CONFIGURATION | REPARSE_FORCE_CMAKE_RUN));
+                    : (REPARSE_FORCE_INITIAL_CONFIGURATION | REPARSE_FORCE_XMAKE_RUN));
                     if (hasXMakeCache) {
                         QString errorMessage;
                         const XMakeConfig config = XMakeConfig::fromFile(xmakeCacheTxt, &errorMessage);
                         if (!config.isEmpty() && errorMessage.isEmpty()) {
-                            QString xmakeBuildTypeName = config.stringValueOf("CMAKE_BUILD_TYPE");
+                            QString xmakeBuildTypeName = config.stringValueOf("XMAKE_BUILD_TYPE");
                             xmakeBuildConfiguration()->setXMakeBuildType(xmakeBuildTypeName, true);
                         }
                     }
@@ -1671,7 +1671,7 @@ namespace XMakeProjectManager::Internal {
                     if (buildConfiguration()->isActive() && !isParsing() && !isBuilding) {
                         if (settings().autorunXMake()) {
                             qCDebug(xmakeBuildSystemLog) << "Requesting parse due to dirty project file";
-                            reparse(XMakeBuildSystem::REPARSE_FORCE_CMAKE_RUN);
+                            reparse(XMakeBuildSystem::REPARSE_FORCE_XMAKE_RUN);
                         }
                     }
                 });
@@ -2251,7 +2251,7 @@ namespace XMakeProjectManager::Internal {
         const FilePath projectDirectory = project()->projectDirectory();
         const auto samePath = [projectDirectory](const FilePath &first, const FilePath &second) {
             // if a path is relative, resolve it relative to the project directory
-            // this is not 100% correct since XMake resolve them to CMAKE_CURRENT_SOURCE_DIR
+            // this is not 100% correct since XMake resolve them to XMAKE_CURRENT_SOURCE_DIR
             // depending on context, but we cannot do better here
             return first == second
                    || projectDirectory.resolvePath(first)
@@ -2262,11 +2262,11 @@ namespace XMakeProjectManager::Internal {
 
         // Replace path values that do not  exist on file system
         const QByteArrayList singlePathList = {
-            "CMAKE_C_COMPILER",
-            "CMAKE_CXX_COMPILER",
+            "XMAKE_C_COMPILER",
+            "XMAKE_CXX_COMPILER",
             "QT_QMAKE_EXECUTABLE",
             "QT_HOST_PATH",
-            "CMAKE_TOOLCHAIN_FILE"
+            "XMAKE_TOOLCHAIN_FILE"
         };
         for (const auto &var : singlePathList) {
             auto it = std::find_if(cm.cbegin(), cm.cend(), [var](const XMakeConfigItem &item) {
@@ -2289,8 +2289,8 @@ namespace XMakeProjectManager::Internal {
 
         // Prepend new values to existing path lists
         const QByteArrayList multiplePathList = {
-            "CMAKE_PREFIX_PATH",
-            "CMAKE_FIND_ROOT_PATH"
+            "XMAKE_PREFIX_PATH",
+            "XMAKE_FIND_ROOT_PATH"
         };
         for (const auto &var : multiplePathList) {
             auto it = std::find_if(cm.cbegin(), cm.cend(), [var](const XMakeConfigItem &item) {

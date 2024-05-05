@@ -16,7 +16,7 @@
 
 namespace XMakeProjectManager {
 
-class CMAKE_EXPORT XMakeToolManager : public QObject
+class XMAKE_EXPORT XMakeToolManager : public QObject
 {
     Q_OBJECT
 public:

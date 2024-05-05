@@ -85,12 +85,12 @@ static Q_LOGGING_CATEGORY(xmakeBuildConfigurationLog, "qtc.xmake.bc", QtWarningM
 
 const char DEVELOPMENT_TEAM_FLAG[] = "Ios:DevelopmentTeam:Flag";
 const char PROVISIONING_PROFILE_FLAG[] = "Ios:ProvisioningProfile:Flag";
-const char CMAKE_OSX_ARCHITECTURES_FLAG[] = "CMAKE_OSX_ARCHITECTURES:DefaultFlag";
+const char XMAKE_OSX_ARCHITECTURES_FLAG[] = "XMAKE_OSX_ARCHITECTURES:DefaultFlag";
 const char QT_QML_DEBUG_FLAG[] = "Qt:QML_DEBUG_FLAG";
 const char QT_QML_DEBUG_PARAM[] = "-DQT_QML_DEBUG";
-const char CMAKE_QT6_TOOLCHAIN_FILE_ARG[]
-    = "-DCMAKE_TOOLCHAIN_FILE:FILEPATH=%{Qt:QT_INSTALL_PREFIX}/lib/xmake/Qt6/qt.toolchain.xmake";
-const char CMAKE_BUILD_TYPE[] = "XMake.Build.Type";
+const char XMAKE_QT6_TOOLCHAIN_FILE_ARG[]
+    = "-DXMAKE_TOOLCHAIN_FILE:FILEPATH=%{Qt:QT_INSTALL_PREFIX}/lib/xmake/Qt6/qt.toolchain.xmake";
+const char XMAKE_BUILD_TYPE[] = "XMake.Build.Type";
 const char CLEAR_SYSTEM_ENVIRONMENT_KEY[] = "XMake.Configure.ClearSystemEnvironment";
 const char USER_ENVIRONMENT_CHANGES_KEY[] = "XMake.Configure.UserEnvironmentChanges";
 const char BASE_ENVIRONMENT_KEY[] = "XMake.Configure.BaseEnvironment";
@@ -188,7 +188,7 @@ XMakeBuildSettingsWidget::XMakeBuildSettingsWidget(XMakeBuildConfiguration *bc) 
     connect(&m_buildConfig->buildTypeAspect, &BaseAspect::changed, this, [this] {
         if (!m_buildConfig->xmakeBuildSystem()->isMultiConfig()) {
             XMakeConfig config;
-            config << XMakeConfigItem("CMAKE_BUILD_TYPE",
+            config << XMakeConfigItem("XMAKE_BUILD_TYPE",
                                       m_buildConfig->buildTypeAspect().toUtf8());
 
             m_configModel->setBatchEditConfiguration(config);
@@ -843,21 +843,21 @@ XMakeConfig XMakeBuildSettingsWidget::getQmlDebugCxxFlags()
     const bool enable = m_buildConfig->qmlDebugging() == TriState::Enabled;
 
     const XMakeConfig configList = m_buildConfig->xmakeBuildSystem()->configurationFromXMake();
-    const QByteArrayList cxxFlagsPrev{"CMAKE_CXX_FLAGS",
-                                      "CMAKE_CXX_FLAGS_DEBUG",
-                                      "CMAKE_CXX_FLAGS_RELWITHDEBINFO",
-                                      "CMAKE_CXX_FLAGS_INIT"};
-    const QByteArrayList cxxFlags{"CMAKE_CXX_FLAGS_INIT", "CMAKE_CXX_FLAGS"};
+    const QByteArrayList cxxFlagsPrev{"XMAKE_CXX_FLAGS",
+                                      "XMAKE_CXX_FLAGS_DEBUG",
+                                      "XMAKE_CXX_FLAGS_RELWITHDEBINFO",
+                                      "XMAKE_CXX_FLAGS_INIT"};
+    const QByteArrayList cxxFlags{"XMAKE_CXX_FLAGS_INIT", "XMAKE_CXX_FLAGS"};
     const QByteArray qmlDebug(QT_QML_DEBUG_PARAM);
 
     XMakeConfig changedConfig;
 
     if (enable) {
         const FilePath xmakeCache = m_buildConfig->buildDirectory().pathAppended(
-            Constants::CMAKE_CACHE_TXT);
+            Constants::XMAKE_CACHE_TXT);
 
-        // Only modify the CMAKE_CXX_FLAGS variable if the project was previously configured
-        // otherwise CMAKE_CXX_FLAGS_INIT will take care of setting the qmlDebug define
+        // Only modify the XMAKE_CXX_FLAGS variable if the project was previously configured
+        // otherwise XMAKE_CXX_FLAGS_INIT will take care of setting the qmlDebug define
         if (xmakeCache.exists()) {
             for (const XMakeConfigItem &item : configList) {
                 if (!cxxFlags.contains(item.key))
@@ -1109,13 +1109,13 @@ static CommandLine defaultInitialXMakeCommand(const Kit *k, const QString &build
     CommandLine cmd{tool->xmakeExecutable()};
     cmd.addArgs(XMakeGeneratorKitAspect::generatorArguments(k));
 
-    // CMAKE_BUILD_TYPE:
+    // XMAKE_BUILD_TYPE:
     if (!buildType.isEmpty() && !XMakeGeneratorKitAspect::isMultiConfigGenerator(k))
-        cmd.addArg("-DCMAKE_BUILD_TYPE:STRING=" + buildType);
+        cmd.addArg("-DXMAKE_BUILD_TYPE:STRING=" + buildType);
 
     // Package manager auto setup
     if (settings().packageManagerAutoSetup()) {
-        cmd.addArg(QString("-DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH="
+        cmd.addArg(QString("-DXMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH="
                            "%{BuildConfig:BuildDirectory:NativeFilePath}/%1/auto-setup.xmake")
                        .arg(Constants::PACKAGE_MANAGER_DIR));
     }
@@ -1124,11 +1124,11 @@ static CommandLine defaultInitialXMakeCommand(const Kit *k, const QString &build
     if (!XMakeBuildConfiguration::isIos(k)) { // iOS handles this differently
         const QString sysRoot = SysRootKitAspect::sysRoot(k).path();
         if (!sysRoot.isEmpty()) {
-            cmd.addArg("-DCMAKE_SYSROOT:PATH=" + sysRoot);
+            cmd.addArg("-DXMAKE_SYSROOT:PATH=" + sysRoot);
             if (Toolchain *tc = ToolchainKitAspect::cxxToolchain(k)) {
                 const QString targetTriple = tc->originalTargetTriple();
-                cmd.addArg("-DCMAKE_C_COMPILER_TARGET:STRING=" + targetTriple);
-                cmd.addArg("-DCMAKE_CXX_COMPILER_TARGET:STRING=" + targetTriple);
+                cmd.addArg("-DXMAKE_C_COMPILER_TARGET:STRING=" + targetTriple);
+                cmd.addArg("-DXMAKE_CXX_COMPILER_TARGET:STRING=" + targetTriple);
             }
         }
     }
@@ -1150,7 +1150,7 @@ static void addXMakeConfigurePresetToInitialArguments(QStringList &initialArgume
     if (presetItem.isNull())
         return;
 
-    // Remove the -DQTC_CMAKE_PRESET argument, which is only used as a kit marker
+    // Remove the -DQTC_XMAKE_PRESET argument, which is only used as a kit marker
     const QString presetArgument = presetItem.toArgument();
     const QString presetName = presetItem.expandedValue(k);
     initialArguments.removeIf(
@@ -1228,11 +1228,11 @@ static void addXMakeConfigurePresetToInitialArguments(QStringList &initialArgume
         const QString presetItemArg = presetItem.toArgument();
         const QString presetItemArgNoType = presetItemArg.left(presetItemArg.indexOf(":"));
 
-        static QSet<QByteArray> defaultKitMacroValues{"CMAKE_C_COMPILER",
-                                                      "CMAKE_CXX_COMPILER",
+        static QSet<QByteArray> defaultKitMacroValues{"XMAKE_C_COMPILER",
+                                                      "XMAKE_CXX_COMPILER",
                                                       "QT_QMAKE_EXECUTABLE",
                                                       "QT_HOST_PATH",
-                                                      "CMAKE_PROJECT_INCLUDE_BEFORE"};
+                                                      "XMAKE_PROJECT_INCLUDE_BEFORE"};
 
         auto it = std::find_if(initialArguments.begin(),
                                initialArguments.end(),
@@ -1250,7 +1250,7 @@ static void addXMakeConfigurePresetToInitialArguments(QStringList &initialArgume
                 continue;
 
             // For multi value path variables append the non Qt path
-            if (argItem.key == "CMAKE_PREFIX_PATH" || argItem.key == "CMAKE_FIND_ROOT_PATH") {
+            if (argItem.key == "XMAKE_PREFIX_PATH" || argItem.key == "XMAKE_FIND_ROOT_PATH") {
                 QStringList presetValueList = presetItem.expandedValue(k).split(";");
 
                 // Remove the expanded Qt path from the presets values
@@ -1274,7 +1274,7 @@ static void addXMakeConfigurePresetToInitialArguments(QStringList &initialArgume
                 }
 
                 arg = argItem.toArgument();
-            } else if (argItem.key == "CMAKE_TOOLCHAIN_FILE") {
+            } else if (argItem.key == "XMAKE_TOOLCHAIN_FILE") {
                 const FilePath argFilePath = FilePath::fromString(argItem.expandedValue(k));
                 const FilePath presetFilePath = FilePath::fromUserInput(
                     QString::fromUtf8(presetItem.value));
@@ -1351,9 +1351,9 @@ XMakeBuildConfiguration::XMakeBuildConfiguration(Target *target, Id id)
                 return newDir;
 
             const FilePath oldDirXMakeCache = FilePath::fromUserInput(oldDir).pathAppended(
-                Constants::CMAKE_CACHE_TXT);
+                Constants::XMAKE_CACHE_TXT);
             const FilePath newDirXMakeCache = FilePath::fromUserInput(newDir).pathAppended(
-                Constants::CMAKE_CACHE_TXT);
+                Constants::XMAKE_CACHE_TXT);
 
             if (oldDirXMakeCache.exists() && !newDirXMakeCache.exists()) {
                 if (QMessageBox::information(
@@ -1375,7 +1375,7 @@ XMakeBuildConfiguration::XMakeBuildConfiguration(Target *target, Id id)
     // Will not be displayed, only persisted
     sourceDirectory.setSettingsKey("XMake.Source.Directory");
 
-    buildTypeAspect.setSettingsKey(CMAKE_BUILD_TYPE);
+    buildTypeAspect.setSettingsKey(XMAKE_BUILD_TYPE);
     buildTypeAspect.setLabelText(Tr::tr("Build type:"));
     buildTypeAspect.setDisplayStyle(StringAspect::LineEditDisplay);
     buildTypeAspect.setDefaultValue("Unknown");
@@ -1405,7 +1405,7 @@ XMakeBuildConfiguration::XMakeBuildConfiguration(Target *target, Id id)
                                           return QString();
                                       });
 
-    macroExpander()->registerVariable(CMAKE_OSX_ARCHITECTURES_FLAG,
+    macroExpander()->registerVariable(XMAKE_OSX_ARCHITECTURES_FLAG,
                                       Tr::tr("The XMake flag for the architecture on macOS"),
                                       [target] {
                                           if (HostOsInfo::isRunningUnderRosetta()) {
@@ -1413,7 +1413,7 @@ XMakeBuildConfiguration::XMakeBuildConfiguration(Target *target, Id id)
                                                   const Abis abis = qt->qtAbis();
                                                   for (const Abi &abi : abis) {
                                                       if (abi.architecture() == Abi::ArmArchitecture)
-                                                          return QLatin1String("-DCMAKE_OSX_ARCHITECTURES=arm64");
+                                                          return QLatin1String("-DXMAKE_OSX_ARCHITECTURES=arm64");
                                                   }
                                               }
                                           }
@@ -1437,8 +1437,8 @@ XMakeBuildConfiguration::XMakeBuildConfiguration(Target *target, Id id)
         const Kit *k = target->kit();
         const QtSupport::QtVersion *qt = QtSupport::QtKitAspect::qtVersion(k);
         const Store extraInfoMap = storeFromVariant(info.extraInfo);
-        const QString buildType = extraInfoMap.contains(CMAKE_BUILD_TYPE)
-                                      ? extraInfoMap.value(CMAKE_BUILD_TYPE).toString()
+        const QString buildType = extraInfoMap.contains(XMAKE_BUILD_TYPE)
+                                      ? extraInfoMap.value(XMAKE_BUILD_TYPE).toString()
                                       : info.typeName;
 
         CommandLine cmd = defaultInitialXMakeCommand(k, buildType);
@@ -1461,7 +1461,7 @@ XMakeBuildConfiguration::XMakeBuildConfiguration(Target *target, Id id)
             auto ndkLocation = bs->data(Android::Constants::NdkLocation).value<FilePath>();
             cmd.addArg("-DANDROID_NDK:PATH=" + ndkLocation.path());
 
-            cmd.addArg("-DCMAKE_TOOLCHAIN_FILE:FILEPATH="
+            cmd.addArg("-DXMAKE_TOOLCHAIN_FILE:FILEPATH="
                    + ndkLocation.pathAppended("build/xmake/android.toolchain.xmake").path());
             cmd.addArg("-DANDROID_USE_LEGACY_TOOLCHAIN_FILE:BOOL=OFF");
 
@@ -1477,7 +1477,7 @@ XMakeBuildConfiguration::XMakeBuildConfiguration(Target *target, Id id)
             }
             cmd.addArg("-DANDROID_ABI:STRING=" + preferredAbi);
             cmd.addArg("-DANDROID_STL:STRING=c++_shared");
-            cmd.addArg("-DCMAKE_FIND_ROOT_PATH:PATH=%{Qt:QT_INSTALL_PREFIX}");
+            cmd.addArg("-DXMAKE_FIND_ROOT_PATH:PATH=%{Qt:QT_INSTALL_PREFIX}");
 
             auto sdkLocation = bs->data(Android::Constants::SdkLocation).value<FilePath>();
 
@@ -1500,7 +1500,7 @@ XMakeBuildConfiguration::XMakeBuildConfiguration(Target *target, Id id)
         if (XMakeBuildConfiguration::isIos(k)) {
             if (qt && qt->qtVersion().majorVersion() >= 6) {
                 // TODO it would be better if we could set
-                // CMAKE_SYSTEM_NAME=iOS and CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH=YES
+                // XMAKE_SYSTEM_NAME=iOS and XMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH=YES
                 // and build with "xmake --build . -- -arch <arch>" instead of setting the architecture
                 // and sysroot in the XMake configuration, but that currently doesn't work with Qt/XMake
                 // https://gitlab.kitware.com/xmake/xmake/-/issues/21276
@@ -1512,19 +1512,19 @@ XMakeBuildConfiguration::XMakeBuildConfiguration(Target *target, Id id)
                 const QString sysroot = deviceType == Ios::Constants::IOS_DEVICE_TYPE
                                             ? QLatin1String("iphoneos")
                                             : QLatin1String("iphonesimulator");
-                cmd.addArg(CMAKE_QT6_TOOLCHAIN_FILE_ARG);
-                cmd.addArg("-DCMAKE_OSX_ARCHITECTURES:STRING=" + architecture);
-                cmd.addArg("-DCMAKE_OSX_SYSROOT:STRING=" + sysroot);
+                cmd.addArg(XMAKE_QT6_TOOLCHAIN_FILE_ARG);
+                cmd.addArg("-DXMAKE_OSX_ARCHITECTURES:STRING=" + architecture);
+                cmd.addArg("-DXMAKE_OSX_SYSROOT:STRING=" + sysroot);
                 cmd.addArg("%{" + QLatin1String(DEVELOPMENT_TEAM_FLAG) + "}");
                 cmd.addArg("%{" + QLatin1String(PROVISIONING_PROFILE_FLAG) + "}");
             }
         } else if (device && device->osType() == Utils::OsTypeMac) {
-            cmd.addArg("%{" + QLatin1String(CMAKE_OSX_ARCHITECTURES_FLAG) + "}");
+            cmd.addArg("%{" + QLatin1String(XMAKE_OSX_ARCHITECTURES_FLAG) + "}");
         }
 
         if (isWebAssembly(k) || isQnx(k) || isWindowsARM64(k)) {
             if (qt && qt->qtVersion().majorVersion() >= 6)
-                cmd.addArg(CMAKE_QT6_TOOLCHAIN_FILE_ARG);
+                cmd.addArg(XMAKE_QT6_TOOLCHAIN_FILE_ARG);
         }
 
         if (info.buildDirectory.isEmpty()) {
@@ -1534,15 +1534,15 @@ XMakeBuildConfiguration::XMakeBuildConfiguration(Target *target, Id id)
                                                    info.buildType));
         }
 
-        if (extraInfoMap.contains(Constants::CMAKE_HOME_DIR))
-            sourceDirectory.setValue(FilePath::fromVariant(extraInfoMap.value(Constants::CMAKE_HOME_DIR)));
+        if (extraInfoMap.contains(Constants::XMAKE_HOME_DIR))
+            sourceDirectory.setValue(FilePath::fromVariant(extraInfoMap.value(Constants::XMAKE_HOME_DIR)));
 
         qmlDebugging.setValue(extraInfoMap.contains(Constants::QML_DEBUG_SETTING)
                                   ? TriState::fromVariant(extraInfoMap.value(Constants::QML_DEBUG_SETTING))
                                   : TriState::Default);
 
         if (qt && qt->isQmlDebuggingSupported())
-            cmd.addArg("-DCMAKE_CXX_FLAGS_INIT:STRING=%{" + QLatin1String(QT_QML_DEBUG_FLAG) + "}");
+            cmd.addArg("-DXMAKE_CXX_FLAGS_INIT:STRING=%{" + QLatin1String(QT_QML_DEBUG_FLAG) + "}");
 
         XMakeProject *xmakeProject = static_cast<XMakeProject *>(target->project());
         configureEnv.setUserEnvironmentChanges(
@@ -1599,8 +1599,8 @@ bool XMakeBuildConfiguration::hasQmlDebugging(const XMakeConfig &config)
     // Determine QML debugging flags. This must match what we do in
     // XMakeBuildSettingsWidget::getQmlDebugCxxFlags()
     // such that in doubt we leave the QML Debugging setting at "Leave at default"
-    const QString cxxFlagsInit = config.stringValueOf("CMAKE_CXX_FLAGS_INIT");
-    const QString cxxFlags = config.stringValueOf("CMAKE_CXX_FLAGS");
+    const QString cxxFlagsInit = config.stringValueOf("XMAKE_CXX_FLAGS_INIT");
+    const QString cxxFlags = config.stringValueOf("XMAKE_CXX_FLAGS");
     return cxxFlagsInit.contains(QT_QML_DEBUG_PARAM) && cxxFlags.contains(QT_QML_DEBUG_PARAM);
 }
 
@@ -1609,7 +1609,7 @@ void XMakeBuildConfiguration::buildTarget(const QString &buildTarget)
     auto cmBs = qobject_cast<XMakeBuildStep *>(findOrDefault(
                                                    buildSteps()->steps(),
                                                    [](const BuildStep *bs) {
-        return bs->id() == Constants::CMAKE_BUILD_STEP_ID;
+        return bs->id() == Constants::XMAKE_BUILD_STEP_ID;
     }));
 
     QStringList originalBuildTargets;
@@ -1708,7 +1708,7 @@ void XMakeBuildConfiguration::setAdditionalXMakeArguments(const QStringList &arg
 void XMakeBuildConfiguration::filterConfigArgumentsFromAdditionalXMakeArguments()
 {
     // On iOS the %{Ios:DevelopmentTeam:Flag} evalues to something like
-    // -DCMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM:STRING=MAGICSTRING
+    // -DXMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM:STRING=MAGICSTRING
     // which is already part of the XMake variables and should not be also
     // in the addtional XMake options
     const QStringList arguments = ProcessArgs::splitArgs(additionalXMakeOptions(),
@@ -1792,9 +1792,9 @@ void XMakeBuildConfiguration::setInitialBuildAndCleanSteps(const Target *target)
     }
 
     for (int i = 0; i < buildSteps; ++i)
-        appendInitialBuildStep(Constants::CMAKE_BUILD_STEP_ID);
+        appendInitialBuildStep(Constants::XMAKE_BUILD_STEP_ID);
 
-    appendInitialCleanStep(Constants::CMAKE_BUILD_STEP_ID);
+    appendInitialCleanStep(Constants::XMAKE_BUILD_STEP_ID);
 }
 
 void XMakeBuildConfiguration::setBuildPresetToBuildSteps(const ProjectExplorer::Target *target)
@@ -1821,7 +1821,7 @@ void XMakeBuildConfiguration::setBuildPresetToBuildSteps(const ProjectExplorer::
 
     const QList<BuildStep *> buildStepList
         = Utils::filtered(buildSteps()->steps(), [](const BuildStep *bs) {
-              return bs->id() == Constants::CMAKE_BUILD_STEP_ID;
+              return bs->id() == Constants::XMAKE_BUILD_STEP_ID;
           });
 
     if (buildPresets.size() != buildStepList.size())
@@ -1880,10 +1880,10 @@ void XMakeBuildConfiguration::setBuildPresetToBuildSteps(const ProjectExplorer::
 
 XMakeBuildConfigurationFactory::XMakeBuildConfigurationFactory()
 {
-    registerBuildConfiguration<XMakeBuildConfiguration>(Constants::CMAKE_BUILDCONFIGURATION_ID);
+    registerBuildConfiguration<XMakeBuildConfiguration>(Constants::XMAKE_BUILDCONFIGURATION_ID);
 
-    setSupportedProjectType(XMakeProjectManager::Constants::CMAKE_PROJECT_ID);
-    setSupportedProjectMimeTypeName(Utils::Constants::CMAKE_PROJECT_MIMETYPE);
+    setSupportedProjectType(XMakeProjectManager::Constants::XMAKE_PROJECT_ID);
+    setSupportedProjectMimeTypeName(Utils::Constants::XMAKE_PROJECT_MIMETYPE);
 
     setBuildGenerator([](const Kit *k, const FilePath &projectPath, bool forSetup) {
         QList<BuildInfo> result;
@@ -1973,7 +1973,7 @@ BuildInfo XMakeBuildConfigurationFactory::createBuildInfo(BuildType buildType)
         info.buildType = BuildConfiguration::Profile;
         Store extraInfo;
         // override XMake build type, which defaults to info.typeName
-        extraInfo.insert(CMAKE_BUILD_TYPE, "RelWithDebInfo");
+        extraInfo.insert(XMAKE_BUILD_TYPE, "RelWithDebInfo");
         // enable QML debugging by default
         extraInfo.insert(Constants::QML_DEBUG_SETTING, TriState::Enabled.toVariant());
         info.extraInfo = variantFromStore(extraInfo);
@@ -1994,9 +1994,9 @@ BuildConfiguration::BuildType XMakeBuildConfiguration::buildType() const
 
 BuildConfiguration::BuildType XMakeBuildSystem::buildType() const
 {
-    QByteArray xmakeBuildTypeName = m_configurationFromXMake.valueOf("CMAKE_BUILD_TYPE");
+    QByteArray xmakeBuildTypeName = m_configurationFromXMake.valueOf("XMAKE_BUILD_TYPE");
     if (xmakeBuildTypeName.isEmpty()) {
-        QByteArray xmakeCfgTypes = m_configurationFromXMake.valueOf("CMAKE_CONFIGURATION_TYPES");
+        QByteArray xmakeCfgTypes = m_configurationFromXMake.valueOf("XMAKE_CONFIGURATION_TYPES");
         if (!xmakeCfgTypes.isEmpty())
             xmakeBuildTypeName = xmakeBuildType().toUtf8();
     }
@@ -2040,7 +2040,7 @@ QString XMakeBuildSystem::xmakeBuildType() const
 {
     auto setBuildTypeFromConfig = [this](const XMakeConfig &config) {
         auto it = std::find_if(config.begin(), config.end(), [](const XMakeConfigItem &item) {
-            return item.key == "CMAKE_BUILD_TYPE" && !item.isInitial;
+            return item.key == "XMAKE_BUILD_TYPE" && !item.isInitial;
         });
         if (it != config.end())
             xmakeBuildConfiguration()->setXMakeBuildType(QString::fromUtf8(it->value));
@@ -2052,7 +2052,7 @@ QString XMakeBuildSystem::xmakeBuildType() const
     QString xmakeBuildType = xmakeBuildConfiguration()->buildTypeAspect();
 
     const Utils::FilePath xmakeCacheTxt = buildConfiguration()->buildDirectory().pathAppended(
-        Constants::CMAKE_CACHE_TXT);
+        Constants::XMAKE_CACHE_TXT);
     const bool hasXMakeCache = xmakeCacheTxt.exists();
     XMakeConfig config;
 
@@ -2109,11 +2109,11 @@ void InitialXMakeArgumentsAspect::setAllValues(const QString &values, QStringLis
     QString xmakeGenerator;
     for (QString &arg: arguments) {
         if (arg.startsWith("-G"))
-            arg.replace("-G", "-DCMAKE_GENERATOR:STRING=");
+            arg.replace("-G", "-DXMAKE_GENERATOR:STRING=");
         if (arg.startsWith("-A"))
-            arg.replace("-A", "-DCMAKE_GENERATOR_PLATFORM:STRING=");
+            arg.replace("-A", "-DXMAKE_GENERATOR_PLATFORM:STRING=");
         if (arg.startsWith("-T"))
-            arg.replace("-T", "-DCMAKE_GENERATOR_TOOLSET:STRING=");
+            arg.replace("-T", "-DXMAKE_GENERATOR_TOOLSET:STRING=");
     }
     if (!xmakeGenerator.isEmpty())
         arguments.append(xmakeGenerator);

@@ -53,7 +53,7 @@ bool XMakeListsNode::showInSimpleTree() const
 
 std::optional<FilePath> XMakeListsNode::visibleAfterAddFileAction() const
 {
-    return filePath().pathAppended(Constants::CMAKE_LISTS_TXT);
+    return filePath().pathAppended(Constants::XMAKE_LISTS_TXT);
 }
 
 XMakeProjectNode::XMakeProjectNode(const FilePath &directory) :
@@ -172,7 +172,7 @@ QVariant XMakeTargetNode::data(Id role) const
     }
 
     if (role == Ios::Constants::IosCmakeGenerator)
-        return value("CMAKE_GENERATOR");
+        return value("XMAKE_GENERATOR");
 
     if (role == ProjectExplorer::Constants::QT_KEYWORDS_ENABLED) // FIXME handle correctly
         return value(role.toString().toUtf8());
@@ -189,7 +189,7 @@ void XMakeTargetNode::setConfig(const XMakeConfig &config)
 
 std::optional<FilePath> XMakeTargetNode::visibleAfterAddFileAction() const
 {
-    return filePath().pathAppended(Constants::CMAKE_LISTS_TXT);
+    return filePath().pathAppended(Constants::XMAKE_LISTS_TXT);
 }
 
 void XMakeTargetNode::build()

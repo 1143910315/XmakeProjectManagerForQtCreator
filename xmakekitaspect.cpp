@@ -324,7 +324,7 @@ void XMakeKitAspectFactory::addToMacroExpander(Kit *k, MacroExpander *expander) 
 QSet<Id> XMakeKitAspectFactory::availableFeatures(const Kit *k) const
 {
     if (XMakeKitAspect::xmakeTool(k))
-        return { XMakeProjectManager::Constants::CMAKE_FEATURE_ID };
+        return { XMakeProjectManager::Constants::XMAKE_FEATURE_ID };
     return {};
 }
 
@@ -629,13 +629,13 @@ XMakeConfig XMakeGeneratorKitAspect::generatorXMakeConfig(const Kit *k)
     if (info.generator.isEmpty())
         return config;
 
-    config << XMakeConfigItem("CMAKE_GENERATOR", info.generator.toUtf8());
+    config << XMakeConfigItem("XMAKE_GENERATOR", info.generator.toUtf8());
 
     if (!info.platform.isEmpty())
-        config << XMakeConfigItem("CMAKE_GENERATOR_PLATFORM", info.platform.toUtf8());
+        config << XMakeConfigItem("XMAKE_GENERATOR_PLATFORM", info.platform.toUtf8());
 
     if (!info.toolset.isEmpty())
-        config << XMakeConfigItem("CMAKE_GENERATOR_TOOLSET", info.toolset.toUtf8());
+        config << XMakeConfigItem("XMAKE_GENERATOR_TOOLSET", info.toolset.toUtf8());
 
     return config;
 }
@@ -853,11 +853,11 @@ void XMakeGeneratorKitAspectFactory::addToBuildEnvironment(const Kit *k, Environ
 const char CONFIGURATION_ID[] = "XMake.ConfigurationKitInformation";
 const char ADDITIONAL_CONFIGURATION_ID[] = "XMake.AdditionalConfigurationParameters";
 
-const char CMAKE_C_TOOLCHAIN_KEY[] = "CMAKE_C_COMPILER";
-const char CMAKE_CXX_TOOLCHAIN_KEY[] = "CMAKE_CXX_COMPILER";
-const char CMAKE_QMAKE_KEY[] = "QT_QMAKE_EXECUTABLE";
-const char CMAKE_PREFIX_PATH_KEY[] = "CMAKE_PREFIX_PATH";
-const char QTC_CMAKE_PRESET_KEY[] = "QTC_CMAKE_PRESET";
+const char XMAKE_C_TOOLCHAIN_KEY[] = "XMAKE_C_COMPILER";
+const char XMAKE_CXX_TOOLCHAIN_KEY[] = "XMAKE_CXX_COMPILER";
+const char XMAKE_QMAKE_KEY[] = "QT_QMAKE_EXECUTABLE";
+const char XMAKE_PREFIX_PATH_KEY[] = "XMAKE_PREFIX_PATH";
+const char QTC_XMAKE_PRESET_KEY[] = "QTC_XMAKE_PRESET";
 
 class XMakeConfigurationKitAspectWidget final : public KitAspect
 {
@@ -1090,12 +1090,12 @@ XMakeConfig XMakeConfigurationKitAspect::defaultConfiguration(const Kit *k)
     Q_UNUSED(k)
     XMakeConfig config;
     // Qt4:
-    config << XMakeConfigItem(CMAKE_QMAKE_KEY, XMakeConfigItem::FILEPATH, "%{Qt:qmakeExecutable}");
+    config << XMakeConfigItem(XMAKE_QMAKE_KEY, XMakeConfigItem::FILEPATH, "%{Qt:qmakeExecutable}");
     // Qt5:
-    config << XMakeConfigItem(CMAKE_PREFIX_PATH_KEY, XMakeConfigItem::PATH, "%{Qt:QT_INSTALL_PREFIX}");
+    config << XMakeConfigItem(XMAKE_PREFIX_PATH_KEY, XMakeConfigItem::PATH, "%{Qt:QT_INSTALL_PREFIX}");
 
-    config << XMakeConfigItem(CMAKE_C_TOOLCHAIN_KEY, XMakeConfigItem::FILEPATH, "%{Compiler:Executable:C}");
-    config << XMakeConfigItem(CMAKE_CXX_TOOLCHAIN_KEY, XMakeConfigItem::FILEPATH, "%{Compiler:Executable:Cxx}");
+    config << XMakeConfigItem(XMAKE_C_TOOLCHAIN_KEY, XMakeConfigItem::FILEPATH, "%{Compiler:Executable:C}");
+    config << XMakeConfigItem(XMAKE_CXX_TOOLCHAIN_KEY, XMakeConfigItem::FILEPATH, "%{Compiler:Executable:Cxx}");
 
     return config;
 }
@@ -1104,7 +1104,7 @@ void XMakeConfigurationKitAspect::setXMakePreset(Kit *k, const QString &presetNa
 {
     XMakeConfig config = configuration(k);
     config.prepend(
-        XMakeConfigItem(QTC_CMAKE_PRESET_KEY, XMakeConfigItem::INTERNAL, presetName.toUtf8()));
+        XMakeConfigItem(QTC_XMAKE_PRESET_KEY, XMakeConfigItem::INTERNAL, presetName.toUtf8()));
 
     setConfiguration(k, config);
 }
@@ -1113,7 +1113,7 @@ XMakeConfigItem XMakeConfigurationKitAspect::xmakePresetConfigItem(const Kit *k)
 {
     const XMakeConfig config = configuration(k);
     return Utils::findOrDefault(config, [](const XMakeConfigItem &item) {
-        return item.key == QTC_CMAKE_PRESET_KEY;
+        return item.key == QTC_XMAKE_PRESET_KEY;
     });
 }
 
@@ -1147,13 +1147,13 @@ Tasks XMakeConfigurationKitAspectFactory::validate(const Kit *k) const
     for (const XMakeConfigItem &i : config) {
         // Do not use expand(QByteArray) as we cannot be sure the input is latin1
         const QString expandedValue = k->macroExpander()->expand(QString::fromUtf8(i.value));
-        if (i.key == CMAKE_QMAKE_KEY)
+        if (i.key == XMAKE_QMAKE_KEY)
             qmakePath = xmake->xmakeExecutable().withNewPath(expandedValue);
-        else if (i.key == CMAKE_C_TOOLCHAIN_KEY)
+        else if (i.key == XMAKE_C_TOOLCHAIN_KEY)
             tcCPath = xmake->xmakeExecutable().withNewPath(expandedValue);
-        else if (i.key == CMAKE_CXX_TOOLCHAIN_KEY)
+        else if (i.key == XMAKE_CXX_TOOLCHAIN_KEY)
             tcCxxPath = xmake->xmakeExecutable().withNewPath(expandedValue);
-        else if (i.key == CMAKE_PREFIX_PATH_KEY)
+        else if (i.key == XMAKE_PREFIX_PATH_KEY)
             qtInstallDirs = XMakeConfigItem::xmakeSplitValue(expandedValue);
     }
 
@@ -1180,7 +1180,7 @@ Tasks XMakeConfigurationKitAspectFactory::validate(const Kit *k) const
     }
     if (version && !qtInstallDirs.contains(version->prefix().path()) && !isQt4) {
         if (version->isValid()) {
-            addWarning(Tr::tr("XMake configuration has no CMAKE_PREFIX_PATH set "
+            addWarning(Tr::tr("XMake configuration has no XMAKE_PREFIX_PATH set "
                           "that points to the kit Qt version."));
         }
     }

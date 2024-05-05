@@ -37,10 +37,10 @@ public:
 // Helpers:
 // --------------------------------------------------------------------
 
-const char CMAKE_TOOL_COUNT_KEY[] = "XMakeTools.Count";
-const char CMAKE_TOOL_DATA_KEY[] = "XMakeTools.";
-const char CMAKE_TOOL_DEFAULT_KEY[] = "XMakeTools.Default";
-const char CMAKE_TOOL_FILENAME[] = "xmaketools.xml";
+const char XMAKE_TOOL_COUNT_KEY[] = "XMakeTools.Count";
+const char XMAKE_TOOL_DATA_KEY[] = "XMakeTools.";
+const char XMAKE_TOOL_DEFAULT_KEY[] = "XMakeTools.Default";
+const char XMAKE_TOOL_FILENAME[] = "xmaketools.xml";
 
 static std::vector<std::unique_ptr<XMakeTool>> autoDetectXMakeTools()
 {
@@ -132,7 +132,7 @@ XMakeToolSettingsAccessor::XMakeToolSettingsAccessor()
 {
     setDocType("QtCreatorXMakeTools");
     setApplicationDisplayName(QGuiApplication::applicationDisplayName());
-    setBaseFilePath(Core::ICore::userResourcePath(CMAKE_TOOL_FILENAME));
+    setBaseFilePath(Core::ICore::userResourcePath(XMAKE_TOOL_FILENAME));
 
     addVersionUpgrader(std::make_unique<XMakeToolSettingsUpgraderV0>());
 }
@@ -141,7 +141,7 @@ XMakeToolSettingsAccessor::XMakeTools XMakeToolSettingsAccessor::restoreXMakeToo
 {
     XMakeTools result;
 
-    const FilePath sdkSettingsFile = Core::ICore::installerResourcePath(CMAKE_TOOL_FILENAME);
+    const FilePath sdkSettingsFile = Core::ICore::installerResourcePath(XMAKE_TOOL_FILENAME);
 
     XMakeTools sdkTools = xmakeTools(restoreSettings(sdkSettingsFile, parent), true);
 
@@ -171,7 +171,7 @@ void XMakeToolSettingsAccessor::saveXMakeTools(const QList<XMakeTool *> &xmakeTo
                                                QWidget *parent)
 {
     Store data;
-    data.insert(CMAKE_TOOL_DEFAULT_KEY, defaultId.toSetting());
+    data.insert(XMAKE_TOOL_DEFAULT_KEY, defaultId.toSetting());
 
     int count = 0;
     const bool autoRun = settings().autorunXMake();
@@ -186,11 +186,11 @@ void XMakeToolSettingsAccessor::saveXMakeTools(const QList<XMakeTool *> &xmakeTo
             Store tmp = item->toMap();
             if (tmp.isEmpty())
                 continue;
-            data.insert(numberedKey(CMAKE_TOOL_DATA_KEY, count), variantFromStore(tmp));
+            data.insert(numberedKey(XMAKE_TOOL_DATA_KEY, count), variantFromStore(tmp));
             ++count;
         }
     }
-    data.insert(CMAKE_TOOL_COUNT_KEY, count);
+    data.insert(XMAKE_TOOL_COUNT_KEY, count);
 
     saveSettings(data, parent);
 }
@@ -200,9 +200,9 @@ XMakeToolSettingsAccessor::xmakeTools(const Store &data, bool fromSdk) const
 {
     XMakeTools result;
 
-    int count = data.value(CMAKE_TOOL_COUNT_KEY, 0).toInt();
+    int count = data.value(XMAKE_TOOL_COUNT_KEY, 0).toInt();
     for (int i = 0; i < count; ++i) {
-        const Key key = numberedKey(CMAKE_TOOL_DATA_KEY, i);
+        const Key key = numberedKey(XMAKE_TOOL_DATA_KEY, i);
         if (!data.contains(key))
             continue;
 
@@ -218,7 +218,7 @@ XMakeToolSettingsAccessor::xmakeTools(const Store &data, bool fromSdk) const
         result.xmakeTools.emplace_back(std::move(item));
     }
 
-    result.defaultToolId = Id::fromSetting(data.value(CMAKE_TOOL_DEFAULT_KEY, Id().toSetting()));
+    result.defaultToolId = Id::fromSetting(data.value(XMAKE_TOOL_DEFAULT_KEY, Id().toSetting()));
 
     return result;
 }

@@ -393,7 +393,7 @@ XMakeConfig XMakeConfig::fromFile(const Utils::FilePath &cacheFile, QString *err
 
         if (valuesMap.contains(item.key)) {
             item.values = XMakeConfigItem::xmakeSplitValue(QString::fromUtf8(valuesMap[item.key]));
-        } else if (item.key  == "CMAKE_BUILD_TYPE") {
+        } else if (item.key  == "XMAKE_BUILD_TYPE") {
             // WA for known options
             item.values << "" << "Debug" << "Release" << "MinSizeRel" << "RelWithDebInfo";
         }

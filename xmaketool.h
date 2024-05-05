@@ -19,7 +19,7 @@ namespace XMakeProjectManager {
 
 namespace Internal {  class IntrospectionData;  }
 
-struct CMAKE_EXPORT XMakeKeywords
+struct XMAKE_EXPORT XMakeKeywords
 {
     QMap<QString, Utils::FilePath> variables;
     QMap<QString, Utils::FilePath> functions;
@@ -36,7 +36,7 @@ struct CMAKE_EXPORT XMakeKeywords
     QMap<QString, QStringList> functionArgs;
 };
 
-class CMAKE_EXPORT XMakeTool
+class XMAKE_EXPORT XMakeTool
 {
 public:
     enum Detection { ManualDetection, AutoDetection };

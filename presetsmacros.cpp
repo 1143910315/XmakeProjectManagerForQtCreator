@@ -246,17 +246,17 @@ void updateToolchainFile(
 
     const QString toolchainFileString = toolchainFile.cleanPath().toString();
 
-    // toolchainFile takes precedence to CMAKE_TOOLCHAIN_FILE
+    // toolchainFile takes precedence to XMAKE_TOOLCHAIN_FILE
     XMakeConfig cache = configurePreset.cacheVariables ? configurePreset.cacheVariables.value()
                                                        : XMakeConfig();
 
     auto it = std::find_if(cache.begin(), cache.end(), [](const XMakeConfigItem &item) {
-        return item.key == "CMAKE_TOOLCHAIN_FILE";
+        return item.key == "XMAKE_TOOLCHAIN_FILE";
     });
     if (it != cache.end())
         it->value = toolchainFileString.toUtf8();
     else
-        cache << XMakeConfigItem("CMAKE_TOOLCHAIN_FILE",
+        cache << XMakeConfigItem("XMAKE_TOOLCHAIN_FILE",
                                  XMakeConfigItem::FILEPATH,
                                  toolchainFileString.toUtf8());
 
@@ -283,17 +283,17 @@ void updateInstallDir(PresetsDetails::ConfigurePreset &configurePreset,
     }
     installDirString = installDir.cleanPath().toString();
 
-    // installDir takes precedence to CMAKE_INSTALL_PREFIX
+    // installDir takes precedence to XMAKE_INSTALL_PREFIX
     XMakeConfig cache = configurePreset.cacheVariables ? configurePreset.cacheVariables.value()
                                                        : XMakeConfig();
 
     auto it = std::find_if(cache.begin(), cache.end(), [](const XMakeConfigItem &item) {
-        return item.key == "CMAKE_INSTALL_PREFIX";
+        return item.key == "XMAKE_INSTALL_PREFIX";
     });
     if (it != cache.end())
         it->value = installDirString.toUtf8();
     else
-        cache << XMakeConfigItem("CMAKE_INSTALL_PREFIX",
+        cache << XMakeConfigItem("XMAKE_INSTALL_PREFIX",
                                  XMakeConfigItem::PATH,
                                  installDirString.toUtf8());
 
@@ -312,15 +312,15 @@ void updateCacheVariables(PresetsDetails::ConfigurePreset &configurePreset,
 
     XMakeConfig cache = configurePreset.cacheVariables.value();
 
-    static const QSet<QByteArray> pathKeys{"CMAKE_C_COMPILER",
-                                           "CMAKE_CXX_COMPILER",
-                                           "CMAKE_PREFIX_PATH",
-                                           "CMAKE_FIND_ROOT_PATH",
-                                           "CMAKE_MAKE_PROGRAM",
-                                           "CMAKE_TOOLCHAIN_FILE",
+    static const QSet<QByteArray> pathKeys{"XMAKE_C_COMPILER",
+                                           "XMAKE_CXX_COMPILER",
+                                           "XMAKE_PREFIX_PATH",
+                                           "XMAKE_FIND_ROOT_PATH",
+                                           "XMAKE_MAKE_PROGRAM",
+                                           "XMAKE_TOOLCHAIN_FILE",
                                            "QT_HOST_PATH",
                                            "QT_QMAKE_EXECUTABLE",
-                                           "CMAKE_SYSROOT"};
+                                           "XMAKE_SYSROOT"};
 
     auto expandCacheValue =
         [configurePreset, env, sourceDirectory, cache](const QByteArray &key) {

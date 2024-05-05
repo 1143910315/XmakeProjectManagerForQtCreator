@@ -46,7 +46,7 @@ public:
         };
     } // namespace Internal
 
-    class CMAKE_EXPORT XMakeBuildConfiguration : public ProjectExplorer::BuildConfiguration {
+    class XMAKE_EXPORT XMakeBuildConfiguration : public ProjectExplorer::BuildConfiguration {
         Q_OBJECT
 public:
         XMakeBuildConfiguration(ProjectExplorer::Target *target, Utils::Id id);
@@ -100,7 +100,7 @@ private:
         friend class Internal::XMakeBuildSystem;
     };
 
-    class CMAKE_EXPORT XMakeBuildConfigurationFactory
+    class XMAKE_EXPORT XMakeBuildConfigurationFactory
         : public ProjectExplorer::BuildConfigurationFactory {
 public:
         XMakeBuildConfigurationFactory();

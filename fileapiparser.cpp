@@ -26,12 +26,12 @@ namespace XMakeProjectManager::Internal {
 
 using namespace FileApiDetails;
 
-const char CMAKE_RELATIVE_REPLY_PATH[] = ".xmake/api/v1/reply";
-const char CMAKE_RELATIVE_QUERY_PATH[] = ".xmake/api/v1/query";
+const char XMAKE_RELATIVE_REPLY_PATH[] = ".xmake/api/v1/reply";
+const char XMAKE_RELATIVE_QUERY_PATH[] = ".xmake/api/v1/query";
 
 static Q_LOGGING_CATEGORY(xmakeFileApi, "qtc.xmake.fileApi", QtWarningMsg);
 
-const QStringList CMAKE_QUERY_FILENAMES = {"cache-v2", "codemodel-v2", "xmakeFiles-v1"};
+const QStringList XMAKE_QUERY_FILENAMES = {"cache-v2", "codemodel-v2", "xmakeFiles-v1"};
 
 // --------------------------------------------------------------------
 // Helper:
@@ -39,7 +39,7 @@ const QStringList CMAKE_QUERY_FILENAMES = {"cache-v2", "codemodel-v2", "xmakeFil
 
 FilePath FileApiParser::xmakeReplyDirectory(const FilePath &buildDirectory)
 {
-    return buildDirectory.pathAppended(CMAKE_RELATIVE_REPLY_PATH);
+    return buildDirectory.pathAppended(XMAKE_RELATIVE_REPLY_PATH);
 }
 
 static void reportFileApiSetupFailure()
@@ -231,7 +231,7 @@ static std::vector<XMakeFileInfo> readXMakeFilesFile(const FilePath &xmakeFilesF
 
         info.isXMake = input.value("isXMake").toBool();
         const QString filename = info.path.fileName();
-        info.isXMakeListsDotTxt = (filename.compare(Constants::CMAKE_LISTS_TXT,
+        info.isXMakeListsDotTxt = (filename.compare(Constants::XMAKE_LISTS_TXT,
                                                     HostOsInfo::fileNameCaseSensitivity())
                                    == 0);
 
@@ -800,9 +800,9 @@ FilePath FileApiDetails::ReplyFileContents::jsonFile(const QString &kind, const 
 bool FileApiParser::setupXMakeFileApi(const FilePath &buildDirectory)
 {
     // So that we have a directory to watch.
-    buildDirectory.pathAppended(CMAKE_RELATIVE_REPLY_PATH).ensureWritableDir();
+    buildDirectory.pathAppended(XMAKE_RELATIVE_REPLY_PATH).ensureWritableDir();
 
-    FilePath queryDir = buildDirectory.pathAppended(CMAKE_RELATIVE_QUERY_PATH);
+    FilePath queryDir = buildDirectory.pathAppended(XMAKE_RELATIVE_QUERY_PATH);
     queryDir.ensureWritableDir();
 
     if (!queryDir.exists()) {
@@ -861,7 +861,7 @@ FileApiData FileApiParser::parseData(QPromise<std::shared_ptr<FileApiQtcData>> &
         return {};
     const FilePath cachePathFromReply = result.replyFile.jsonFile("cache", replyDir);
     if (cachePathFromReply.isEmpty())
-        result.cache = XMakeConfig::fromFile(buildDir / Constants::CMAKE_CACHE_TXT, &errorMessage);
+        result.cache = XMakeConfig::fromFile(buildDir / Constants::XMAKE_CACHE_TXT, &errorMessage);
     else
         result.cache = readCacheFile(cachePathFromReply, errorMessage);
     if (cancelCheck())
@@ -891,12 +891,12 @@ FileApiData FileApiParser::parseData(QPromise<std::shared_ptr<FileApiQtcData>> &
 
         if (result.replyFile.isMultiConfig) {
             errorMessage = Tr::tr("No \"%1\" XMake configuration found. Available configurations: \"%2\".\n"
-                              "Make sure that CMAKE_CONFIGURATION_TYPES variable contains the \"Build type\" field.")
+                              "Make sure that XMAKE_CONFIGURATION_TYPES variable contains the \"Build type\" field.")
                            .arg(xmakeBuildType)
                            .arg(buildTypes.join(", "));
         } else {
             errorMessage = Tr::tr("No \"%1\" XMake configuration found. Available configuration: \"%2\".\n"
-                              "Make sure that CMAKE_BUILD_TYPE variable matches the \"Build type\" field.")
+                              "Make sure that XMAKE_BUILD_TYPE variable matches the \"Build type\" field.")
                            .arg(xmakeBuildType)
                            .arg(buildTypes.join(", "));
         }
@@ -937,8 +937,8 @@ FilePath FileApiParser::scanForXMakeReplyFile(const FilePath &buildDirectory)
 
 FilePaths FileApiParser::xmakeQueryFilePaths(const FilePath &buildDirectory)
 {
-    const FilePath queryDir = buildDirectory / CMAKE_RELATIVE_QUERY_PATH;
-    return transform(CMAKE_QUERY_FILENAMES, [&queryDir](const QString &name) {
+    const FilePath queryDir = buildDirectory / XMAKE_RELATIVE_QUERY_PATH;
+    return transform(XMAKE_QUERY_FILENAMES, [&queryDir](const QString &name) {
         return queryDir.resolvePath(name);
     });
 }

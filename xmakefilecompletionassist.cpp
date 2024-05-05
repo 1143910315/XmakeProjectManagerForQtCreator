@@ -81,8 +81,8 @@ XMakeFileCompletionAssist::XMakeFileCompletionAssist()
                                   Theme::IconsCodeModelKeywordColor}},
                                 Icon::MenuTintedStyle)
                                .icon())
-    , m_snippetCollector(Constants::CMAKE_SNIPPETS_GROUP_ID,
-                         FileIconProvider::icon(FilePath::fromString(Constants::CMAKE_LISTS_TXT)))
+    , m_snippetCollector(Constants::XMAKE_SNIPPETS_GROUP_ID,
+                         FileIconProvider::icon(FilePath::fromString(Constants::XMAKE_LISTS_TXT)))
 {}
 
 static bool isInComment(const AssistInterface *interface)
@@ -311,18 +311,18 @@ static void updateXMakeConfigurationWithLocalData(XMakeConfig &xmakeCache,
                                                   const FilePath &currentDir)
 {
     auto isValidXMakeVariable = [](const std::string &var) {
-        return var == "CMAKE_PREFIX_PATH" || var == "CMAKE_MODULE_PATH";
+        return var == "XMAKE_PREFIX_PATH" || var == "XMAKE_MODULE_PATH";
     };
 
     const FilePath projectDir = ProjectTree::currentBuildSystem()
                                     ? ProjectTree::currentBuildSystem()->projectDirectory()
                                     : currentDir;
     auto updateDirVariables = [currentDir, projectDir, xmakeCache](QByteArray &value) {
-        value.replace("${CMAKE_CURRENT_SOURCE_DIR}", currentDir.path().toUtf8());
-        value.replace("${CMAKE_CURRENT_LIST_DIR}", currentDir.path().toUtf8());
-        value.replace("${CMAKE_SOURCE_DIR}", projectDir.path().toUtf8());
-        value.replace("${CMAKE_PREFIX_PATH}", xmakeCache.valueOf("CMAKE_PREFIX_PATH"));
-        value.replace("${CMAKE_MODULE_PATH}", xmakeCache.valueOf("CMAKE_MODULE_PATH"));
+        value.replace("${XMAKE_CURRENT_SOURCE_DIR}", currentDir.path().toUtf8());
+        value.replace("${XMAKE_CURRENT_LIST_DIR}", currentDir.path().toUtf8());
+        value.replace("${XMAKE_SOURCE_DIR}", projectDir.path().toUtf8());
+        value.replace("${XMAKE_PREFIX_PATH}", xmakeCache.valueOf("XMAKE_PREFIX_PATH"));
+        value.replace("${XMAKE_MODULE_PATH}", xmakeCache.valueOf("XMAKE_MODULE_PATH"));
     };
 
     auto insertOrAppendListValue = [&xmakeCache](const QByteArray &key, const QByteArray &value) {
@@ -401,10 +401,10 @@ static QPair<QStringList, QStringList> getFindAndConfigXMakePackages(
         const QString pathPrefix;
         std::function<QString(const QString &)> function;
         QStringList &result;
-    } mapping[] = {{"CMAKE_PREFIX_PATH", "lib/xmake", configPackageName, configPackages},
-                   {"CMAKE_PREFIX_PATH", "share", configPackageName, configPackages},
-                   {"CMAKE_MODULE_PATH", QString(), findPackageName, modulePackages},
-                   {"CMAKE_MODULE_PATH", QString(), configPackageName, configPackages}};
+    } mapping[] = {{"XMAKE_PREFIX_PATH", "lib/xmake", configPackageName, configPackages},
+                   {"XMAKE_PREFIX_PATH", "share", configPackageName, configPackages},
+                   {"XMAKE_MODULE_PATH", QString(), findPackageName, modulePackages},
+                   {"XMAKE_MODULE_PATH", QString(), configPackageName, configPackages}};
 
     for (const auto &m : mapping) {
         FilePaths paths = Utils::transform<FilePaths>(xmakeCache.valueOf(m.xmakeVariable).split(';'),

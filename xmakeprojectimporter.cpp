@@ -241,12 +241,12 @@ static XMakeConfig configurationFromPresetProbe(
     const FilePath &sourceDirectory,
     const PresetsDetails::ConfigurePreset &configurePreset)
 {
-    const FilePath xmakeListTxt = importPath / Constants::CMAKE_LISTS_TXT;
+    const FilePath xmakeListTxt = importPath / Constants::XMAKE_LISTS_TXT;
     xmakeListTxt.writeFileContents(QByteArray("xmake_minimum_required(VERSION 3.15)\n"
                                               "\n"
                                               "project(preset-probe)\n"
-                                              "set(CMAKE_C_COMPILER \"${CMAKE_C_COMPILER}\" CACHE FILEPATH \"\" FORCE)\n"
-                                              "set(CMAKE_CXX_COMPILER \"${CMAKE_CXX_COMPILER}\" CACHE FILEPATH \"\" FORCE)\n"
+                                              "set(XMAKE_C_COMPILER \"${XMAKE_C_COMPILER}\" CACHE FILEPATH \"\" FORCE)\n"
+                                              "set(XMAKE_CXX_COMPILER \"${XMAKE_CXX_COMPILER}\" CACHE FILEPATH \"\" FORCE)\n"
                                               "\n"));
 
     Process xmake;
@@ -292,32 +292,32 @@ static XMakeConfig configurationFromPresetProbe(
                                       ? configurePreset.cacheVariables.value()
                                       : XMakeConfig();
 
-        const QString xmakeMakeProgram = cache.stringValueOf("CMAKE_MAKE_PROGRAM");
-        const QString toolchainFile = cache.stringValueOf("CMAKE_TOOLCHAIN_FILE");
-        const QString prefixPath = cache.stringValueOf("CMAKE_PREFIX_PATH");
-        const QString findRootPath = cache.stringValueOf("CMAKE_FIND_ROOT_PATH");
+        const QString xmakeMakeProgram = cache.stringValueOf("XMAKE_MAKE_PROGRAM");
+        const QString toolchainFile = cache.stringValueOf("XMAKE_TOOLCHAIN_FILE");
+        const QString prefixPath = cache.stringValueOf("XMAKE_PREFIX_PATH");
+        const QString findRootPath = cache.stringValueOf("XMAKE_FIND_ROOT_PATH");
         const QString qtHostPath = cache.stringValueOf("QT_HOST_PATH");
-        const QString sysRoot = cache.stringValueOf("CMAKE_SYSROOT");
+        const QString sysRoot = cache.stringValueOf("XMAKE_SYSROOT");
 
         if (!xmakeMakeProgram.isEmpty()) {
             args.emplace_back(
-                QStringLiteral("-DCMAKE_MAKE_PROGRAM=%1").arg(xmakeMakeProgram));
+                QStringLiteral("-DXMAKE_MAKE_PROGRAM=%1").arg(xmakeMakeProgram));
         }
         if (!toolchainFile.isEmpty()) {
             args.emplace_back(
-                QStringLiteral("-DCMAKE_TOOLCHAIN_FILE=%1").arg(toolchainFile));
+                QStringLiteral("-DXMAKE_TOOLCHAIN_FILE=%1").arg(toolchainFile));
         }
         if (!prefixPath.isEmpty()) {
-            args.emplace_back(QStringLiteral("-DCMAKE_PREFIX_PATH=%1").arg(prefixPath));
+            args.emplace_back(QStringLiteral("-DXMAKE_PREFIX_PATH=%1").arg(prefixPath));
         }
         if (!findRootPath.isEmpty()) {
-            args.emplace_back(QStringLiteral("-DCMAKE_FIND_ROOT_PATH=%1").arg(findRootPath));
+            args.emplace_back(QStringLiteral("-DXMAKE_FIND_ROOT_PATH=%1").arg(findRootPath));
         }
         if (!qtHostPath.isEmpty()) {
             args.emplace_back(QStringLiteral("-DQT_HOST_PATH=%1").arg(qtHostPath));
         }
         if (!sysRoot.isEmpty()) {
-            args.emplace_back(QStringLiteral("-DCMAKE_SYSROOT=%1").arg(sysRoot));
+            args.emplace_back(QStringLiteral("-DXMAKE_SYSROOT=%1").arg(sysRoot));
         }
     }
 
@@ -367,9 +367,9 @@ static QMakeAndXMakePrefixPath qtInfoFromXMakeCache(const XMakeConfig &config,
         if (!qtXMakeDir.isEmpty()) {
             result = canQtXMakeDir.parentDir().parentDir().parentDir().path(); // Up 3 levels...
         } else {
-            // Check the CMAKE_PREFIX_PATH and "<package-name>_ROOT" XMake or environment variables
+            // Check the XMAKE_PREFIX_PATH and "<package-name>_ROOT" XMake or environment variables
             // This can be a single value or a semicolon-separated list
-            for (const auto &var : {"CMAKE_PREFIX_PATH", "Qt6_ROOT", "Qt5_ROOT"}) {
+            for (const auto &var : {"XMAKE_PREFIX_PATH", "Qt6_ROOT", "Qt5_ROOT"}) {
                 result = config.stringValueOf(var);
                 if (result.isEmpty())
                     result = env.value(QString::fromUtf8(var));
@@ -384,14 +384,14 @@ static QMakeAndXMakePrefixPath qtInfoFromXMakeCache(const XMakeConfig &config,
     if (!qmake.isEmpty() && !prefixPath.isEmpty())
         return {qmake, prefixPath};
 
-    FilePath toolchainFile = config.filePathValueOf(QByteArray("CMAKE_TOOLCHAIN_FILE"));
+    FilePath toolchainFile = config.filePathValueOf(QByteArray("XMAKE_TOOLCHAIN_FILE"));
     if (prefixPath.isEmpty() && toolchainFile.isEmpty())
         return {qmake, QString()};
 
     // Run a XMake project that would do qmake probing
     TemporaryDirectory qtcQMakeProbeDir("qtc-xmake-qmake-probe-XXXXXXXX");
 
-    FilePath xmakeListTxt(qtcQMakeProbeDir.filePath(Constants::CMAKE_LISTS_TXT));
+    FilePath xmakeListTxt(qtcQMakeProbeDir.filePath(Constants::XMAKE_LISTS_TXT));
 
     xmakeListTxt.writeFileContents(QByteArray(R"(
         xmake_minimum_required(VERSION 3.15)
@@ -400,32 +400,32 @@ static QMakeAndXMakePrefixPath qtInfoFromXMakeCache(const XMakeConfig &config,
 
         # Bypass Qt6's usage of find_dependency, which would require compiler
         # and source code probing, which slows things unnecessarily
-        file(WRITE "${CMAKE_SOURCE_DIR}/XMakeFindDependencyMacro.xmake"
+        file(WRITE "${XMAKE_SOURCE_DIR}/XMakeFindDependencyMacro.xmake"
         [=[
             macro(find_dependency dep)
             endmacro()
         ]=])
-        set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
+        set(XMAKE_MODULE_PATH "${XMAKE_SOURCE_DIR}")
 
         find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
         find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
 
-        if (CMAKE_CROSSCOMPILING)
+        if (XMAKE_CROSSCOMPILING)
             find_program(qmake_binary
                 NAMES qmake qmake.bat
                 PATHS "${Qt${QT_VERSION_MAJOR}_DIR}/../../../bin"
                 NO_DEFAULT_PATH)
-            file(WRITE "${CMAKE_SOURCE_DIR}/qmake-location.txt" "${qmake_binary}")
+            file(WRITE "${XMAKE_SOURCE_DIR}/qmake-location.txt" "${qmake_binary}")
         else()
             file(GENERATE
-                OUTPUT "${CMAKE_SOURCE_DIR}/qmake-location.txt"
+                OUTPUT "${XMAKE_SOURCE_DIR}/qmake-location.txt"
                 CONTENT "$<TARGET_PROPERTY:Qt${QT_VERSION_MAJOR}::qmake,IMPORTED_LOCATION>")
         endif()
 
-        # Remove a Qt XMake hack that adds lib/xmake at the end of every path in CMAKE_PREFIX_PATH
-        list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
-        list(TRANSFORM CMAKE_PREFIX_PATH REPLACE "/lib/xmake$" "")
-        file(WRITE "${CMAKE_SOURCE_DIR}/xmake-prefix-path.txt" "${CMAKE_PREFIX_PATH}")
+        # Remove a Qt XMake hack that adds lib/xmake at the end of every path in XMAKE_PREFIX_PATH
+        list(REMOVE_DUPLICATES XMAKE_PREFIX_PATH)
+        list(TRANSFORM XMAKE_PREFIX_PATH REPLACE "/lib/xmake$" "")
+        file(WRITE "${XMAKE_SOURCE_DIR}/xmake-prefix-path.txt" "${XMAKE_PREFIX_PATH}")
     )"));
 
     Process xmake;
@@ -435,13 +435,13 @@ static QMakeAndXMakePrefixPath qtInfoFromXMakeCache(const XMakeConfig &config,
     xmakeEnv.setupEnglishOutput();
     xmake.setEnvironment(xmakeEnv);
 
-    QString xmakeGenerator = config.stringValueOf(QByteArray("CMAKE_GENERATOR"));
-    QString xmakeGeneratorPlatform = config.stringValueOf(QByteArray("CMAKE_GENERATOR_PLATFORM"));
-    QString xmakeGeneratorToolset = config.stringValueOf(QByteArray("CMAKE_GENERATOR_TOOLSET"));
-    FilePath xmakeExecutable = config.filePathValueOf(QByteArray("CMAKE_COMMAND"));
-    FilePath xmakeMakeProgram = config.filePathValueOf(QByteArray("CMAKE_MAKE_PROGRAM"));
+    QString xmakeGenerator = config.stringValueOf(QByteArray("XMAKE_GENERATOR"));
+    QString xmakeGeneratorPlatform = config.stringValueOf(QByteArray("XMAKE_GENERATOR_PLATFORM"));
+    QString xmakeGeneratorToolset = config.stringValueOf(QByteArray("XMAKE_GENERATOR_TOOLSET"));
+    FilePath xmakeExecutable = config.filePathValueOf(QByteArray("XMAKE_COMMAND"));
+    FilePath xmakeMakeProgram = config.filePathValueOf(QByteArray("XMAKE_MAKE_PROGRAM"));
     FilePath hostPath = config.filePathValueOf(QByteArray("QT_HOST_PATH"));
-    const QString findRootPath = config.stringValueOf("CMAKE_FIND_ROOT_PATH");
+    const QString findRootPath = config.stringValueOf("XMAKE_FIND_ROOT_PATH");
 
     QStringList args;
     args.push_back("-S");
@@ -462,17 +462,17 @@ static QMakeAndXMakePrefixPath qtInfoFromXMakeCache(const XMakeConfig &config,
     }
 
     if (!xmakeMakeProgram.isEmpty()) {
-        args.push_back(QStringLiteral("-DCMAKE_MAKE_PROGRAM=%1").arg(xmakeMakeProgram.toString()));
+        args.push_back(QStringLiteral("-DXMAKE_MAKE_PROGRAM=%1").arg(xmakeMakeProgram.toString()));
     }
 
     if (!toolchainFile.isEmpty()) {
-        args.push_back(QStringLiteral("-DCMAKE_TOOLCHAIN_FILE=%1").arg(toolchainFile.toString()));
+        args.push_back(QStringLiteral("-DXMAKE_TOOLCHAIN_FILE=%1").arg(toolchainFile.toString()));
     }
     if (!prefixPath.isEmpty()) {
-        args.push_back(QStringLiteral("-DCMAKE_PREFIX_PATH=%1").arg(prefixPath));
+        args.push_back(QStringLiteral("-DXMAKE_PREFIX_PATH=%1").arg(prefixPath));
     }
     if (!findRootPath.isEmpty()) {
-        args.push_back(QStringLiteral("-DCMAKE_FIND_ROOT_PATH=%1").arg(findRootPath));
+        args.push_back(QStringLiteral("-DXMAKE_FIND_ROOT_PATH=%1").arg(findRootPath));
     }
     if (!hostPath.isEmpty()) {
         args.push_back(QStringLiteral("-DQT_HOST_PATH=%1").arg(hostPath.toString()));
@@ -500,9 +500,9 @@ static QVector<ToolchainDescription> extractToolchainsFromCache(const XMakeConfi
     QVector<ToolchainDescription> result;
     bool haveCCxxCompiler = false;
     for (const XMakeConfigItem &i : config) {
-        if (!i.key.startsWith("CMAKE_") || !i.key.endsWith("_COMPILER"))
+        if (!i.key.startsWith("XMAKE_") || !i.key.endsWith("_COMPILER"))
             continue;
-        const QByteArray language = i.key.mid(6, i.key.size() - 6 - 9); // skip "CMAKE_" and "_COMPILER"
+        const QByteArray language = i.key.mid(6, i.key.size() - 6 - 9); // skip "XMAKE_" and "_COMPILER"
         Id languageId;
         if (language == "CXX") {
             haveCCxxCompiler = true;
@@ -518,7 +518,7 @@ static QVector<ToolchainDescription> extractToolchainsFromCache(const XMakeConfi
     }
 
     if (!haveCCxxCompiler) {
-        const QByteArray generator = config.valueOf("CMAKE_GENERATOR");
+        const QByteArray generator = config.valueOf("XMAKE_GENERATOR");
         QString cCompilerName;
         QString cxxCompilerName;
         if (generator.contains("Visual Studio")) {
@@ -530,7 +530,7 @@ static QVector<ToolchainDescription> extractToolchainsFromCache(const XMakeConfi
         }
 
         if (!cCompilerName.isEmpty() && !cxxCompilerName.isEmpty()) {
-            const FilePath linker = config.filePathValueOf("CMAKE_LINKER");
+            const FilePath linker = config.filePathValueOf("XMAKE_LINKER");
             if (!linker.isEmpty()) {
                 const FilePath compilerPath = linker.parentDir();
                 result.append({compilerPath.pathAppended(cCompilerName),
@@ -546,10 +546,10 @@ static QVector<ToolchainDescription> extractToolchainsFromCache(const XMakeConfi
 
 static QString extractVisualStudioPlatformFromConfig(const XMakeConfig &config)
 {
-    const QString xmakeGenerator = config.stringValueOf(QByteArray("CMAKE_GENERATOR"));
+    const QString xmakeGenerator = config.stringValueOf(QByteArray("XMAKE_GENERATOR"));
     QString platform;
     if (xmakeGenerator.contains("Visual Studio")) {
-        const FilePath linker = config.filePathValueOf("CMAKE_LINKER");
+        const FilePath linker = config.filePathValueOf("XMAKE_LINKER");
         const QString toolsDir = linker.parentDir().fileName();
         if (toolsDir.compare("x64", Qt::CaseInsensitive) == 0) {
             platform = "x64";
@@ -583,8 +583,8 @@ void updateCompilerPaths(XMakeConfig &config, const Environment &env)
         it->value = pathValue.path().toUtf8();
     };
 
-    updateRelativePath("CMAKE_C_COMPILER");
-    updateRelativePath("CMAKE_CXX_COMPILER");
+    updateRelativePath("XMAKE_C_COMPILER");
+    updateRelativePath("XMAKE_CXX_COMPILER");
 }
 
 void updateConfigWithDirectoryData(XMakeConfig &config, const std::unique_ptr<DirectoryData> &data)
@@ -607,8 +607,8 @@ void updateConfigWithDirectoryData(XMakeConfig &config, const std::unique_ptr<Di
                                       tcd.compilerPath.toString().toUtf8());
     };
 
-    updateCompilerValue("CMAKE_C_COMPILER", ProjectExplorer::Constants::C_LANGUAGE_ID);
-    updateCompilerValue("CMAKE_CXX_COMPILER", ProjectExplorer::Constants::CXX_LANGUAGE_ID);
+    updateCompilerValue("XMAKE_C_COMPILER", ProjectExplorer::Constants::C_LANGUAGE_ID);
+    updateCompilerValue("XMAKE_CXX_COMPILER", ProjectExplorer::Constants::CXX_LANGUAGE_ID);
 
     if (data->qt.qt)
         config << XMakeConfigItem("QT_QMAKE_EXECUTABLE",
@@ -787,15 +787,15 @@ QList<void *> XMakeProjectImporter::examineDirectory(const FilePath &importPath,
                                       ? configurePreset.cacheVariables.value()
                                       : XMakeConfig();
         XMakeConfig config;
-        const bool noCompilers = cache.valueOf("CMAKE_C_COMPILER").isEmpty()
-                                 && cache.valueOf("CMAKE_CXX_COMPILER").isEmpty();
+        const bool noCompilers = cache.valueOf("XMAKE_C_COMPILER").isEmpty()
+                                 && cache.valueOf("XMAKE_CXX_COMPILER").isEmpty();
         if (noCompilers || !configurePreset.generator) {
             QApplication::setOverrideCursor(Qt::WaitCursor);
             config = configurationFromPresetProbe(importPath, projectDirectory(), configurePreset);
             QApplication::restoreOverrideCursor();
 
             if (!configurePreset.generator) {
-                QString xmakeGenerator = config.stringValueOf(QByteArray("CMAKE_GENERATOR"));
+                QString xmakeGenerator = config.stringValueOf(QByteArray("XMAKE_GENERATOR"));
                 configurePreset.generator = xmakeGenerator;
                 data->generator = xmakeGenerator;
                 data->platform = extractVisualStudioPlatformFromConfig(config);
@@ -807,38 +807,38 @@ QList<void *> XMakeProjectImporter::examineDirectory(const FilePath &importPath,
         } else {
             config = cache;
             updateCompilerPaths(config, env);
-            config << XMakeConfigItem("CMAKE_COMMAND",
+            config << XMakeConfigItem("XMAKE_COMMAND",
                                       XMakeConfigItem::PATH,
                                       configurePreset.xmakeExecutable.value().toUtf8());
             if (configurePreset.generator)
-                config << XMakeConfigItem("CMAKE_GENERATOR",
+                config << XMakeConfigItem("XMAKE_GENERATOR",
                                           XMakeConfigItem::STRING,
                                           configurePreset.generator.value().toUtf8());
         }
 
-        data->sysroot = config.filePathValueOf("CMAKE_SYSROOT");
+        data->sysroot = config.filePathValueOf("XMAKE_SYSROOT");
 
         const auto [qmake, xmakePrefixPath] = qtInfoFromXMakeCache(config, env);
         if (!qmake.isEmpty())
             data->qt = findOrCreateQtVersion(qmake);
 
-        if (!xmakePrefixPath.isEmpty() && config.valueOf("CMAKE_PREFIX_PATH").isEmpty())
-            config << XMakeConfigItem("CMAKE_PREFIX_PATH",
+        if (!xmakePrefixPath.isEmpty() && config.valueOf("XMAKE_PREFIX_PATH").isEmpty())
+            config << XMakeConfigItem("XMAKE_PREFIX_PATH",
                                       XMakeConfigItem::PATH,
                                       xmakePrefixPath.toUtf8());
 
         // Toolchains:
         data->toolchains = extractToolchainsFromCache(config);
 
-        // Update QT_QMAKE_EXECUTABLE and CMAKE_C|XX_COMPILER config values
+        // Update QT_QMAKE_EXECUTABLE and XMAKE_C|XX_COMPILER config values
         updateConfigWithDirectoryData(config, data);
 
         data->hasQmlDebugging = XMakeBuildConfiguration::hasQmlDebugging(config);
 
-        QByteArrayList buildConfigurationTypes = {cache.valueOf("CMAKE_BUILD_TYPE")};
+        QByteArrayList buildConfigurationTypes = {cache.valueOf("XMAKE_BUILD_TYPE")};
         if (buildConfigurationTypes.front().isEmpty()) {
             buildConfigurationTypes.clear();
-            QByteArray buildConfigurationTypesString = cache.valueOf("CMAKE_CONFIGURATION_TYPES");
+            QByteArray buildConfigurationTypesString = cache.valueOf("XMAKE_CONFIGURATION_TYPES");
             if (!buildConfigurationTypesString.isEmpty()) {
                 buildConfigurationTypes = buildConfigurationTypesString.split(';');
             } else {
@@ -868,7 +868,7 @@ QList<void *> XMakeProjectImporter::examineDirectory(const FilePath &importPath,
         return result;
     }
 
-    const FilePath cacheFile = importPath.pathAppended(Constants::CMAKE_CACHE_TXT);
+    const FilePath cacheFile = importPath.pathAppended(Constants::XMAKE_CACHE_TXT);
 
     if (!cacheFile.exists()) {
         qCDebug(cmInputLog) << cacheFile.toUserOutput() << "does not exist, returning.";
@@ -882,9 +882,9 @@ QList<void *> XMakeProjectImporter::examineDirectory(const FilePath &importPath,
         return result;
     }
 
-    QByteArrayList buildConfigurationTypes = {config.valueOf("CMAKE_BUILD_TYPE")};
+    QByteArrayList buildConfigurationTypes = {config.valueOf("XMAKE_BUILD_TYPE")};
     if (buildConfigurationTypes.front().isEmpty()) {
-        QByteArray buildConfigurationTypesString = config.valueOf("CMAKE_CONFIGURATION_TYPES");
+        QByteArray buildConfigurationTypesString = config.valueOf("XMAKE_CONFIGURATION_TYPES");
         if (!buildConfigurationTypesString.isEmpty())
             buildConfigurationTypes = buildConfigurationTypesString.split(';');
     }
@@ -895,7 +895,7 @@ QList<void *> XMakeProjectImporter::examineDirectory(const FilePath &importPath,
         auto data = std::make_unique<DirectoryData>();
 
         data->xmakeHomeDirectory =
-                FilePath::fromUserInput(config.stringValueOf("CMAKE_HOME_DIRECTORY"))
+                FilePath::fromUserInput(config.stringValueOf("XMAKE_HOME_DIRECTORY"))
                     .canonicalPath();
         const FilePath canonicalProjectDirectory = projectDirectory().canonicalPath();
         if (data->xmakeHomeDirectory != canonicalProjectDirectory) {
@@ -912,13 +912,13 @@ QList<void *> XMakeProjectImporter::examineDirectory(const FilePath &importPath,
         data->buildDirectory = importPath;
         data->xmakeBuildType = buildType;
 
-        data->xmakeBinary = config.filePathValueOf("CMAKE_COMMAND");
-        data->generator = config.stringValueOf("CMAKE_GENERATOR");
-        data->platform = config.stringValueOf("CMAKE_GENERATOR_PLATFORM");
+        data->xmakeBinary = config.filePathValueOf("XMAKE_COMMAND");
+        data->generator = config.stringValueOf("XMAKE_GENERATOR");
+        data->platform = config.stringValueOf("XMAKE_GENERATOR_PLATFORM");
         if (data->platform.isEmpty())
             data->platform = extractVisualStudioPlatformFromConfig(config);
-        data->toolset = config.stringValueOf("CMAKE_GENERATOR_TOOLSET");
-        data->sysroot = config.filePathValueOf("CMAKE_SYSROOT");
+        data->toolset = config.stringValueOf("XMAKE_GENERATOR_TOOLSET");
+        data->sysroot = config.filePathValueOf("XMAKE_SYSROOT");
 
         // Qt:
         const auto info = qtInfoFromXMakeCache(config, env);
@@ -1074,7 +1074,7 @@ const QList<BuildInfo> XMakeProjectImporter::buildInfoList(void *directoryData) 
     info.buildDirectory = data->buildDirectory;
 
     QVariantMap config = info.extraInfo.toMap(); // new empty, or existing one from createBuildInfo
-    config.insert(Constants::CMAKE_HOME_DIR, data->xmakeHomeDirectory.toVariant());
+    config.insert(Constants::XMAKE_HOME_DIR, data->xmakeHomeDirectory.toVariant());
     // Potentially overwrite the default QML Debugging settings for the build type as set by
     // createBuildInfo, in case we are importing a "Debug" XMake configuration without QML Debugging
     config.insert(Constants::QML_DEBUG_SETTING,
@@ -1201,28 +1201,28 @@ void XMakeProjectImporterTest::testXMakeProjectImporterToolchain_data()
             << QStringList() << QByteArrayList() << QStringList();
 
     QTest::newRow("Unrelated input")
-            << QStringList("CMAKE_SOMETHING_ELSE=/tmp") << QByteArrayList() << QStringList();
+            << QStringList("XMAKE_SOMETHING_ELSE=/tmp") << QByteArrayList() << QStringList();
     QTest::newRow("CXX compiler")
-            << QStringList({"CMAKE_CXX_COMPILER=/usr/bin/g++"})
+            << QStringList({"XMAKE_CXX_COMPILER=/usr/bin/g++"})
             << QByteArrayList({"Cxx"})
             << QStringList({"/usr/bin/g++"});
     QTest::newRow("CXX compiler, C compiler")
-            << QStringList({"CMAKE_CXX_COMPILER=/usr/bin/g++", "CMAKE_C_COMPILER=/usr/bin/clang"})
+            << QStringList({"XMAKE_CXX_COMPILER=/usr/bin/g++", "XMAKE_C_COMPILER=/usr/bin/clang"})
             << QByteArrayList({"Cxx", "C"})
             << QStringList({"/usr/bin/g++", "/usr/bin/clang"});
     QTest::newRow("CXX compiler, C compiler, strange compiler")
-            << QStringList({"CMAKE_CXX_COMPILER=/usr/bin/g++",
-                             "CMAKE_C_COMPILER=/usr/bin/clang",
-                             "CMAKE_STRANGE_LANGUAGE_COMPILER=/tmp/strange/compiler"})
+            << QStringList({"XMAKE_CXX_COMPILER=/usr/bin/g++",
+                             "XMAKE_C_COMPILER=/usr/bin/clang",
+                             "XMAKE_STRANGE_LANGUAGE_COMPILER=/tmp/strange/compiler"})
             << QByteArrayList({"Cxx", "C", "STRANGE_LANGUAGE"})
             << QStringList({"/usr/bin/g++", "/usr/bin/clang", "/tmp/strange/compiler"});
     QTest::newRow("CXX compiler, C compiler, strange compiler (with junk)")
             << QStringList({"FOO=test",
-                             "CMAKE_CXX_COMPILER=/usr/bin/g++",
-                             "CMAKE_BUILD_TYPE=debug",
-                             "CMAKE_C_COMPILER=/usr/bin/clang",
+                             "XMAKE_CXX_COMPILER=/usr/bin/g++",
+                             "XMAKE_BUILD_TYPE=debug",
+                             "XMAKE_C_COMPILER=/usr/bin/clang",
                              "SOMETHING_COMPILER=/usr/bin/something",
-                             "CMAKE_STRANGE_LANGUAGE_COMPILER=/tmp/strange/compiler",
+                             "XMAKE_STRANGE_LANGUAGE_COMPILER=/tmp/strange/compiler",
                              "BAR=more test"})
             << QByteArrayList({"Cxx", "C", "STRANGE_LANGUAGE"})
             << QStringList({"/usr/bin/g++", "/usr/bin/clang", "/tmp/strange/compiler"});

@@ -72,15 +72,15 @@ namespace XMakeProjectManager::Internal {
 
             FileIconProvider::registerIconOverlayForSuffix(Constants::Icons::FILE_OVERLAY, "xmake");
             FileIconProvider::registerIconOverlayForFilename(Constants::Icons::FILE_OVERLAY,
-                                                             Constants::CMAKE_LISTS_TXT);
+                                                             Constants::XMAKE_LISTS_TXT);
 
-            TextEditor::SnippetProvider::registerGroup(Constants::CMAKE_SNIPPETS_GROUP_ID,
+            TextEditor::SnippetProvider::registerGroup(Constants::XMAKE_SNIPPETS_GROUP_ID,
                                                        Tr::tr("XMake", "SnippetProvider"));
-            ProjectManager::registerProjectType<XMakeProject>(Utils::Constants::CMAKE_PROJECT_MIMETYPE);
+            ProjectManager::registerProjectType<XMakeProject>(Utils::Constants::XMAKE_PROJECT_MIMETYPE);
 
             ActionBuilder(this, Constants::BUILD_TARGET_CONTEXT_MENU)
             .setParameterText(Tr::tr("Build \"%1\""), Tr::tr("Build"), ActionBuilder::AlwaysEnabled)
-            .setContext(XMakeProjectManager::Constants::CMAKE_PROJECT_ID)
+            .setContext(XMakeProjectManager::Constants::XMAKE_PROJECT_ID)
             .bindContextAction(&m_buildTargetContextAction)
             .setCommandAttribute(Command::CA_Hide)
             .setCommandAttribute(Command::CA_UpdateText)

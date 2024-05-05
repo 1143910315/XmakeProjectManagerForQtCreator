@@ -15,7 +15,7 @@
 #include <optional>
 
 namespace XMakeProjectManager {
-    class CMAKE_EXPORT XMakeParser : public ProjectExplorer::OutputTaskParser {
+    class XMAKE_EXPORT XMakeParser : public ProjectExplorer::OutputTaskParser {
 public:
         explicit XMakeParser();
         void setSourceDirectory(const Utils::FilePath &sourceDir);

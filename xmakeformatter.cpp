@@ -45,8 +45,8 @@ public:
     XMakeFormatterSettings()
     {
         setAutoApply(false);
-        setSettingsGroups(Constants::CMAKEFORMATTER_SETTINGS_GROUP,
-                          Constants::CMAKEFORMATTER_GENERAL_GROUP);
+        setSettingsGroups(Constants::XMAKEFORMATTER_SETTINGS_GROUP,
+                          Constants::XMAKEFORMATTER_GENERAL_GROUP);
 
         command.setSettingsKey("autoFormatCommand");
         command.setDefaultValue("xmake-format");
@@ -61,7 +61,7 @@ public:
         autoFormatOnlyCurrentProject.setLabelPlacement(BoolAspect::LabelPlacement::AtCheckBox);
 
         autoFormatMime.setSettingsKey("autoFormatMime");
-        autoFormatMime.setDefaultValue(Utils::Constants::CMAKE_MIMETYPE);
+        autoFormatMime.setDefaultValue(Utils::Constants::XMAKE_MIMETYPE);
         autoFormatMime.setLabelText(Tr::tr("Restrict to MIME types:"));
         autoFormatMime.setDisplayStyle(StringAspect::LineEditDisplay);
 
@@ -92,13 +92,13 @@ public:
             };
         });
 
-        MenuBuilder(Constants::CMAKEFORMATTER_MENU_ID)
+        MenuBuilder(Constants::XMAKEFORMATTER_MENU_ID)
             .setTitle(Tr::tr("XMakeFormatter"))
-            .setIcon(ProjectExplorer::Icons::CMAKE_LOGO.icon())
+            .setIcon(ProjectExplorer::Icons::XMAKE_LOGO.icon())
             .setOnAllDisabledBehavior(ActionContainer::Show)
             .addToContainer(Core::Constants::M_TOOLS);
 
-        Core::Command *cmd = ActionManager::registerAction(&formatFile, Constants::CMAKEFORMATTER_ACTION_ID);
+        Core::Command *cmd = ActionManager::registerAction(&formatFile, Constants::XMAKEFORMATTER_ACTION_ID);
         connect(&formatFile, &QAction::triggered, this, [this] {
             auto command = formatCommand();
             if (auto editor = EditorManager::currentEditor())
@@ -107,7 +107,7 @@ public:
             TextEditor::formatCurrentFile(command);
         });
 
-        ActionManager::actionContainer(Constants::CMAKEFORMATTER_MENU_ID)->addAction(cmd);
+        ActionManager::actionContainer(Constants::XMAKEFORMATTER_MENU_ID)->addAction(cmd);
 
         auto updateActions = [this] {
             auto editor = EditorManager::currentEditor();

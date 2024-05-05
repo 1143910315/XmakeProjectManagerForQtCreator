@@ -68,8 +68,8 @@ public:
                                        absolute.path = sfn;
 
                                        const auto mimeType = Utils::mimeTypeForFile(info.path);
-                                       if (mimeType.matchesName(Utils::Constants::CMAKE_MIMETYPE)
-                                           || mimeType.matchesName(Utils::Constants::CMAKE_PROJECT_MIMETYPE)) {
+                                       if (mimeType.matchesName(Utils::Constants::XMAKE_MIMETYPE)
+                                           || mimeType.matchesName(Utils::Constants::XMAKE_PROJECT_MIMETYPE)) {
                                            expected_str<QByteArray> fileContent = sfn.fileContents();
                                            std::string errorString;
                                            if (fileContent) {
@@ -458,7 +458,7 @@ public:
 
                 RawProjectPart rpp;
                 rpp.setProjectFileLocation(
-                    t.sourceDir.pathAppended(Constants::CMAKE_LISTS_TXT).toString());
+                    t.sourceDir.pathAppended(Constants::XMAKE_LISTS_TXT).toString());
                 rpp.setBuildSystemTarget(t.name);
                 const QString postfix = needPostfix ? QString("_%1_%2").arg(ci.language).arg(count)
                                                 : QString();

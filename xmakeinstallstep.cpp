@@ -118,10 +118,10 @@ class XMakeInstallStepFactory : public ProjectExplorer::BuildStepFactory
 public:
     XMakeInstallStepFactory()
     {
-        registerStep<XMakeInstallStep>(Constants::CMAKE_INSTALL_STEP_ID);
+        registerStep<XMakeInstallStep>(Constants::XMAKE_INSTALL_STEP_ID);
         setDisplayName(
             Tr::tr("XMake Install", "Display name for XMakeProjectManager::XMakeInstallStep id."));
-        setSupportedProjectType(Constants::CMAKE_PROJECT_ID);
+        setSupportedProjectType(Constants::XMAKE_PROJECT_ID);
         setSupportedStepLists({ProjectExplorer::Constants::BUILDSTEPS_DEPLOY});
     }
 };

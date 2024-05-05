@@ -25,7 +25,7 @@ enum TargetType {
 using Backtrace = QVector<ProjectExplorer::FolderNode::LocationInfo>;
 using Backtraces = QVector<Backtrace>;
 
-class CMAKE_EXPORT XMakeBuildTarget
+class XMAKE_EXPORT XMakeBuildTarget
 {
 public:
     QString title;

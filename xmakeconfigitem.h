@@ -22,7 +22,7 @@ class Kit;
 
 namespace XMakeProjectManager {
 
-class CMAKE_EXPORT XMakeConfigItem
+class XMAKE_EXPORT XMakeConfigItem
 {
 public:
     enum Type { FILEPATH, PATH, BOOL, STRING, INTERNAL, STATIC, UNINITIALIZED };
@@ -61,7 +61,7 @@ public:
     QStringList values;
 };
 
-class CMAKE_EXPORT XMakeConfig : public QList<XMakeConfigItem>
+class XMAKE_EXPORT XMakeConfig : public QList<XMakeConfigItem>
 {
 public:
     XMakeConfig() = default;

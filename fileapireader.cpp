@@ -74,7 +74,7 @@ void FileApiReader::resetData()
     m_xmakeFiles.clear();
     if (!m_parameters.sourceDirectory.isEmpty()) {
         XMakeFileInfo xmakeListsTxt;
-        xmakeListsTxt.path = m_parameters.sourceDirectory.pathAppended(Constants::CMAKE_LISTS_TXT);
+        xmakeListsTxt.path = m_parameters.sourceDirectory.pathAppended(Constants::XMAKE_LISTS_TXT);
         xmakeListsTxt.isXMakeListsDotTxt = true;
         m_xmakeFiles.insert(xmakeListsTxt);
     }
@@ -317,8 +317,8 @@ void FileApiReader::makeBackupConfiguration(bool store)
                                    .arg(reply.toString(), replyPrev.toString())));
     }
 
-    FilePath xmakeCacheTxt = m_parameters.buildDirectory.pathAppended(Constants::CMAKE_CACHE_TXT);
-    FilePath xmakeCacheTxtPrev = m_parameters.buildDirectory.pathAppended(Constants::CMAKE_CACHE_TXT_PREV);
+    FilePath xmakeCacheTxt = m_parameters.buildDirectory.pathAppended(Constants::XMAKE_CACHE_TXT);
+    FilePath xmakeCacheTxtPrev = m_parameters.buildDirectory.pathAppended(Constants::XMAKE_CACHE_TXT_PREV);
     if (!store)
         std::swap(xmakeCacheTxt, xmakeCacheTxtPrev);
 
@@ -364,7 +364,7 @@ int FileApiReader::lastXMakeExitCode() const
 
 void FileApiReader::startXMakeState(const QStringList &configurationArguments)
 {
-    qCDebug(xmakeFileApiMode) << "FileApiReader: START CMAKE STATE.";
+    qCDebug(xmakeFileApiMode) << "FileApiReader: START XMAKE STATE.";
     QTC_ASSERT(!m_xmakeProcess, return );
 
     m_xmakeProcess = std::make_unique<XMakeProcess>();
@@ -387,7 +387,7 @@ void FileApiReader::startXMakeState(const QStringList &configurationArguments)
 
 void FileApiReader::xmakeFinishedState(int exitCode)
 {
-    qCDebug(xmakeFileApiMode) << "FileApiReader: CMAKE FINISHED STATE.";
+    qCDebug(xmakeFileApiMode) << "FileApiReader: XMAKE FINISHED STATE.";
 
     m_lastXMakeExitCode = exitCode;
     m_xmakeProcess.release()->deleteLater();

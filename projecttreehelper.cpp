@@ -105,7 +105,7 @@ void addXMakePresets(FolderNode *root, const Utils::FilePath &sourceDir)
     presetFileNames << "XMakeUserPresets.json";
 
     const XMakeProject *cp = static_cast<const XMakeProject *>(
-        ProjectManager::projectForFile(sourceDir.pathAppended(Constants::CMAKE_LISTS_TXT)));
+        ProjectManager::projectForFile(sourceDir.pathAppended(Constants::XMAKE_LISTS_TXT)));
 
     if (cp && cp->presetsData().include)
         presetFileNames.append(cp->presetsData().include.value());

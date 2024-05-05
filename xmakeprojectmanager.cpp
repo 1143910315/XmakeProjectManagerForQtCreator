@@ -81,11 +81,11 @@ private:
     XMakeManager::XMakeManager() {
         namespace PEC = ProjectExplorer::Constants;
 
-        const Context projectContext(XMakeProjectManager::Constants::CMAKE_PROJECT_ID);
+        const Context projectContext(XMakeProjectManager::Constants::XMAKE_PROJECT_ID);
 
-        ActionBuilder(this, Constants::RUN_CMAKE)
+        ActionBuilder(this, Constants::RUN_XMAKE)
         .setText(Tr::tr("Run XMake"))
-        .setIcon(ProjectExplorer::Icons::CMAKE_LOGO.icon())
+        .setIcon(ProjectExplorer::Icons::XMAKE_LOGO.icon())
         .bindContextAction(&m_runXMakeAction)
         .setCommandAttribute(Command::CA_Hide)
         .addToContainer(PEC::M_BUILDPROJECT, PEC::G_BUILD_BUILD)
@@ -93,7 +93,7 @@ private:
                             runXMake(ProjectManager::startupBuildSystem());
                         });
 
-        ActionBuilder(this, Constants::CLEAR_CMAKE_CACHE)
+        ActionBuilder(this, Constants::CLEAR_XMAKE_CACHE)
         .setText(Tr::tr("Clear XMake Configuration"))
         .bindContextAction(&m_clearXMakeCacheAction)
         .setCommandAttribute(Command::CA_Hide)
@@ -102,9 +102,9 @@ private:
                             clearXMakeCache(ProjectManager::startupBuildSystem());
                         });
 
-        ActionBuilder(this, Constants::RUN_CMAKE_CONTEXT_MENU)
+        ActionBuilder(this, Constants::RUN_XMAKE_CONTEXT_MENU)
         .setText(Tr::tr("Run XMake"))
-        .setIcon(ProjectExplorer::Icons::CMAKE_LOGO.icon())
+        .setIcon(ProjectExplorer::Icons::XMAKE_LOGO.icon())
         .setContext(projectContext)
         .bindContextAction(&m_runXMakeActionContextMenu)
         .setCommandAttribute(Command::CA_Hide)
@@ -132,7 +132,7 @@ private:
                             rescanProject(ProjectTree::currentBuildSystem());
                         });
 
-        ActionBuilder(this, Constants::RELOAD_CMAKE_PRESETS)
+        ActionBuilder(this, Constants::RELOAD_XMAKE_PRESETS)
         .setText(Tr::tr("Reload XMake Presets"))
         .setIcon(Utils::Icons::RELOAD.icon())
         .bindContextAction(&m_reloadXMakePresetsAction)
@@ -156,8 +156,8 @@ private:
                         });
 
         // XMake Profiler
-        ActionBuilder(this, Constants::RUN_CMAKE_PROFILER)
-        .setIcon(ProjectExplorer::Icons::CMAKE_LOGO.icon())
+        ActionBuilder(this, Constants::RUN_XMAKE_PROFILER)
+        .setIcon(ProjectExplorer::Icons::XMAKE_LOGO.icon())
         .setText(Tr::tr("XMake Profiler"))
         .bindContextAction(&m_xmakeProfilerAction)
         .addToContainer(Debugger::Constants::M_DEBUG_ANALYZER,
@@ -169,18 +169,18 @@ private:
 
         // XMake Debugger
         ActionContainer *mdebugger = ActionManager::actionContainer(PEC::M_DEBUG_STARTDEBUGGING);
-        mdebugger->appendGroup(Constants::CMAKE_DEBUGGING_GROUP);
+        mdebugger->appendGroup(Constants::XMAKE_DEBUGGING_GROUP);
         mdebugger->addSeparator(Context(Core::Constants::C_GLOBAL),
-                                Constants::CMAKE_DEBUGGING_GROUP,
+                                Constants::XMAKE_DEBUGGING_GROUP,
                                 &m_xmakeDebuggerSeparator);
 
-        ActionBuilder(this, Constants::RUN_CMAKE_DEBUGGER)
+        ActionBuilder(this, Constants::RUN_XMAKE_DEBUGGER)
         .setText(Tr::tr("Start XMake Debugging"))
-        .setIcon(ProjectExplorer::Icons::CMAKE_LOGO.icon())
+        .setIcon(ProjectExplorer::Icons::XMAKE_LOGO.icon())
         .bindContextAction(&m_xmakeDebuggerAction)
-        .addToContainer(PEC::M_DEBUG_STARTDEBUGGING, Constants::CMAKE_DEBUGGING_GROUP)
+        .addToContainer(PEC::M_DEBUG_STARTDEBUGGING, Constants::XMAKE_DEBUGGING_GROUP)
         .addOnTriggered(this, [] {
-                            ProjectExplorerPlugin::runStartupProject(PEC::DAP_CMAKE_DEBUG_RUN_MODE,
+                            ProjectExplorerPlugin::runStartupProject(PEC::DAP_XMAKE_DEBUG_RUN_MODE,
                                                                      /*forceSkipDeploy=*/ true);
                         });
 
@@ -435,8 +435,8 @@ private:
         const QString objExtension = [&]() -> QString {
             const auto sourceKind = ProjectFile::classify(relativeSource);
             const QByteArray xmakeLangExtension = ProjectFile::isCxx(sourceKind)
-                                                      ? "CMAKE_CXX_OUTPUT_EXTENSION"
-                                                      : "CMAKE_C_OUTPUT_EXTENSION";
+                                                      ? "XMAKE_CXX_OUTPUT_EXTENSION"
+                                                      : "XMAKE_C_OUTPUT_EXTENSION";
             const QString extension = cbc->configurationFromXMake().stringValueOf(xmakeLangExtension);
             if (!extension.isEmpty()) {
                 return extension;

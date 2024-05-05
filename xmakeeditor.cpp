@@ -281,8 +281,8 @@ void XMakeEditorWidget::findLinkAt(const QTextCursor &cursor,
         return processLinkCallback(link);
 
     const FilePath dir = textDocument()->filePath().absolutePath();
-    buffer.replace("${CMAKE_CURRENT_SOURCE_DIR}", dir.path());
-    buffer.replace("${CMAKE_CURRENT_LIST_DIR}", dir.path());
+    buffer.replace("${XMAKE_CURRENT_SOURCE_DIR}", dir.path());
+    buffer.replace("${XMAKE_CURRENT_LIST_DIR}", dir.path());
 
     // Lambdas to find the XMake function name
     auto findFunctionStart = [cursor, this]() -> int {
@@ -330,9 +330,9 @@ void XMakeEditorWidget::findLinkAt(const QTextCursor &cursor,
         buffer.replace("${PROJECT_NAME}", projectName);
 
     if (auto project = ProjectTree::currentProject()) {
-        buffer.replace("${CMAKE_SOURCE_DIR}", project->projectDirectory().path());
+        buffer.replace("${XMAKE_SOURCE_DIR}", project->projectDirectory().path());
         if (auto bs = ProjectTree::currentBuildSystem(); bs->buildConfiguration()) {
-            buffer.replace("${CMAKE_BINARY_DIR}", bs->buildConfiguration()->buildDirectory().path());
+            buffer.replace("${XMAKE_BINARY_DIR}", bs->buildConfiguration()->buildDirectory().path());
 
             // Get the path suffix from current source dir to project source dir and apply it
             // for the binary dir
@@ -341,7 +341,7 @@ void XMakeEditorWidget::findLinkAt(const QTextCursor &cursor,
                                                    .parentDir()
                                                    .relativePathFrom(project->projectDirectory())
                                                    .path();
-            buffer.replace("${CMAKE_CURRENT_BINARY_DIR}",
+            buffer.replace("${XMAKE_CURRENT_BINARY_DIR}",
                            bs->buildConfiguration()
                                ->buildDirectory()
                                .pathAppended(relativePathSuffix)
@@ -407,7 +407,7 @@ void XMakeEditorWidget::findLinkAt(const QTextCursor &cursor,
         fileName = dir.pathAppended(fileName.path());
     if (fileName.exists()) {
         if (fileName.isDir()) {
-            FilePath subProject = fileName.pathAppended(Constants::CMAKE_LISTS_TXT);
+            FilePath subProject = fileName.pathAppended(Constants::XMAKE_LISTS_TXT);
             if (subProject.exists())
                 fileName = subProject;
             else
@@ -423,8 +423,8 @@ void XMakeEditorWidget::findLinkAt(const QTextCursor &cursor,
 static TextDocument *createXMakeDocument()
 {
     auto doc = new TextDocument;
-    doc->setId(Constants::CMAKE_EDITOR_ID);
-    doc->setMimeType(Utils::Constants::CMAKE_MIMETYPE);
+    doc->setId(Constants::XMAKE_EDITOR_ID);
+    doc->setMimeType(Utils::Constants::XMAKE_MIMETYPE);
     return doc;
 }
 
@@ -517,10 +517,10 @@ class XMakeEditorFactory final : public TextEditorFactory
 public:
     XMakeEditorFactory()
     {
-        setId(Constants::CMAKE_EDITOR_ID);
+        setId(Constants::XMAKE_EDITOR_ID);
         setDisplayName(::Core::Tr::tr("XMake Editor"));
-        addMimeType(Utils::Constants::CMAKE_MIMETYPE);
-        addMimeType(Utils::Constants::CMAKE_PROJECT_MIMETYPE);
+        addMimeType(Utils::Constants::XMAKE_MIMETYPE);
+        addMimeType(Utils::Constants::XMAKE_PROJECT_MIMETYPE);
 
         setEditorCreator([] { return new XMakeEditor; });
         setEditorWidgetCreator([] { return new XMakeEditorWidget; });
@@ -541,7 +541,7 @@ public:
 
         ActionContainer *contextMenu = ActionManager::createMenu(Constants::M_CONTEXT);
         contextMenu->addAction(ActionManager::command(TextEditor::Constants::FOLLOW_SYMBOL_UNDER_CURSOR));
-        contextMenu->addSeparator(Context(Constants::CMAKE_EDITOR_ID));
+        contextMenu->addSeparator(Context(Constants::XMAKE_EDITOR_ID));
         contextMenu->addAction(ActionManager::command(TextEditor::Constants::UN_COMMENT_SELECTION));
     }
 };

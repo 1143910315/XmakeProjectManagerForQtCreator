@@ -11,7 +11,7 @@
 namespace XMakeProjectManager {
     namespace Internal { class XMakeProjectImporter; }
 
-    class CMAKE_EXPORT XMakeProject final : public ProjectExplorer::Project {
+    class XMAKE_EXPORT XMakeProject final : public ProjectExplorer::Project {
         Q_OBJECT
 public:
         explicit XMakeProject(const Utils::FilePath &filename);
