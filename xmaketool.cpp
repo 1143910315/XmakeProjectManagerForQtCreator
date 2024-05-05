@@ -381,9 +381,8 @@ public:
 
     FilePath XMakeTool::searchQchFile(const FilePath &executable) {
         if (executable.isEmpty() || executable.needsDevice()) { // do not register docs from devices
-            return {}
+            return {};
         }
-        ;
 
         FilePath prefixDir = executable.parentDir().parentDir();
         QDir docDir { prefixDir.pathAppended("doc/xmake").toString() };
@@ -391,9 +390,8 @@ public:
             docDir.setPath(prefixDir.pathAppended("share/doc/xmake").toString());
         }
         if (!docDir.exists()) {
-            return {}
+            return {};
         }
-        ;
 
         const QStringList files = docDir.entryList(QStringList("*.qch"));
         for (const QString &docFile : files) {
