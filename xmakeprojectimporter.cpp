@@ -261,29 +261,19 @@ namespace XMakeProjectManager::Internal {
         xmake.setEnvironment(env);
 
         QStringList args;
-        args.emplace_back("-S");
-        args.emplace_back(importPath.path());
-        args.emplace_back("-B");
-        args.emplace_back(importPath.pathAppended("build/").path());
 
         if (configurePreset.generator) {
-            args.emplace_back("-G");
-            args.emplace_back(configurePreset.generator.value());
         }
         if (configurePreset.architecture && configurePreset.architecture.value().value) {
             if (!configurePreset.architecture->strategy
                 || configurePreset.architecture->strategy
                 != PresetsDetails::ValueStrategyPair::Strategy::external) {
-                args.emplace_back("-A");
-                args.emplace_back(configurePreset.architecture.value().value.value());
             }
         }
         if (configurePreset.toolset && configurePreset.toolset.value().value) {
             if (!configurePreset.toolset->strategy
                 || configurePreset.toolset->strategy
                 != PresetsDetails::ValueStrategyPair::Strategy::external) {
-                args.emplace_back("-T");
-                args.emplace_back(configurePreset.toolset.value().value.value());
             }
         }
 
@@ -300,24 +290,16 @@ namespace XMakeProjectManager::Internal {
             const QString sysRoot = cache.stringValueOf("XMAKE_SYSROOT");
 
             if (!xmakeMakeProgram.isEmpty()) {
-                args.emplace_back(
-                    QStringLiteral("-DXMAKE_MAKE_PROGRAM=%1").arg(xmakeMakeProgram));
             }
             if (!toolchainFile.isEmpty()) {
-                args.emplace_back(
-                    QStringLiteral("-DXMAKE_TOOLCHAIN_FILE=%1").arg(toolchainFile));
             }
             if (!prefixPath.isEmpty()) {
-                args.emplace_back(QStringLiteral("-DXMAKE_PREFIX_PATH=%1").arg(prefixPath));
             }
             if (!findRootPath.isEmpty()) {
-                args.emplace_back(QStringLiteral("-DXMAKE_FIND_ROOT_PATH=%1").arg(findRootPath));
             }
             if (!qtHostPath.isEmpty()) {
-                args.emplace_back(QStringLiteral("-DQT_HOST_PATH=%1").arg(qtHostPath));
             }
             if (!sysRoot.isEmpty()) {
-                args.emplace_back(QStringLiteral("-DXMAKE_SYSROOT=%1").arg(sysRoot));
             }
         }
 
