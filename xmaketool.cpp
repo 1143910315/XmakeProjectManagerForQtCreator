@@ -644,47 +644,99 @@ public:
     }
 
     void XMakeTool::parseFromCapabilities(const QString &input) const {
-        auto doc = QJsonDocument::fromJson(input.toUtf8());
-        QMessageBox::information(nullptr, "标题", input);
-        if (!doc.isObject()) {
-            return;
-        }
-
-        const QVariantMap data = doc.object().toVariantMap();
-        const QVariantList generatorList = data.value("generators").toList();
-        for (const QVariant &v : generatorList) {
-            const QVariantMap gen = v.toMap();
-            m_introspection->m_generators.append(Generator(gen.value("name").toString(),
-                                                           gen.value("extraGenerators").toStringList(),
-                                                           gen.value("platformSupport").toBool(),
-                                                           gen.value("toolsetSupport").toBool()));
-        }
-
-        const QVariantMap fileApis = data.value("fileApi").toMap();
-        const QVariantList requests = fileApis.value("requests").toList();
-        for (const QVariant &r : requests) {
-            const QVariantMap object = r.toMap();
-            const QString kind = object.value("kind").toString();
-            const QVariantList versionList = object.value("version").toList();
-            std::pair<int, int> highestVersion { -1, -1 };
-            for (const QVariant &v : versionList) {
-                const QVariantMap versionObject = v.toMap();
-                const std::pair<int, int> version { getVersion(versionObject, "major"),
-                                                    getVersion(versionObject, "minor") };
-                if (version.first > highestVersion.first
-                    || (version.first == highestVersion.first && version.second > highestVersion.second)) {
-                    highestVersion = version;
+        int charPosition = 0;
+        bool success = false;
+        int i;
+        for (i = 0; i < input.length() && !success; i++) {
+            QChar c = input[i];
+            switch (charPosition) {
+                case 0: {
+                    if (c == 'x') {
+                        charPosition++;
+                    } else {
+                        charPosition = 0;
+                    }
+                    break;
+                }
+                case 1: {
+                    if (c == 'm') {
+                        charPosition++;
+                    } else {
+                        charPosition = 0;
+                    }
+                    break;
+                }
+                case 2: {
+                    if (c == 'a') {
+                        charPosition++;
+                    } else {
+                        charPosition = 0;
+                    }
+                    break;
+                }
+                case 3: {
+                    if (c == 'k') {
+                        charPosition++;
+                    } else {
+                        charPosition = 0;
+                    }
+                    break;
+                }
+                case 4: {
+                    if (c == 'e') {
+                        charPosition++;
+                    } else {
+                        charPosition = 0;
+                    }
+                    break;
+                }
+                case 5: {
+                    if (c == ' ') {
+                        charPosition++;
+                    } else {
+                        charPosition = 0;
+                    }
+                    break;
+                }
+                case 6: {
+                    if (c == 'v') {
+                        success = true;
+                    } else {
+                        charPosition = 0;
+                    }
+                    break;
+                }
+                default: {
+                    return;
                 }
             }
-            if (!kind.isNull() && highestVersion.first != -1 && highestVersion.second != -1) {
-                m_introspection->m_fileApis.append({ kind, highestVersion });
-            }
+        }
+        QString major = "";
+        QString minor = "";
+        QString patch = "";
+        while (i < input.length() && input[i] >= '0' && input[i] <= '9') {
+            major.append(input[i++]);
+        }
+        i++;
+        while (i < input.length() && input[i] >= '0' && input[i] <= '9') {
+            minor.append(input[i++]);
+        }
+        i++;
+        while (i < input.length() && input[i] >= '0' && input[i] <= '9') {
+            patch.append(input[i++]);
+        }
+        if (major.isEmpty() || minor.isEmpty() || patch.isEmpty()) {
+            return;
+        }
+        QString fullVersion = "xmake v" + major + "." + minor + "." + patch;
+
+        while (i < input.length() && input[i] != ',') {
+            fullVersion.append(input[i++]);
         }
 
-        const QVariantMap versionInfo = data.value("version").toMap();
-        m_introspection->m_version.major = versionInfo.value("major").toInt();
-        m_introspection->m_version.minor = versionInfo.value("minor").toInt();
-        m_introspection->m_version.patch = versionInfo.value("patch").toInt();
-        m_introspection->m_version.fullVersion = versionInfo.value("string").toByteArray();
+        m_introspection->m_version.major = major.toInt();
+        m_introspection->m_version.minor = minor.toInt();
+        m_introspection->m_version.patch = patch.toInt();
+        m_introspection->m_version.fullVersion = fullVersion.toUtf8();
     }
 } // namespace XMakeProjectManager
