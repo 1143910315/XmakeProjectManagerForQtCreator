@@ -6,13 +6,11 @@
 #include <texteditor/codeassist/completionassistprovider.h>
 
 namespace CMakeProjectManager::Internal {
-
-class CMakeFileCompletionAssistProvider : public TextEditor::CompletionAssistProvider
-{
+    class CMakeFileCompletionAssistProvider : public TextEditor::CompletionAssistProvider {
+        Q_OBJECT
 public:
-    TextEditor::IAssistProcessor *createProcessor(const TextEditor::AssistInterface *) const final;
-    int activationCharSequenceLength() const final;
-    bool isActivationCharSequence(const QString &sequence) const final;
-};
-
+        TextEditor::IAssistProcessor *createProcessor(const TextEditor::AssistInterface *) const final;
+        int activationCharSequenceLength() const final;
+        bool isActivationCharSequence(const QString &sequence) const final;
+    };
 } // CMakeProjectManager::Internal
