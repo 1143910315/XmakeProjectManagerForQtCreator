@@ -85,7 +85,7 @@ private:
 
         ActionBuilder(this, Constants::RUN_XMAKE)
         .setText(Tr::tr("Run XMake"))
-        .setIcon(ProjectExplorer::Icons::XMAKE_LOGO.icon())
+        .setIcon(ProjectExplorer::Icons::CMAKE_LOGO.icon())
         .bindContextAction(&m_runXMakeAction)
         .setCommandAttribute(Command::CA_Hide)
         .addToContainer(PEC::M_BUILDPROJECT, PEC::G_BUILD_BUILD)
@@ -104,7 +104,7 @@ private:
 
         ActionBuilder(this, Constants::RUN_XMAKE_CONTEXT_MENU)
         .setText(Tr::tr("Run XMake"))
-        .setIcon(ProjectExplorer::Icons::XMAKE_LOGO.icon())
+        .setIcon(ProjectExplorer::Icons::CMAKE_LOGO.icon())
         .setContext(projectContext)
         .bindContextAction(&m_runXMakeActionContextMenu)
         .setCommandAttribute(Command::CA_Hide)
@@ -157,7 +157,7 @@ private:
 
         // XMake Profiler
         ActionBuilder(this, Constants::RUN_XMAKE_PROFILER)
-        .setIcon(ProjectExplorer::Icons::XMAKE_LOGO.icon())
+        .setIcon(ProjectExplorer::Icons::CMAKE_LOGO.icon())
         .setText(Tr::tr("XMake Profiler"))
         .bindContextAction(&m_xmakeProfilerAction)
         .addToContainer(Debugger::Constants::M_DEBUG_ANALYZER,
@@ -176,7 +176,7 @@ private:
 
         ActionBuilder(this, Constants::RUN_XMAKE_DEBUGGER)
         .setText(Tr::tr("Start XMake Debugging"))
-        .setIcon(ProjectExplorer::Icons::XMAKE_LOGO.icon())
+        .setIcon(ProjectExplorer::Icons::CMAKE_LOGO.icon())
         .bindContextAction(&m_xmakeDebuggerAction)
         .addToContainer(PEC::M_DEBUG_STARTDEBUGGING, Constants::XMAKE_DEBUGGING_GROUP)
         .addOnTriggered(this, [] {
