@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "cmakeconfigitem.h"
+#include "xmakeconfigitem.h"
 
 #include "fileapidataextractor.h"
 
@@ -24,7 +24,7 @@ template <typename Ret>
 class QPromise;
 QT_END_NAMESPACE
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 namespace FileApiDetails {
 
@@ -41,12 +41,12 @@ class ReplyFileContents
 public:
     QString generator;
     bool isMultiConfig = false;
-    QString cmakeExecutable;
+    QString xmakeExecutable;
     QString ctestExecutable;
-    QString cmakeRoot;
+    QString xmakeRoot;
 
     QVector<ReplyObject> replies;
-    QVersionNumber cmakeVersion;
+    QVersionNumber xmakeVersion;
 
     Utils::FilePath jsonFile(const QString &kind, const Utils::FilePath &replyDir) const;
 };
@@ -212,8 +212,8 @@ class FileApiData
 {
 public:
     FileApiDetails::ReplyFileContents replyFile;
-    CMakeConfig cache;
-    std::vector<CMakeFileInfo> cmakeFiles;
+    XMakeConfig cache;
+    std::vector<XMakeFileInfo> xmakeFiles;
     FileApiDetails::Configuration codemodel;
     std::vector<FileApiDetails::TargetDetails> targetDetails;
 };
@@ -224,15 +224,15 @@ public:
     static FileApiData parseData(QPromise<std::shared_ptr<FileApiQtcData>> &promise,
                                  const Utils::FilePath &replyFilePath,
                                  const Utils::FilePath &buildDir,
-                                 const QString &cmakeBuildType,
+                                 const QString &xmakeBuildType,
                                  QString &errorMessage);
 
-    static bool setupCMakeFileApi(const Utils::FilePath &buildDirectory);
+    static bool setupXMakeFileApi(const Utils::FilePath &buildDirectory);
 
-    static Utils::FilePath cmakeReplyDirectory(const Utils::FilePath &buildDirectory);
-    static Utils::FilePaths cmakeQueryFilePaths(const Utils::FilePath &buildDirectory);
+    static Utils::FilePath xmakeReplyDirectory(const Utils::FilePath &buildDirectory);
+    static Utils::FilePaths xmakeQueryFilePaths(const Utils::FilePath &buildDirectory);
 
-    static Utils::FilePath scanForCMakeReplyFile(const Utils::FilePath &buildDirectory);
+    static Utils::FilePath scanForXMakeReplyFile(const Utils::FilePath &buildDirectory);
 };
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

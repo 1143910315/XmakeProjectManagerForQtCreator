@@ -3,7 +3,7 @@
 
 #include "configmodel.h"
 
-#include "cmakeprojectmanagertr.h"
+#include "xmakeprojectmanagertr.h"
 
 #include <utils/algorithm.h>
 #include <utils/macroexpander.h>
@@ -13,38 +13,38 @@
 #include <QFont>
 #include <QSortFilterProxyModel>
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 // DataItem
 
-ConfigModel::DataItem::DataItem(const CMakeConfigItem &cmi)
+ConfigModel::DataItem::DataItem(const XMakeConfigItem &cmi)
 {
     key = QString::fromUtf8(cmi.key);
     value = QString::fromUtf8(cmi.value);
     description = QString::fromUtf8(cmi.documentation);
     values = cmi.values;
-    inCMakeCache = cmi.inCMakeCache;
+    inXMakeCache = cmi.inXMakeCache;
 
     isAdvanced = cmi.isAdvanced;
     isInitial = cmi.isInitial;
-    isHidden = cmi.type == CMakeConfigItem::INTERNAL || cmi.type == CMakeConfigItem::STATIC;
+    isHidden = cmi.type == XMakeConfigItem::INTERNAL || cmi.type == XMakeConfigItem::STATIC;
 
     setType(cmi.type);
 }
 
-void ConfigModel::DataItem::setType(CMakeConfigItem::Type cmt)
+void ConfigModel::DataItem::setType(XMakeConfigItem::Type cmt)
 {
     switch (cmt) {
-    case CMakeConfigItem::FILEPATH:
+    case XMakeConfigItem::FILEPATH:
         type = FILE;
         break;
-    case CMakeConfigItem::PATH:
+    case XMakeConfigItem::PATH:
         type = DIRECTORY;
         break;
-    case CMakeConfigItem::BOOL:
+    case XMakeConfigItem::BOOL:
         type = BOOLEAN;
         break;
-    case CMakeConfigItem::STRING:
+    case XMakeConfigItem::STRING:
         type = STRING;
         break;
     default:
@@ -70,26 +70,26 @@ QString ConfigModel::DataItem::typeDisplay() const
     return "UNINITIALIZED";
 }
 
-CMakeConfigItem ConfigModel::DataItem::toCMakeConfigItem() const
+XMakeConfigItem ConfigModel::DataItem::toXMakeConfigItem() const
 {
-    CMakeConfigItem cmi;
+    XMakeConfigItem cmi;
     cmi.key = key.toUtf8();
     cmi.value = value.toUtf8();
     switch (type) {
     case DataItem::BOOLEAN:
-        cmi.type = CMakeConfigItem::BOOL;
+        cmi.type = XMakeConfigItem::BOOL;
         break;
     case DataItem::FILE:
-        cmi.type = CMakeConfigItem::FILEPATH;
+        cmi.type = XMakeConfigItem::FILEPATH;
         break;
     case DataItem::DIRECTORY:
-        cmi.type = CMakeConfigItem::PATH;
+        cmi.type = XMakeConfigItem::PATH;
         break;
     case DataItem::STRING:
-        cmi.type = CMakeConfigItem::STRING;
+        cmi.type = XMakeConfigItem::STRING;
         break;
     case DataItem::UNKNOWN:
-        cmi.type = CMakeConfigItem::UNINITIALIZED;
+        cmi.type = XMakeConfigItem::UNINITIALIZED;
         break;
     }
     cmi.isUnset = isUnset;
@@ -103,7 +103,7 @@ CMakeConfigItem ConfigModel::DataItem::toCMakeConfigItem() const
 
 QString ConfigModel::DataItem::expandedValue(Utils::MacroExpander *expander)
 {
-    return toCMakeConfigItem().expandedValue(expander);
+    return toXMakeConfigItem().expandedValue(expander);
 }
 
 // ConfigModel
@@ -348,7 +348,7 @@ ConfigModel::DataItem ConfigModel::dataItemFromIndex(const QModelIndex &idx)
         di.isHidden = cmti->dataItem->isHidden;
         di.isAdvanced = cmti->dataItem->isAdvanced;
         di.isInitial = cmti->dataItem->isInitial;
-        di.inCMakeCache = cmti->dataItem->inCMakeCache;
+        di.inXMakeCache = cmti->dataItem->inXMakeCache;
         di.value = cmti->dataItem->currentValue();
         di.description = cmti->dataItem->description;
         di.values = cmti->dataItem->values;
@@ -358,11 +358,11 @@ ConfigModel::DataItem ConfigModel::dataItemFromIndex(const QModelIndex &idx)
     return DataItem();
 }
 
-QList<ConfigModel::DataItem> ConfigModel::configurationForCMake() const
+QList<ConfigModel::DataItem> ConfigModel::configurationForXMake() const
 {
     const QList<InternalDataItem> tmp
             = Utils::filtered(m_configuration, [](const InternalDataItem &i) {
-        return i.isUserChanged || i.isUserNew || !i.inCMakeCache || i.isUnset;
+        return i.isUserChanged || i.isUserNew || !i.inXMakeCache || i.isUnset;
     });
     return Utils::transform(tmp, [](const InternalDataItem &item) {
         DataItem newItem(item);
@@ -372,14 +372,14 @@ QList<ConfigModel::DataItem> ConfigModel::configurationForCMake() const
     });
 }
 
-void ConfigModel::setConfiguration(const CMakeConfig &config)
+void ConfigModel::setConfiguration(const XMakeConfig &config)
 {
-    setConfiguration(Utils::transform(config.toList(), [](const CMakeConfigItem &i) {
+    setConfiguration(Utils::transform(config.toList(), [](const XMakeConfigItem &i) {
         return DataItem(i);
     }));
 }
 
-void ConfigModel::setBatchEditConfiguration(const CMakeConfig &config)
+void ConfigModel::setBatchEditConfiguration(const XMakeConfig &config)
 {
     for (const auto &c: config) {
         DataItem di(c);
@@ -407,12 +407,12 @@ void ConfigModel::setBatchEditConfiguration(const CMakeConfig &config)
     generateTree();
 }
 
-void ConfigModel::setInitialParametersConfiguration(const CMakeConfig &config)
+void ConfigModel::setInitialParametersConfiguration(const XMakeConfig &config)
 {
     for (const auto &c: config) {
         DataItem di(c);
         InternalDataItem i(di);
-        i.inCMakeCache = true;
+        i.inXMakeCache = true;
         i.isInitial = true;
         i.newValue = di.value;
         m_configuration.append(i);
@@ -558,7 +558,7 @@ QVariant ConfigModelTreeItem::data(int column, int role) const
     auto fontRole = [this] {
         QFont font;
         font.setBold((dataItem->isUserChanged || dataItem->isUserNew) && !dataItem->isUnset);
-        font.setStrikeOut((!dataItem->inCMakeCache && !dataItem->isUserNew) || dataItem->isUnset);
+        font.setStrikeOut((!dataItem->inXMakeCache && !dataItem->isUserNew) || dataItem->isUnset);
         font.setItalic((dataItem->isInitial && !dataItem->kitValue.isEmpty())
                        || (!dataItem->isInitial && !dataItem->initialValue.isEmpty()));
         return font;
@@ -575,7 +575,7 @@ QVariant ConfigModelTreeItem::data(int column, int role) const
     };
 
     const QString value = currentValue();
-    const auto boolValue = CMakeConfigItem::toBool(value);
+    const auto boolValue = XMakeConfigItem::toBool(value);
     const bool isTrue = boolValue.has_value() && boolValue.value();
 
     switch (role) {
@@ -684,10 +684,10 @@ QString ConfigModelTreeItem::toolTip() const
                           .arg(dataItem->initialValue);
         }
 
-        if (dataItem->inCMakeCache) {
+        if (dataItem->inXMakeCache) {
             tooltip << pattern.arg(Tr::tr("Current Configuration:")).arg(dataItem->currentValue());
         } else {
-            tooltip << pattern.arg(Tr::tr("Not in CMakeCache.txt")).arg(QString());
+            tooltip << pattern.arg(Tr::tr("Not in XMakeCache.txt")).arg(QString());
         }
     }
     tooltip << pattern.arg(Tr::tr("Type:")).arg(dataItem->typeDisplay());
@@ -701,4 +701,4 @@ QString ConfigModelTreeItem::currentValue() const
     return dataItem->isUserChanged ? dataItem->newValue : dataItem->value;
 }
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

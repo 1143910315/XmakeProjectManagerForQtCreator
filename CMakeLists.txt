@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+xmake_minimum_required(VERSION 3.10)
 
 list(APPEND CMAKE_PREFIX_PATH "./dev")
 
@@ -31,17 +31,17 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 
 set(QtX Qt${QT_VERSION_MAJOR})
 
-# Add a CMake option that enables building your plugin with tests.
+# Add a XMake option that enables building your plugin with tests.
 # You don't want your released plugin binaries to contain tests,
 # so make that default to 'NO'.
-# Enable tests by passing -DWITH_TESTS=ON to CMake.
+# Enable tests by passing -DWITH_TESTS=ON to XMake.
 option(WITH_TESTS "Builds with tests" NO)
 
 if(WITH_TESTS)
   # Look for QtTest
   find_package(${QtX} REQUIRED COMPONENTS Test)
 
-  # Tell CMake functions like add_qtc_plugin about the QtTest component.
+  # Tell XMake functions like add_qtc_plugin about the QtTest component.
   set(IMPLICIT_DEPENDS Qt::Test)
 
   # Enable ctest for auto tests.
@@ -62,40 +62,40 @@ add_qtc_plugin(XmakeProjectManagerForQtCreator
     QtCreator::ExtensionSystem
     QtCreator::Utils
   SOURCES
-    .github/workflows/build_cmake.yml
+    .github/workflows/build_xmake.yml
     .github/workflows/README.md
     README.md
     builddirparameters.cpp builddirparameters.h
-    cmake_global.h
-    cmakeabstractprocessstep.cpp cmakeabstractprocessstep.h
-    cmakeautocompleter.cpp cmakeautocompleter.h
-    cmakebuildconfiguration.cpp cmakebuildconfiguration.h
-    cmakebuildsystem.cpp cmakebuildsystem.h
-    cmakebuildstep.cpp cmakebuildstep.h
-    cmakebuildtarget.h
-    cmakeconfigitem.cpp cmakeconfigitem.h
-    cmakeeditor.cpp cmakeeditor.h
-    cmakefilecompletionassist.cpp cmakefilecompletionassist.h
-    cmakeformatter.cpp cmakeformatter.h
-    cmakeindenter.cpp cmakeindenter.h
-    cmakeinstallstep.cpp cmakeinstallstep.h
-    cmakekitaspect.cpp cmakekitaspect.h
-    cmakelocatorfilter.cpp cmakelocatorfilter.h
-    cmakeparser.cpp cmakeparser.h
-    cmakeprocess.cpp cmakeprocess.h
-    cmakeproject.cpp cmakeproject.h
-    cmakeproject.qrc
-    cmakeprojectconstants.h
-    cmakeprojectimporter.cpp cmakeprojectimporter.h
-    cmakeprojectmanager.cpp cmakeprojectmanager.h
-    cmakeprojectmanagertr.h
-    cmakeprojectnodes.cpp cmakeprojectnodes.h
-    cmakeprojectplugin.cpp
-    cmakesettingspage.cpp cmakesettingspage.h
-    cmakespecificsettings.cpp cmakespecificsettings.h
-    cmaketool.cpp cmaketool.h
-    cmaketoolmanager.cpp cmaketoolmanager.h
-    cmaketoolsettingsaccessor.cpp cmaketoolsettingsaccessor.h
+    xmake_global.h
+    xmakeabstractprocessstep.cpp xmakeabstractprocessstep.h
+    xmakeautocompleter.cpp xmakeautocompleter.h
+    xmakebuildconfiguration.cpp xmakebuildconfiguration.h
+    xmakebuildsystem.cpp xmakebuildsystem.h
+    xmakebuildstep.cpp xmakebuildstep.h
+    xmakebuildtarget.h
+    xmakeconfigitem.cpp xmakeconfigitem.h
+    xmakeeditor.cpp xmakeeditor.h
+    xmakefilecompletionassist.cpp xmakefilecompletionassist.h
+    xmakeformatter.cpp xmakeformatter.h
+    xmakeindenter.cpp xmakeindenter.h
+    xmakeinstallstep.cpp xmakeinstallstep.h
+    xmakekitaspect.cpp xmakekitaspect.h
+    xmakelocatorfilter.cpp xmakelocatorfilter.h
+    xmakeparser.cpp xmakeparser.h
+    xmakeprocess.cpp xmakeprocess.h
+    xmakeproject.cpp xmakeproject.h
+    xmakeproject.qrc
+    xmakeprojectconstants.h
+    xmakeprojectimporter.cpp xmakeprojectimporter.h
+    xmakeprojectmanager.cpp xmakeprojectmanager.h
+    xmakeprojectmanagertr.h
+    xmakeprojectnodes.cpp xmakeprojectnodes.h
+    xmakeprojectplugin.cpp
+    xmakesettingspage.cpp xmakesettingspage.h
+    xmakespecificsettings.cpp xmakespecificsettings.h
+    xmaketool.cpp xmaketool.h
+    xmaketoolmanager.cpp xmaketoolmanager.h
+    xmaketoolsettingsaccessor.cpp xmaketoolsettingsaccessor.h
     configmodel.cpp configmodel.h
     configmodelitemdelegate.cpp configmodelitemdelegate.h
     fileapidataextractor.cpp fileapidataextractor.h
@@ -104,15 +104,15 @@ add_qtc_plugin(XmakeProjectManagerForQtCreator
     presetsparser.cpp presetsparser.h
     presetsmacros.cpp presetsmacros.h
     projecttreehelper.cpp projecttreehelper.h
-    3rdparty/cmake/cmListFileCache.cxx
-    3rdparty/cmake/cmListFileLexer.cxx
-    3rdparty/cmake/cmListFileCache.h
+    3rdparty/xmake/cmListFileCache.cxx
+    3rdparty/xmake/cmListFileLexer.cxx
+    3rdparty/xmake/cmListFileCache.h
     3rdparty/rstparser/rstparser.cc 3rdparty/rstparser/rstparser.h
 )
 
 target_sources(XmakeProjectManagerForQtCreator
   PRIVATE
-    cmakeproject.qrc
+    xmakeproject.qrc
 )
 
 

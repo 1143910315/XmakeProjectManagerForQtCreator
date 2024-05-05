@@ -3,10 +3,10 @@
 
 #include "builddirparameters.h"
 
-#include "cmakebuildconfiguration.h"
-#include "cmakebuildsystem.h"
-#include "cmakekitaspect.h"
-#include "cmaketoolmanager.h"
+#include "xmakebuildconfiguration.h"
+#include "xmakebuildsystem.h"
+#include "xmakekitaspect.h"
+#include "xmaketoolmanager.h"
 
 #include <projectexplorer/customparser.h>
 #include <projectexplorer/kitaspects.h>
@@ -22,29 +22,29 @@
 using namespace ProjectExplorer;
 using namespace Utils;
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 BuildDirParameters::BuildDirParameters() = default;
 
-BuildDirParameters::BuildDirParameters(CMakeBuildSystem *buildSystem)
+BuildDirParameters::BuildDirParameters(XMakeBuildSystem *buildSystem)
 {
     QTC_ASSERT(buildSystem, return);
-    auto bc = buildSystem->cmakeBuildConfiguration();
+    auto bc = buildSystem->xmakeBuildConfiguration();
     QTC_ASSERT(bc, return);
 
     expander = bc->macroExpander();
 
-    const QStringList expandedArguments = Utils::transform(bc->initialCMakeArguments.allValues(),
+    const QStringList expandedArguments = Utils::transform(bc->initialXMakeArguments.allValues(),
                                                            [this](const QString &s) {
                                                                return expander->expand(s);
                                                            });
-    initialCMakeArguments = Utils::filtered(expandedArguments,
+    initialXMakeArguments = Utils::filtered(expandedArguments,
                                             [](const QString &s) { return !s.isEmpty(); });
     configurationChangesArguments = Utils::transform(buildSystem->configurationChangesArguments(),
                                                      [this](const QString &s) {
                                                          return expander->expand(s);
                                                      });
-    additionalCMakeArguments = Utils::transform(bc->additionalCMakeArguments(),
+    additionalXMakeArguments = Utils::transform(bc->additionalXMakeArguments(),
                                                 [this](const QString &s) {
                                                     return expander->expand(s);
                                                 });
@@ -59,10 +59,10 @@ BuildDirParameters::BuildDirParameters(CMakeBuildSystem *buildSystem)
         sourceDirectory = p->projectDirectory();
     buildDirectory = bc->buildDirectory();
 
-    cmakeBuildType = buildSystem->cmakeBuildType();
+    xmakeBuildType = buildSystem->xmakeBuildType();
 
     environment = bc->configureEnvironment();
-    // Disable distributed building for configuration runs. CMake does not do those in parallel,
+    // Disable distributed building for configuration runs. XMake does not do those in parallel,
     // so there is no win in sending data over the network.
     // Unfortunately distcc does not have a simple environment flag to turn it off:-/
     if (Utils::HostOsInfo::isAnyUnixHost())
@@ -72,7 +72,7 @@ BuildDirParameters::BuildDirParameters(CMakeBuildSystem *buildSystem)
     environment.setFallback("CMAKE_COLOR_DIAGNOSTICS", "1");
     environment.setFallback("CLICOLOR_FORCE", "1");
 
-    cmakeToolId = CMakeKitAspect::cmakeToolId(k);
+    xmakeToolId = XMakeKitAspect::xmakeToolId(k);
 
     outputParserGenerator = [k, bc]() {
         QList<OutputLineParser *> outputParsers = k->createOutputParsers();
@@ -86,12 +86,12 @@ BuildDirParameters::BuildDirParameters(CMakeBuildSystem *buildSystem)
 
 bool BuildDirParameters::isValid() const
 {
-    return cmakeTool();
+    return xmakeTool();
 }
 
-CMakeTool *BuildDirParameters::cmakeTool() const
+XMakeTool *BuildDirParameters::xmakeTool() const
 {
-    return CMakeToolManager::findById(cmakeToolId);
+    return XMakeToolManager::findById(xmakeToolId);
 }
 
 QList<OutputLineParser *> BuildDirParameters::outputParsers() const
@@ -100,4 +100,4 @@ QList<OutputLineParser *> BuildDirParameters::outputParsers() const
     return outputParserGenerator();
 }
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

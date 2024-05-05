@@ -4,7 +4,7 @@
 #include "configmodelitemdelegate.h"
 
 #include "configmodel.h"
-#include "cmakeprojectmanagertr.h"
+#include "xmakeprojectmanagertr.h"
 
 #include <utils/pathchooser.h>
 
@@ -12,7 +12,7 @@
 
 using namespace Utils;
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 ConfigModelItemDelegate::ConfigModelItemDelegate(const FilePath &base, QObject* parent)
     : QStyledItemDelegate(parent)
@@ -135,4 +135,4 @@ QSize ConfigModelItemDelegate::sizeHint(const QStyleOptionViewItem &option,
     return QSize(100, height);
 }
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

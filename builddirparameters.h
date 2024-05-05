@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "cmaketool.h"
+#include "xmaketool.h"
 
 #include <utils/environment.h>
 #include <utils/filepath.h>
@@ -15,32 +15,32 @@ class MacroExpander;
 class OutputLineParser;
 } // namespace Utils
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
-class CMakeBuildSystem;
+class XMakeBuildSystem;
 
 class BuildDirParameters
 {
 public:
     BuildDirParameters();
-    explicit BuildDirParameters(CMakeBuildSystem *buildSystem);
+    explicit BuildDirParameters(XMakeBuildSystem *buildSystem);
 
     bool isValid() const;
-    CMakeTool *cmakeTool() const;
+    XMakeTool *xmakeTool() const;
 
     QString projectName;
 
     Utils::FilePath sourceDirectory;
     Utils::FilePath buildDirectory;
-    QString cmakeBuildType;
+    QString xmakeBuildType;
 
     Utils::Environment environment;
 
-    Utils::Id cmakeToolId;
+    Utils::Id xmakeToolId;
 
-    QStringList initialCMakeArguments;
+    QStringList initialXMakeArguments;
     QStringList configurationChangesArguments;
-    QStringList additionalCMakeArguments;
+    QStringList additionalXMakeArguments;
 
     Utils::MacroExpander* expander = nullptr;
 
@@ -51,4 +51,4 @@ private:
     OutputParserGenerator outputParserGenerator;
 };
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

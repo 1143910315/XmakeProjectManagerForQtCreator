@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "cmakebuildtarget.h"
-#include "cmakeprojectnodes.h"
-#include "3rdparty/cmake/cmListFileCache.h"
+#include "xmakebuildtarget.h"
+#include "xmakeprojectnodes.h"
+#include "3rdparty/xmake/cmListFileCache.h"
 
 #include <projectexplorer/rawprojectpart.h>
 
@@ -18,35 +18,35 @@
 #include <memory>
 #include <optional>
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 class FileApiData;
 
-class CMakeFileInfo
+class XMakeFileInfo
 {
 public:
-    bool operator==(const CMakeFileInfo& other) const { return path == other.path; }
-    friend size_t qHash(const CMakeFileInfo &info, uint seed = 0) { return qHash(info.path, seed); }
+    bool operator==(const XMakeFileInfo& other) const { return path == other.path; }
+    friend size_t qHash(const XMakeFileInfo &info, uint seed = 0) { return qHash(info.path, seed); }
 
-    bool operator<(const CMakeFileInfo &other) const { return path < other.path; }
+    bool operator<(const XMakeFileInfo &other) const { return path < other.path; }
 
     Utils::FilePath path;
-    bool isCMake = false;
-    bool isCMakeListsDotTxt = false;
+    bool isXMake = false;
+    bool isXMakeListsDotTxt = false;
     bool isExternal = false;
     bool isGenerated = false;
-    cmListFile cmakeListFile;
+    cmListFile xmakeListFile;
 };
 
 class FileApiQtcData
 {
 public:
     QString errorMessage;
-    CMakeConfig cache;
-    QSet<CMakeFileInfo> cmakeFiles;
-    QList<CMakeBuildTarget> buildTargets;
+    XMakeConfig cache;
+    QSet<XMakeFileInfo> xmakeFiles;
+    QList<XMakeBuildTarget> buildTargets;
     ProjectExplorer::RawProjectParts projectParts;
-    std::unique_ptr<CMakeProjectNode> rootProjectNode;
+    std::unique_ptr<XMakeProjectNode> rootProjectNode;
     QString ctestPath;
     bool isMultiConfig = false;
     bool usesAllCapsTargets = false;
@@ -55,4 +55,4 @@ public:
 FileApiQtcData extractData(const QFuture<void> &cancelFuture, FileApiData &input,
                            const Utils::FilePath &sourceDir, const Utils::FilePath &buildDir);
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

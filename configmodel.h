@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "cmakeconfigitem.h"
+#include "xmakeconfigitem.h"
 
 #include <utils/treemodel.h>
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
     class ConfigModelTreeItem;
 
     class ConfigModel : public Utils::TreeModel<> {
@@ -26,13 +26,13 @@ public:
 
             DataItem() {
             }
-            DataItem(const CMakeConfigItem &cmi);
+            DataItem(const XMakeConfigItem &cmi);
 
-            void setType(CMakeConfigItem::Type cmt);
+            void setType(XMakeConfigItem::Type cmt);
 
             QString typeDisplay() const;
 
-            CMakeConfigItem toCMakeConfigItem() const;
+            XMakeConfigItem toXMakeConfigItem() const;
 
             QString expandedValue(Utils::MacroExpander *expander);
 
@@ -43,7 +43,7 @@ public:
             bool isHidden = false;
             bool isAdvanced = false;
             bool isInitial = false;
-            bool inCMakeCache = false;
+            bool inXMakeCache = false;
             bool isUnset = false;
             QString value;
             QString description;
@@ -62,12 +62,12 @@ public:
                                  bool isInitial = false,
                                  const QString &description = QString(),
                                  const QStringList &values = QStringList());
-        void setConfiguration(const CMakeConfig &config);
-        void setBatchEditConfiguration(const CMakeConfig &config);
-        void setInitialParametersConfiguration(const CMakeConfig &config);
+        void setConfiguration(const XMakeConfig &config);
+        void setBatchEditConfiguration(const XMakeConfig &config);
+        void setInitialParametersConfiguration(const XMakeConfig &config);
         void setConfiguration(const QList<DataItem> &config);
 
-        using KitConfiguration = QHash<QString, CMakeConfigItem>;
+        using KitConfiguration = QHash<QString, XMakeConfigItem>;
         void setConfigurationFromKit(const KitConfiguration &kitConfig);
 
         void flush();
@@ -85,7 +85,7 @@ public:
 
         static DataItem dataItemFromIndex(const QModelIndex &idx);
 
-        QList<DataItem> configurationForCMake() const;
+        QList<DataItem> configurationForXMake() const;
 
         Utils::MacroExpander *macroExpander() const;
         void setMacroExpander(Utils::MacroExpander *newExpander);
@@ -132,4 +132,4 @@ public:
 
         ConfigModel::InternalDataItem *dataItem;
     };
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

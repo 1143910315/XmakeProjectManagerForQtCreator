@@ -8,7 +8,7 @@
 #include <QComboBox>
 #include <QStyledItemDelegate>
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 class ConfigModelItemDelegate : public QStyledItemDelegate
 {
@@ -28,4 +28,4 @@ private:
     Utils::FilePath m_base;
 };
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

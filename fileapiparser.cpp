@@ -3,9 +3,9 @@
 
 #include "fileapiparser.h"
 
-#include "cmakeprocess.h"
-#include "cmakeprojectconstants.h"
-#include "cmakeprojectmanagertr.h"
+#include "xmakeprocess.h"
+#include "xmakeprojectconstants.h"
+#include "xmakeprojectmanagertr.h"
 
 #include <coreplugin/messagemanager.h>
 #include <projectexplorer/rawprojectpart.h>
@@ -22,22 +22,22 @@
 
 using namespace Utils;
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 using namespace FileApiDetails;
 
-const char CMAKE_RELATIVE_REPLY_PATH[] = ".cmake/api/v1/reply";
-const char CMAKE_RELATIVE_QUERY_PATH[] = ".cmake/api/v1/query";
+const char CMAKE_RELATIVE_REPLY_PATH[] = ".xmake/api/v1/reply";
+const char CMAKE_RELATIVE_QUERY_PATH[] = ".xmake/api/v1/query";
 
-static Q_LOGGING_CATEGORY(cmakeFileApi, "qtc.cmake.fileApi", QtWarningMsg);
+static Q_LOGGING_CATEGORY(xmakeFileApi, "qtc.xmake.fileApi", QtWarningMsg);
 
-const QStringList CMAKE_QUERY_FILENAMES = {"cache-v2", "codemodel-v2", "cmakeFiles-v1"};
+const QStringList CMAKE_QUERY_FILENAMES = {"cache-v2", "codemodel-v2", "xmakeFiles-v1"};
 
 // --------------------------------------------------------------------
 // Helper:
 // --------------------------------------------------------------------
 
-FilePath FileApiParser::cmakeReplyDirectory(const FilePath &buildDirectory)
+FilePath FileApiParser::xmakeReplyDirectory(const FilePath &buildDirectory)
 {
     return buildDirectory.pathAppended(CMAKE_RELATIVE_REPLY_PATH);
 }
@@ -45,12 +45,12 @@ FilePath FileApiParser::cmakeReplyDirectory(const FilePath &buildDirectory)
 static void reportFileApiSetupFailure()
 {
     Core::MessageManager::writeFlashing(
-        addCMakePrefix(Tr::tr("Failed to set up CMake file API support. %1 cannot "
+        addXMakePrefix(Tr::tr("Failed to set up XMake file API support. %1 cannot "
                               "extract project information.")
                            .arg(QGuiApplication::applicationDisplayName())));
 }
 
-static std::pair<int, int> cmakeVersion(const QJsonObject &obj)
+static std::pair<int, int> xmakeVersion(const QJsonObject &obj)
 {
     const QJsonObject version = obj.value("version").toObject();
     const int major = version.value("major").toInt(-1);
@@ -60,7 +60,7 @@ static std::pair<int, int> cmakeVersion(const QJsonObject &obj)
 
 static bool checkJsonObject(const QJsonObject &obj, const QString &kind, int major, int minor = -1)
 {
-    auto version = cmakeVersion(obj);
+    auto version = xmakeVersion(obj);
     if (major == -1)
         version.first = major;
     if (minor == -1)
@@ -75,7 +75,7 @@ static std::pair<QString, QString> nameValue(const QJsonObject &obj)
 
 static QJsonDocument readJsonFile(const FilePath &filePath)
 {
-    qCDebug(cmakeFileApi) << "readJsonFile:" << filePath;
+    qCDebug(xmakeFileApi) << "readJsonFile:" << filePath;
     QTC_ASSERT(!filePath.isEmpty(), return {});
 
     const expected_str<QByteArray> contents = filePath.fileContents();
@@ -103,7 +103,7 @@ std::vector<int> indexList(const QJsonValue &v)
 static ReplyFileContents readReplyFile(const FilePath &filePath, QString &errorMessage)
 {
     const QJsonDocument document = readJsonFile(filePath);
-    static const QString msg = Tr::tr("Invalid reply file created by CMake.");
+    static const QString msg = Tr::tr("Invalid reply file created by XMake.");
 
     ReplyFileContents result;
     if (document.isNull() || document.isEmpty() || !document.isObject()) {
@@ -114,25 +114,25 @@ static ReplyFileContents readReplyFile(const FilePath &filePath, QString &errorM
     const QJsonObject rootObject = document.object();
 
     {
-        const QJsonObject cmakeObject = rootObject.value("cmake").toObject();
+        const QJsonObject xmakeObject = rootObject.value("xmake").toObject();
         {
-            const QJsonObject paths = cmakeObject.value("paths").toObject();
+            const QJsonObject paths = xmakeObject.value("paths").toObject();
             {
-                result.cmakeExecutable = paths.value("cmake").toString();
+                result.xmakeExecutable = paths.value("xmake").toString();
                 result.ctestExecutable = paths.value("ctest").toString();
-                result.cmakeRoot = paths.value("root").toString();
+                result.xmakeRoot = paths.value("root").toString();
             }
-            const QJsonObject generator = cmakeObject.value("generator").toObject();
+            const QJsonObject generator = xmakeObject.value("generator").toObject();
             {
                 result.generator = generator.value("name").toString();
                 result.isMultiConfig = generator.value("multiConfig").toBool();
             }
-            const QJsonObject version = cmakeObject.value("version").toObject();
+            const QJsonObject version = xmakeObject.value("version").toObject();
             {
                 int major = version.value("major").toInt();
                 int minor = version.value("minor").toInt();
                 int patch = version.value("patch").toInt();
-                result.cmakeVersion = QVersionNumber(major, minor, patch);
+                result.xmakeVersion = QVersionNumber(major, minor, patch);
             }
         }
     }
@@ -146,7 +146,7 @@ static ReplyFileContents readReplyFile(const FilePath &filePath, QString &errorM
                 ReplyObject r;
                 r.kind = object.value("kind").toString();
                 r.file = object.value("jsonFile").toString();
-                r.version = cmakeVersion(object);
+                r.version = xmakeVersion(object);
 
                 if (r.kind.isEmpty() || r.file.isEmpty() || r.version.first == -1
                     || r.version.second == -1)
@@ -157,7 +157,7 @@ static ReplyFileContents readReplyFile(const FilePath &filePath, QString &errorM
         }
     }
 
-    if (result.generator.isEmpty() || result.cmakeExecutable.isEmpty() || result.cmakeRoot.isEmpty()
+    if (result.generator.isEmpty() || result.xmakeExecutable.isEmpty() || result.xmakeRoot.isEmpty()
         || result.replies.isEmpty() || hadInvalidObject)
         errorMessage = msg;
 
@@ -166,28 +166,28 @@ static ReplyFileContents readReplyFile(const FilePath &filePath, QString &errorM
 
 // Cache file:
 
-static CMakeConfig readCacheFile(const FilePath &cacheFile, QString &errorMessage)
+static XMakeConfig readCacheFile(const FilePath &cacheFile, QString &errorMessage)
 {
-    CMakeConfig result;
+    XMakeConfig result;
 
     const QJsonDocument doc = readJsonFile(cacheFile);
     const QJsonObject root = doc.object();
 
     if (!checkJsonObject(root, "cache", 2)) {
-        errorMessage = Tr::tr("Invalid cache file generated by CMake.");
+        errorMessage = Tr::tr("Invalid cache file generated by XMake.");
         return {};
     }
 
     const QJsonArray entries = root.value("entries").toArray();
     for (const auto &v : entries) {
-        CMakeConfigItem item;
+        XMakeConfigItem item;
 
         const QJsonObject entry = v.toObject();
         auto nv = nameValue(entry);
         item.key = nv.first.toUtf8();
         item.value = nv.second.toUtf8();
 
-        item.type = CMakeConfigItem::typeStringToType(entry.value("type").toString().toUtf8());
+        item.type = XMakeConfigItem::typeStringToType(entry.value("type").toString().toUtf8());
 
         {
             const QJsonArray properties = entry.value("properties").toArray();
@@ -195,7 +195,7 @@ static CMakeConfig readCacheFile(const FilePath &cacheFile, QString &errorMessag
                 const QJsonObject prop = v.toObject();
                 auto nv = nameValue(prop);
                 if (nv.first == "ADVANCED") {
-                    const auto boolValue = CMakeConfigItem::toBool(nv.second);
+                    const auto boolValue = XMakeConfigItem::toBool(nv.second);
                     item.isAdvanced = boolValue.has_value() && boolValue.value();
                 } else if (nv.first == "HELPSTRING") {
                     item.documentation = nv.second.toUtf8();
@@ -209,29 +209,29 @@ static CMakeConfig readCacheFile(const FilePath &cacheFile, QString &errorMessag
     return result;
 }
 
-// CMake Files:
+// XMake Files:
 
-static std::vector<CMakeFileInfo> readCMakeFilesFile(const FilePath &cmakeFilesFile, QString &errorMessage)
+static std::vector<XMakeFileInfo> readXMakeFilesFile(const FilePath &xmakeFilesFile, QString &errorMessage)
 {
-    std::vector<CMakeFileInfo> result;
+    std::vector<XMakeFileInfo> result;
 
-    const QJsonDocument doc = readJsonFile(cmakeFilesFile);
+    const QJsonDocument doc = readJsonFile(xmakeFilesFile);
     const QJsonObject root = doc.object();
 
-    if (!checkJsonObject(root, "cmakeFiles", 1)) {
-        errorMessage = Tr::tr( "Invalid cmakeFiles file generated by CMake.");
+    if (!checkJsonObject(root, "xmakeFiles", 1)) {
+        errorMessage = Tr::tr( "Invalid xmakeFiles file generated by XMake.");
         return {};
     }
 
     const QJsonArray inputs = root.value("inputs").toArray();
     for (const auto &v : inputs) {
-        CMakeFileInfo info;
+        XMakeFileInfo info;
         const QJsonObject input = v.toObject();
-        info.path = cmakeFilesFile.withNewPath(input.value("path").toString());
+        info.path = xmakeFilesFile.withNewPath(input.value("path").toString());
 
-        info.isCMake = input.value("isCMake").toBool();
+        info.isXMake = input.value("isXMake").toBool();
         const QString filename = info.path.fileName();
-        info.isCMakeListsDotTxt = (filename.compare(Constants::CMAKE_LISTS_TXT,
+        info.isXMakeListsDotTxt = (filename.compare(Constants::CMAKE_LISTS_TXT,
                                                     HostOsInfo::fileNameCaseSensitivity())
                                    == 0);
 
@@ -249,7 +249,7 @@ std::vector<Directory> extractDirectories(const QJsonArray &directories, QString
 {
     if (directories.isEmpty()) {
         errorMessage = Tr::tr(
-            "Invalid codemodel file generated by CMake: No directories.");
+            "Invalid codemodel file generated by XMake: No directories.");
         return {};
     }
 
@@ -258,7 +258,7 @@ std::vector<Directory> extractDirectories(const QJsonArray &directories, QString
         const QJsonObject obj = v.toObject();
         if (obj.isEmpty()) {
             errorMessage = Tr::tr(
-                "Invalid codemodel file generated by CMake: Empty directory object.");
+                "Invalid codemodel file generated by XMake: Empty directory object.");
             continue;
         }
         Directory dir;
@@ -279,7 +279,7 @@ static std::vector<Project> extractProjects(const QJsonArray &projects, QString 
 {
     if (projects.isEmpty()) {
         errorMessage = Tr::tr(
-            "Invalid codemodel file generated by CMake: No projects.");
+            "Invalid codemodel file generated by XMake: No projects.");
         return {};
     }
 
@@ -287,9 +287,9 @@ static std::vector<Project> extractProjects(const QJsonArray &projects, QString 
     for (const auto &v : projects) {
         const QJsonObject obj = v.toObject();
         if (obj.isEmpty()) {
-            qCDebug(cmakeFileApi) << "Empty project skipped!";
+            qCDebug(xmakeFileApi) << "Empty project skipped!";
             errorMessage = Tr::tr(
-                "Invalid codemodel file generated by CMake: Empty project object.");
+                "Invalid codemodel file generated by XMake: Empty project object.");
             continue;
         }
         Project project;
@@ -300,13 +300,13 @@ static std::vector<Project> extractProjects(const QJsonArray &projects, QString 
         project.targets = indexList(obj.value("targetIndexes"));
 
         if (project.directories.empty()) {
-            qCDebug(cmakeFileApi) << "Invalid project skipped!";
+            qCDebug(xmakeFileApi) << "Invalid project skipped!";
             errorMessage = Tr::tr(
-                "Invalid codemodel file generated by CMake: Broken project data.");
+                "Invalid codemodel file generated by XMake: Broken project data.");
             continue;
         }
 
-        qCDebug(cmakeFileApi) << "Project read:" << project.name << project.directories;
+        qCDebug(xmakeFileApi) << "Project read:" << project.name << project.directories;
         result.emplace_back(std::move(project));
     }
     return result;
@@ -319,7 +319,7 @@ static std::vector<Target> extractTargets(const QJsonArray &targets, QString &er
         const QJsonObject obj = v.toObject();
         if (obj.isEmpty()) {
             errorMessage = Tr::tr(
-                "Invalid codemodel file generated by CMake: Empty target object.");
+                "Invalid codemodel file generated by XMake: Empty target object.");
             continue;
         }
         Target target;
@@ -332,7 +332,7 @@ static std::vector<Target> extractTargets(const QJsonArray &targets, QString &er
         if (target.name.isEmpty() || target.id.isEmpty() || target.jsonFile.isEmpty()
             || target.directory == -1 || target.project == -1) {
             errorMessage = Tr::tr(
-                "Invalid codemodel file generated by CMake: Broken target data.");
+                "Invalid codemodel file generated by XMake: Broken target data.");
             continue;
         }
 
@@ -353,28 +353,28 @@ static bool validateIndexes(const Configuration &config)
             ++topLevelCount;
 
         if (d.parent < -1 || d.parent >= directoryCount) {
-            qCWarning(cmakeFileApi)
+            qCWarning(xmakeFileApi)
                 << "Directory" << d.sourcePath << ": parent index" << d.parent << "is broken.";
             return false;
         }
         if (d.project < 0 || d.project >= projectCount) {
-            qCWarning(cmakeFileApi)
+            qCWarning(xmakeFileApi)
                 << "Directory" << d.sourcePath << ": project index" << d.project << "is broken.";
             return false;
         }
         if (contains(d.children, [directoryCount](int c) { return c < 0 || c >= directoryCount; })) {
-            qCWarning(cmakeFileApi)
+            qCWarning(xmakeFileApi)
                 << "Directory" << d.sourcePath << ": A child index" << d.children << "is broken.";
             return false;
         }
         if (contains(d.targets, [targetCount](int t) { return t < 0 || t >= targetCount; })) {
-            qCWarning(cmakeFileApi)
+            qCWarning(xmakeFileApi)
                 << "Directory" << d.sourcePath << ": A target index" << d.targets << "is broken.";
             return false;
         }
     }
     if (topLevelCount != 1) {
-        qCWarning(cmakeFileApi) << "Directories: Invalid number of top level directories, "
+        qCWarning(xmakeFileApi) << "Directories: Invalid number of top level directories, "
                                 << topLevelCount << " (expected: 1).";
         return false;
     }
@@ -385,41 +385,41 @@ static bool validateIndexes(const Configuration &config)
             ++topLevelCount;
 
         if (p.parent < -1 || p.parent >= projectCount) {
-            qCWarning(cmakeFileApi)
+            qCWarning(xmakeFileApi)
                 << "Project" << p.name << ": parent index" << p.parent << "is broken.";
             return false;
         }
         if (contains(p.children, [projectCount](int p) { return p < 0 || p >= projectCount; })) {
-            qCWarning(cmakeFileApi)
+            qCWarning(xmakeFileApi)
                 << "Project" << p.name << ": A child index" << p.children << "is broken.";
             return false;
         }
         if (contains(p.targets, [targetCount](int t) { return t < 0 || t >= targetCount; })) {
-            qCWarning(cmakeFileApi)
+            qCWarning(xmakeFileApi)
                 << "Project" << p.name << ": A target index" << p.targets << "is broken.";
             return false;
         }
         if (contains(p.directories,
                      [directoryCount](int d) { return d < 0 || d >= directoryCount; })) {
-            qCWarning(cmakeFileApi)
+            qCWarning(xmakeFileApi)
                 << "Project" << p.name << ": A directory index" << p.directories << "is broken.";
             return false;
         }
     }
     if (topLevelCount != 1) {
-        qCWarning(cmakeFileApi) << "Projects: Invalid number of top level projects, "
+        qCWarning(xmakeFileApi) << "Projects: Invalid number of top level projects, "
                                 << topLevelCount << " (expected: 1).";
         return false;
     }
 
     for (const Target &t : config.targets) {
         if (t.directory < 0 || t.directory >= directoryCount) {
-            qCWarning(cmakeFileApi)
+            qCWarning(xmakeFileApi)
                 << "Target" << t.name << ": directory index" << t.directory << "is broken.";
             return false;
         }
         if (t.project < 0 || t.project >= projectCount) {
-            qCWarning(cmakeFileApi)
+            qCWarning(xmakeFileApi)
                 << "Target" << t.name << ": project index" << t.project << "is broken.";
             return false;
         }
@@ -432,7 +432,7 @@ static std::vector<Configuration> extractConfigurations(const QJsonArray &config
 {
     if (configs.isEmpty()) {
         errorMessage = Tr::tr(
-            "Invalid codemodel file generated by CMake: No configurations.");
+            "Invalid codemodel file generated by XMake: No configurations.");
         return {};
     }
 
@@ -441,7 +441,7 @@ static std::vector<Configuration> extractConfigurations(const QJsonArray &config
         const QJsonObject obj = v.toObject();
         if (obj.isEmpty()) {
             errorMessage = Tr::tr(
-                "Invalid codemodel file generated by CMake: Empty configuration object.");
+                "Invalid codemodel file generated by XMake: Empty configuration object.");
             continue;
         }
         Configuration config;
@@ -452,7 +452,7 @@ static std::vector<Configuration> extractConfigurations(const QJsonArray &config
         config.targets = extractTargets(obj.value("targets").toArray(), errorMessage);
 
         if (!validateIndexes(config)) {
-            errorMessage = Tr::tr("Invalid codemodel file generated by CMake: Broken "
+            errorMessage = Tr::tr("Invalid codemodel file generated by XMake: Broken "
                                   "indexes in directories, projects, or targets.");
             return {};
         }
@@ -469,7 +469,7 @@ static std::vector<Configuration> readCodemodelFile(const FilePath &codemodelFil
     const QJsonObject root = doc.object();
 
     if (!checkJsonObject(root, "codemodel", 2)) {
-        errorMessage = Tr::tr("Invalid codemodel file generated by CMake.");
+        errorMessage = Tr::tr("Invalid codemodel file generated by XMake.");
         return {};
     }
 
@@ -605,7 +605,7 @@ static TargetDetails extractTargetDetails(const QJsonObject &root, QString &erro
             const QJsonObject o = v.toObject();
             std::vector<IncludeInfo> includes;
             addIncludeInfo(&includes, o, "includes");
-            // new in CMake 3.27+:
+            // new in XMake 3.27+:
             addIncludeInfo(&includes, o, "frameworks");
             return CompileInfo{
                 transform<std::vector>(o.value("sourceIndexes").toArray(),
@@ -666,21 +666,21 @@ static int validateBacktraceGraph(const TargetDetails &t)
             ++topLevelNodeCount;
         }
         if (n.file < 0 || n.file >= backtraceFilesCount) {
-            qCWarning(cmakeFileApi) << "BacktraceNode: file index" << n.file << "is broken.";
+            qCWarning(xmakeFileApi) << "BacktraceNode: file index" << n.file << "is broken.";
             return -1;
         }
         if (n.command < -1 || n.command >= backtraceCommandsCount) {
-            qCWarning(cmakeFileApi) << "BacktraceNode: command index" << n.command << "is broken.";
+            qCWarning(xmakeFileApi) << "BacktraceNode: command index" << n.command << "is broken.";
             return -1;
         }
         if (n.parent < -1 || n.parent >= backtraceNodeCount) {
-            qCWarning(cmakeFileApi) << "BacktraceNode: parent index" << n.parent << "is broken.";
+            qCWarning(xmakeFileApi) << "BacktraceNode: parent index" << n.parent << "is broken.";
             return -1;
         }
     }
 
     if (topLevelNodeCount == 0 && backtraceNodeCount > 0) { // This is a forest, not a tree
-        qCWarning(cmakeFileApi) << "BacktraceNode: Invalid number of top level nodes"
+        qCWarning(xmakeFileApi) << "BacktraceNode: Invalid number of top level nodes"
                                 << topLevelNodeCount;
         return -1;
     }
@@ -702,13 +702,13 @@ static bool validateTargetDetails(const TargetDetails &t)
     const int compileGroupsCount = static_cast<int>(t.compileGroups.size());
 
     if (t.backtrace < -1 || t.backtrace >= backtraceCount) {
-        qCWarning(cmakeFileApi) << "TargetDetails" << t.name << ": backtrace index" << t.backtrace
+        qCWarning(xmakeFileApi) << "TargetDetails" << t.name << ": backtrace index" << t.backtrace
                                 << "is broken.";
         return false;
     }
     for (const InstallDestination &id : t.installDestination) {
         if (id.backtrace < -1 || id.backtrace >= backtraceCount) {
-            qCWarning(cmakeFileApi) << "TargetDetails" << t.name << ": backtrace index"
+            qCWarning(xmakeFileApi) << "TargetDetails" << t.name << ": backtrace index"
                                     << t.backtrace << "of install destination is broken.";
             return false;
         }
@@ -716,7 +716,7 @@ static bool validateTargetDetails(const TargetDetails &t)
 
     for (const DependencyInfo &dep : t.dependencies) {
         if (dep.backtrace < -1 || dep.backtrace >= backtraceCount) {
-            qCWarning(cmakeFileApi) << "TargetDetails" << t.name << ": backtrace index"
+            qCWarning(xmakeFileApi) << "TargetDetails" << t.name << ": backtrace index"
                                     << t.backtrace << "of dependency is broken.";
             return false;
         }
@@ -724,17 +724,17 @@ static bool validateTargetDetails(const TargetDetails &t)
 
     for (const SourceInfo &s : t.sources) {
         if (s.compileGroup < -1 || s.compileGroup >= compileGroupsCount) {
-            qCWarning(cmakeFileApi) << "TargetDetails" << t.name << ": compile group index"
+            qCWarning(xmakeFileApi) << "TargetDetails" << t.name << ": compile group index"
                                     << s.compileGroup << "of source info is broken.";
             return false;
         }
         if (s.sourceGroup < -1 || s.sourceGroup >= sourceGroupsCount) {
-            qCWarning(cmakeFileApi) << "TargetDetails" << t.name << ": source group index"
+            qCWarning(xmakeFileApi) << "TargetDetails" << t.name << ": source group index"
                                     << s.sourceGroup << "of source info is broken.";
             return false;
         }
         if (s.backtrace < -1 || s.backtrace >= backtraceCount) {
-            qCWarning(cmakeFileApi) << "TargetDetails" << t.name << ": backtrace index"
+            qCWarning(xmakeFileApi) << "TargetDetails" << t.name << ": backtrace index"
                                     << s.backtrace << "of source info is broken.";
             return false;
         }
@@ -743,21 +743,21 @@ static bool validateTargetDetails(const TargetDetails &t)
     for (const CompileInfo &cg : t.compileGroups) {
         for (int s : cg.sources) {
             if (s < 0 || s >= sourcesCount) {
-                qCWarning(cmakeFileApi) << "TargetDetails" << t.name << ": sources index" << s
+                qCWarning(xmakeFileApi) << "TargetDetails" << t.name << ": sources index" << s
                                         << "of compile group is broken.";
                 return false;
             }
         }
         for (const IncludeInfo &i : cg.includes) {
             if (i.backtrace < -1 || i.backtrace >= backtraceCount) {
-                qCWarning(cmakeFileApi) << "TargetDetails" << t.name << ": includes/backtrace index"
+                qCWarning(xmakeFileApi) << "TargetDetails" << t.name << ": includes/backtrace index"
                                         << i.backtrace << "of compile group is broken.";
                 return false;
             }
         }
         for (const DefineInfo &d : cg.defines) {
             if (d.backtrace < -1 || d.backtrace >= backtraceCount) {
-                qCWarning(cmakeFileApi) << "TargetDetails" << t.name << ": defines/backtrace index"
+                qCWarning(xmakeFileApi) << "TargetDetails" << t.name << ": defines/backtrace index"
                                         << d.backtrace << "of compile group is broken.";
                 return false;
             }
@@ -775,7 +775,7 @@ static TargetDetails readTargetFile(const FilePath &targetFile, QString &errorMe
     TargetDetails result = extractTargetDetails(root, errorMessage);
     if (errorMessage.isEmpty() && !validateTargetDetails(result)) {
         errorMessage = Tr::tr(
-            "Invalid target file generated by CMake: Broken indexes in target details.");
+            "Invalid target file generated by XMake: Broken indexes in target details.");
     }
     return result;
 }
@@ -797,7 +797,7 @@ FilePath FileApiDetails::ReplyFileContents::jsonFile(const QString &kind, const 
 // FileApi:
 // --------------------------------------------------------------------
 
-bool FileApiParser::setupCMakeFileApi(const FilePath &buildDirectory)
+bool FileApiParser::setupXMakeFileApi(const FilePath &buildDirectory)
 {
     // So that we have a directory to watch.
     buildDirectory.pathAppended(CMAKE_RELATIVE_REPLY_PATH).ensureWritableDir();
@@ -812,7 +812,7 @@ bool FileApiParser::setupCMakeFileApi(const FilePath &buildDirectory)
     QTC_ASSERT(queryDir.exists(), return false);
 
     bool failedBefore = false;
-    for (const FilePath &filePath : cmakeQueryFilePaths(buildDirectory)) {
+    for (const FilePath &filePath : xmakeQueryFilePaths(buildDirectory)) {
         const bool success = filePath.ensureExistingFile();
         if (!success && !failedBefore) {
             failedBefore = true;
@@ -840,7 +840,7 @@ static QStringList uniqueTargetFiles(const Configuration &config)
 FileApiData FileApiParser::parseData(QPromise<std::shared_ptr<FileApiQtcData>> &promise,
                                      const FilePath &replyFilePath,
                                      const Utils::FilePath &buildDir,
-                                     const QString &cmakeBuildType,
+                                     const QString &xmakeBuildType,
                                      QString &errorMessage)
 {
     QTC_CHECK(errorMessage.isEmpty());
@@ -850,7 +850,7 @@ FileApiData FileApiParser::parseData(QPromise<std::shared_ptr<FileApiQtcData>> &
 
     const auto cancelCheck = [&promise, &errorMessage] {
         if (promise.isCanceled()) {
-            errorMessage = Tr::tr("CMake parsing was canceled.");
+            errorMessage = Tr::tr("XMake parsing was canceled.");
             return true;
         }
         return false;
@@ -861,12 +861,12 @@ FileApiData FileApiParser::parseData(QPromise<std::shared_ptr<FileApiQtcData>> &
         return {};
     const FilePath cachePathFromReply = result.replyFile.jsonFile("cache", replyDir);
     if (cachePathFromReply.isEmpty())
-        result.cache = CMakeConfig::fromFile(buildDir / Constants::CMAKE_CACHE_TXT, &errorMessage);
+        result.cache = XMakeConfig::fromFile(buildDir / Constants::CMAKE_CACHE_TXT, &errorMessage);
     else
         result.cache = readCacheFile(cachePathFromReply, errorMessage);
     if (cancelCheck())
         return {};
-    result.cmakeFiles = readCMakeFilesFile(result.replyFile.jsonFile("cmakeFiles", replyDir),
+    result.xmakeFiles = readXMakeFilesFile(result.replyFile.jsonFile("xmakeFiles", replyDir),
                                            errorMessage);
     if (cancelCheck())
         return {};
@@ -874,15 +874,15 @@ FileApiData FileApiParser::parseData(QPromise<std::shared_ptr<FileApiQtcData>> &
                                          errorMessage);
 
     if (codeModels.size() == 0) {
-        errorMessage = Tr::tr("CMake project configuration failed. No CMake configuration for "
+        errorMessage = Tr::tr("XMake project configuration failed. No XMake configuration for "
                               "build type \"%1\" found.")
-                           .arg(cmakeBuildType);
+                           .arg(xmakeBuildType);
         return result;
     }
 
     auto it = std::find_if(codeModels.begin(), codeModels.end(),
-                           [cmakeBuildType](const Configuration& cfg) {
-                               return QString::compare(cfg.name, cmakeBuildType, Qt::CaseInsensitive) == 0;
+                           [xmakeBuildType](const Configuration& cfg) {
+                               return QString::compare(cfg.name, xmakeBuildType, Qt::CaseInsensitive) == 0;
                            });
     if (it == codeModels.end()) {
         QStringList buildTypes;
@@ -890,14 +890,14 @@ FileApiData FileApiParser::parseData(QPromise<std::shared_ptr<FileApiQtcData>> &
             buildTypes << cfg.name;
 
         if (result.replyFile.isMultiConfig) {
-            errorMessage = Tr::tr("No \"%1\" CMake configuration found. Available configurations: \"%2\".\n"
+            errorMessage = Tr::tr("No \"%1\" XMake configuration found. Available configurations: \"%2\".\n"
                               "Make sure that CMAKE_CONFIGURATION_TYPES variable contains the \"Build type\" field.")
-                           .arg(cmakeBuildType)
+                           .arg(xmakeBuildType)
                            .arg(buildTypes.join(", "));
         } else {
-            errorMessage = Tr::tr("No \"%1\" CMake configuration found. Available configuration: \"%2\".\n"
+            errorMessage = Tr::tr("No \"%1\" XMake configuration found. Available configuration: \"%2\".\n"
                               "Make sure that CMAKE_BUILD_TYPE variable matches the \"Build type\" field.")
-                           .arg(cmakeBuildType)
+                           .arg(xmakeBuildType)
                            .arg(buildTypes.join(", "));
         }
         return result;
@@ -916,7 +916,7 @@ FileApiData FileApiParser::parseData(QPromise<std::shared_ptr<FileApiQtcData>> &
         if (targetErrorMessage.isEmpty()) {
             result.targetDetails.emplace_back(std::move(td));
         } else {
-            qWarning() << "Failed to retrieve target data from cmake fileapi:"
+            qWarning() << "Failed to retrieve target data from xmake fileapi:"
                        << targetErrorMessage;
             errorMessage = targetErrorMessage;
         }
@@ -925,9 +925,9 @@ FileApiData FileApiParser::parseData(QPromise<std::shared_ptr<FileApiQtcData>> &
     return result;
 }
 
-FilePath FileApiParser::scanForCMakeReplyFile(const FilePath &buildDirectory)
+FilePath FileApiParser::scanForXMakeReplyFile(const FilePath &buildDirectory)
 {
-    const FilePath replyDir = cmakeReplyDirectory(buildDirectory);
+    const FilePath replyDir = xmakeReplyDirectory(buildDirectory);
     if (!replyDir.exists())
         return {};
 
@@ -935,7 +935,7 @@ FilePath FileApiParser::scanForCMakeReplyFile(const FilePath &buildDirectory)
     return entries.isEmpty() ? FilePath() : entries.first();
 }
 
-FilePaths FileApiParser::cmakeQueryFilePaths(const FilePath &buildDirectory)
+FilePaths FileApiParser::xmakeQueryFilePaths(const FilePath &buildDirectory)
 {
     const FilePath queryDir = buildDirectory / CMAKE_RELATIVE_QUERY_PATH;
     return transform(CMAKE_QUERY_FILENAMES, [&queryDir](const QString &name) {
@@ -943,4 +943,4 @@ FilePaths FileApiParser::cmakeQueryFilePaths(const FilePath &buildDirectory)
     });
 }
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

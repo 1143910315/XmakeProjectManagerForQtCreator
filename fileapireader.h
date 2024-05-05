@@ -4,8 +4,8 @@
 #pragma once
 
 #include "builddirparameters.h"
-#include "cmakebuildtarget.h"
-#include "cmakeprojectnodes.h"
+#include "xmakebuildtarget.h"
+#include "xmakeprojectnodes.h"
 #include "fileapidataextractor.h"
 
 #include <projectexplorer/rawprojectpart.h>
@@ -22,9 +22,9 @@
 
 namespace ProjectExplorer { class ProjectNode; }
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
-class CMakeProcess;
+class XMakeProcess;
 class FileApiQtcData;
 
 class FileApiReader final : public QObject
@@ -38,28 +38,28 @@ public:
     void setParameters(const BuildDirParameters &p);
 
     void resetData();
-    void parse(bool forceCMakeRun,
+    void parse(bool forceXMakeRun,
                bool forceInitialConfiguration,
                bool forceExtraConfiguration,
                bool debugging,
                bool profiling);
     void stop();
-    void stopCMakeRun();
+    void stopXMakeRun();
 
     bool isParsing() const;
 
-    QList<CMakeBuildTarget> takeBuildTargets(QString &errorMessage);
-    QSet<CMakeFileInfo> takeCMakeFileInfos(QString &errorMessage);
-    CMakeConfig takeParsedConfiguration(QString &errorMessage);
+    QList<XMakeBuildTarget> takeBuildTargets(QString &errorMessage);
+    QSet<XMakeFileInfo> takeXMakeFileInfos(QString &errorMessage);
+    XMakeConfig takeParsedConfiguration(QString &errorMessage);
     QString ctestPath() const;
     ProjectExplorer::RawProjectParts createRawProjectParts(QString &errorMessage);
 
     bool isMultiConfig() const;
     bool usesAllCapsTargets() const;
 
-    int lastCMakeExitCode() const;
+    int lastXMakeExitCode() const;
 
-    std::unique_ptr<CMakeProjectNode> rootProjectNode();
+    std::unique_ptr<XMakeProjectNode> rootProjectNode();
 
     Utils::FilePath topCmakeFile() const;
 
@@ -73,26 +73,26 @@ signals:
 private:
     void startState();
     void endState(const Utils::FilePath &replyFilePath, bool restoredFromBackup);
-    void startCMakeState(const QStringList &configurationArguments);
-    void cmakeFinishedState(int exitCode);
+    void startXMakeState(const QStringList &configurationArguments);
+    void xmakeFinishedState(int exitCode);
 
     void replyDirectoryHasChanged(const QString &directory) const;
     void makeBackupConfiguration(bool store);
 
     void writeConfigurationIntoBuildDirectory(const QStringList &configuration);
 
-    std::unique_ptr<CMakeProcess> m_cmakeProcess;
+    std::unique_ptr<XMakeProcess> m_xmakeProcess;
 
-    // cmake data:
-    CMakeConfig m_cache;
-    QSet<CMakeFileInfo> m_cmakeFiles;
-    QList<CMakeBuildTarget> m_buildTargets;
+    // xmake data:
+    XMakeConfig m_cache;
+    QSet<XMakeFileInfo> m_xmakeFiles;
+    QList<XMakeBuildTarget> m_buildTargets;
     ProjectExplorer::RawProjectParts m_projectParts;
-    std::unique_ptr<CMakeProjectNode> m_rootProjectNode;
+    std::unique_ptr<XMakeProjectNode> m_rootProjectNode;
     QString m_ctestPath;
     bool m_isMultiConfig = false;
     bool m_usesAllCapsTargets = false;
-    int m_lastCMakeExitCode = 0;
+    int m_lastXMakeExitCode = 0;
 
     std::optional<QFuture<std::shared_ptr<FileApiQtcData>>> m_future;
 
@@ -105,4 +105,4 @@ private:
     QDateTime m_lastReplyTimestamp;
 };
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

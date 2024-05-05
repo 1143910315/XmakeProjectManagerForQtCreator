@@ -10,15 +10,15 @@ class Environment;
 class FilePath;
 }
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 namespace PresetsDetails {
 class ConfigurePreset;
 }
 
-namespace CMakePresets::Macros {
+namespace XMakePresets::Macros {
 /**
- * Expands the CMakePresets Macros using Utils::Environment as target and source for parent environment values.
+ * Expands the XMakePresets Macros using Utils::Environment as target and source for parent environment values.
  * $penv{PATH} is taken from Utils::Environment
  */
 template<class PresetType>
@@ -27,7 +27,7 @@ void expand(const PresetType &preset,
             const Utils::FilePath &sourceDirectory);
 
 /**
- * Expands the CMakePresets Macros using Utils::Environment as target
+ * Expands the XMakePresets Macros using Utils::Environment as target
  * $penv{PATH} is replaced with Qt Creator macros ${PATH}
  */
 template<class PresetType>
@@ -36,7 +36,7 @@ void expand(const PresetType &preset,
             const Utils::FilePath &sourceDirectory);
 
 /**
- * Expands the CMakePresets macros inside the @value QString parameter.
+ * Expands the XMakePresets macros inside the @value QString parameter.
  */
 template<class PresetType>
 void expand(const PresetType &preset,
@@ -75,6 +75,6 @@ void updateCacheVariables(PresetsDetails::ConfigurePreset &configurePreset,
 template<class PresetType>
 bool evaluatePresetCondition(const PresetType &preset, const Utils::FilePath &sourceDirectory);
 
-} // namespace CMakePresets::Macros
+} // namespace XMakePresets::Macros
 
-} // namespace CMakeProjectManager::Internal
+} // namespace XMakeProjectManager::Internal

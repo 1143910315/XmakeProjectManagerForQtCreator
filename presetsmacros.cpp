@@ -12,7 +12,7 @@
 
 using namespace Utils;
 
-namespace CMakeProjectManager::Internal::CMakePresets::Macros {
+namespace XMakeProjectManager::Internal::XMakePresets::Macros {
 
 static QString getHostSystemName(Utils::OsType osType)
 {
@@ -151,7 +151,7 @@ void expand(const PresetType &preset, Environment &env, const FilePath &sourceDi
             return env.value(macroName);
         });
 
-        // Make sure to expand the CMake macros also for environment variables
+        // Make sure to expand the XMake macros also for environment variables
         expandAllButEnv(preset, sourceDirectory, value);
 
         if (append)
@@ -189,7 +189,7 @@ void expand(const PresetType &preset, EnvironmentItems &envItems, const FilePath
             return QString("${%1}").arg(macroName);
         });
 
-        // Make sure to expand the CMake macros also for environment variables
+        // Make sure to expand the XMake macros also for environment variables
         expandAllButEnv(preset, sourceDirectory, value);
 
         envItems.emplace_back(Utils::EnvironmentItem(key, value, operation));
@@ -213,12 +213,12 @@ void expand(const PresetType &preset,
         return env.value(macroName);
     });
 
-    // Make sure to expand the CMake macros also for environment variables
+    // Make sure to expand the XMake macros also for environment variables
     expandAllButEnv(preset, sourceDirectory, value);
 }
 
 void updateToolchainFile(
-    CMakeProjectManager::Internal::PresetsDetails::ConfigurePreset &configurePreset,
+    XMakeProjectManager::Internal::PresetsDetails::ConfigurePreset &configurePreset,
     const Utils::Environment &env,
     const Utils::FilePath &sourceDirectory,
     const Utils::FilePath &buildDirectory)
@@ -227,7 +227,7 @@ void updateToolchainFile(
         return;
 
     QString toolchainFileName = configurePreset.toolchainFile.value();
-    CMakePresets::Macros::expand(configurePreset, env, sourceDirectory, toolchainFileName);
+    XMakePresets::Macros::expand(configurePreset, env, sourceDirectory, toolchainFileName);
 
     // Resolve the relative path first to source and afterwards to build directory
     Utils::FilePath toolchainFile = Utils::FilePath::fromString(toolchainFileName);
@@ -247,17 +247,17 @@ void updateToolchainFile(
     const QString toolchainFileString = toolchainFile.cleanPath().toString();
 
     // toolchainFile takes precedence to CMAKE_TOOLCHAIN_FILE
-    CMakeConfig cache = configurePreset.cacheVariables ? configurePreset.cacheVariables.value()
-                                                       : CMakeConfig();
+    XMakeConfig cache = configurePreset.cacheVariables ? configurePreset.cacheVariables.value()
+                                                       : XMakeConfig();
 
-    auto it = std::find_if(cache.begin(), cache.end(), [](const CMakeConfigItem &item) {
+    auto it = std::find_if(cache.begin(), cache.end(), [](const XMakeConfigItem &item) {
         return item.key == "CMAKE_TOOLCHAIN_FILE";
     });
     if (it != cache.end())
         it->value = toolchainFileString.toUtf8();
     else
-        cache << CMakeConfigItem("CMAKE_TOOLCHAIN_FILE",
-                                 CMakeConfigItem::FILEPATH,
+        cache << XMakeConfigItem("CMAKE_TOOLCHAIN_FILE",
+                                 XMakeConfigItem::FILEPATH,
                                  toolchainFileString.toUtf8());
 
     configurePreset.cacheVariables = cache;
@@ -271,7 +271,7 @@ void updateInstallDir(PresetsDetails::ConfigurePreset &configurePreset,
         return;
 
     QString installDirString = configurePreset.installDir.value();
-    CMakePresets::Macros::expand(configurePreset, env, sourceDirectory, installDirString);
+    XMakePresets::Macros::expand(configurePreset, env, sourceDirectory, installDirString);
 
     // Resolve the relative path first to source and afterwards to build directory
     Utils::FilePath installDir = Utils::FilePath::fromString(installDirString);
@@ -284,17 +284,17 @@ void updateInstallDir(PresetsDetails::ConfigurePreset &configurePreset,
     installDirString = installDir.cleanPath().toString();
 
     // installDir takes precedence to CMAKE_INSTALL_PREFIX
-    CMakeConfig cache = configurePreset.cacheVariables ? configurePreset.cacheVariables.value()
-                                                       : CMakeConfig();
+    XMakeConfig cache = configurePreset.cacheVariables ? configurePreset.cacheVariables.value()
+                                                       : XMakeConfig();
 
-    auto it = std::find_if(cache.begin(), cache.end(), [](const CMakeConfigItem &item) {
+    auto it = std::find_if(cache.begin(), cache.end(), [](const XMakeConfigItem &item) {
         return item.key == "CMAKE_INSTALL_PREFIX";
     });
     if (it != cache.end())
         it->value = installDirString.toUtf8();
     else
-        cache << CMakeConfigItem("CMAKE_INSTALL_PREFIX",
-                                 CMakeConfigItem::PATH,
+        cache << XMakeConfigItem("CMAKE_INSTALL_PREFIX",
+                                 XMakeConfigItem::PATH,
                                  installDirString.toUtf8());
 
     configurePreset.cacheVariables = cache;
@@ -310,7 +310,7 @@ void updateCacheVariables(PresetsDetails::ConfigurePreset &configurePreset,
     if (!configurePreset.cacheVariables)
         return;
 
-    CMakeConfig cache = configurePreset.cacheVariables.value();
+    XMakeConfig cache = configurePreset.cacheVariables.value();
 
     static const QSet<QByteArray> pathKeys{"CMAKE_C_COMPILER",
                                            "CMAKE_CXX_COMPILER",
@@ -325,7 +325,7 @@ void updateCacheVariables(PresetsDetails::ConfigurePreset &configurePreset,
     auto expandCacheValue =
         [configurePreset, env, sourceDirectory, cache](const QByteArray &key) {
         QString result = cache.stringValueOf(key);
-        CMakePresets::Macros::expand(configurePreset, env, sourceDirectory, result);
+        XMakePresets::Macros::expand(configurePreset, env, sourceDirectory, result);
 
         if (pathKeys.contains(key)) {
             const FilePaths paths = transform(result.split(";"), &FilePath::fromUserInput);
@@ -431,4 +431,4 @@ template void expand<PresetsDetails::BuildPreset>(const PresetsDetails::BuildPre
 template bool evaluatePresetCondition<PresetsDetails::BuildPreset>(
     const PresetsDetails::BuildPreset &preset, const Utils::FilePath &sourceDirectory);
 
-} // namespace CMakeProjectManager::Internal::CMakePresets::Macros
+} // namespace XMakeProjectManager::Internal::XMakePresets::Macros

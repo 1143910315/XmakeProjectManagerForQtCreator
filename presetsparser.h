@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "cmakeconfigitem.h"
+#include "xmakeconfigitem.h"
 
 #include <utils/environment.h>
 #include <utils/filepath.h>
@@ -11,7 +11,7 @@
 #include <QHash>
 #include <QVersionNumber>
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 namespace PresetsDetails {
 
@@ -103,8 +103,8 @@ public:
     std::optional<QString> toolchainFile;
     std::optional<QString> binaryDir;
     std::optional<QString> installDir;
-    std::optional<QString> cmakeExecutable;
-    std::optional<CMakeConfig> cacheVariables;
+    std::optional<QString> xmakeExecutable;
+    std::optional<XMakeConfig> cacheVariables;
     std::optional<Utils::Environment> environment;
     std::optional<Warnings> warnings;
     std::optional<Errors> errors;
@@ -141,7 +141,7 @@ class PresetsData
 public:
     int version = 0;
     bool havePresets = false;
-    QVersionNumber cmakeMinimimRequired;
+    QVersionNumber xmakeMinimimRequired;
     QHash<QString, QString> vendor;
     std::optional<QStringList> include;
     Utils::FilePath fileDir;
@@ -158,4 +158,4 @@ public:
     const PresetsData &presetsData() const;
 };
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

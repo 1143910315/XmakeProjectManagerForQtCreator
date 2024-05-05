@@ -3,7 +3,7 @@
 
 #include "presetsparser.h"
 
-#include "cmakeprojectmanagertr.h"
+#include "xmakeprojectmanagertr.h"
 
 #include <utils/algorithm.h>
 
@@ -11,7 +11,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 bool parseVersion(const QJsonValue &jsonValue, int &version)
 {
@@ -23,7 +23,7 @@ bool parseVersion(const QJsonValue &jsonValue, int &version)
     return version != invalidVersion;
 }
 
-bool parseCMakeMinimumRequired(const QJsonValue &jsonValue, QVersionNumber &versionNumber)
+bool parseXMakeMinimumRequired(const QJsonValue &jsonValue, QVersionNumber &versionNumber)
 {
     if (jsonValue.isUndefined() || !jsonValue.isObject())
         return false;
@@ -200,20 +200,20 @@ bool parseConfigurePresets(const QJsonValue &jsonValue,
             preset.installDir = object.value("installDir").toString();
         if (object.contains("toolchainFile"))
             preset.toolchainFile = object.value("toolchainFile").toString();
-        if (object.contains("cmakeExecutable"))
-            preset.cmakeExecutable = object.value("cmakeExecutable").toString();
+        if (object.contains("xmakeExecutable"))
+            preset.xmakeExecutable = object.value("xmakeExecutable").toString();
 
         const QJsonObject cacheVariablesObj = object.value("cacheVariables").toObject();
         for (const QString &cacheKey : cacheVariablesObj.keys()) {
             if (!preset.cacheVariables)
-                preset.cacheVariables = CMakeConfig();
+                preset.cacheVariables = XMakeConfig();
 
             QJsonValue cacheValue = cacheVariablesObj.value(cacheKey);
             if (cacheValue.isObject()) {
                 QJsonObject cacheVariableObj = cacheValue.toObject();
-                CMakeConfigItem item;
+                XMakeConfigItem item;
                 item.key = cacheKey.toUtf8();
-                item.type = CMakeConfigItem::typeStringToType(
+                item.type = XMakeConfigItem::typeStringToType(
                     cacheVariableObj.value("type").toString().toUtf8());
                 item.value = cacheVariableObj.value("value").toString().toUtf8();
                 preset.cacheVariables.value() << item;
@@ -221,17 +221,17 @@ bool parseConfigurePresets(const QJsonValue &jsonValue,
             } else {
                 if (cacheValue.isBool()) {
                     preset.cacheVariables.value()
-                        << CMakeConfigItem(cacheKey.toUtf8(),
-                                           CMakeConfigItem::BOOL,
+                        << XMakeConfigItem(cacheKey.toUtf8(),
+                                           XMakeConfigItem::BOOL,
                                            cacheValue.toBool() ? "ON" : "OFF");
-                } else if (CMakeConfigItem::toBool(cacheValue.toString()).has_value()) {
+                } else if (XMakeConfigItem::toBool(cacheValue.toString()).has_value()) {
                     preset.cacheVariables.value()
-                        << CMakeConfigItem(cacheKey.toUtf8(),
-                                           CMakeConfigItem::BOOL,
+                        << XMakeConfigItem(cacheKey.toUtf8(),
+                                           XMakeConfigItem::BOOL,
                                            cacheValue.toString().toUtf8());
                 } else {
                     preset.cacheVariables.value()
-                        << CMakeConfigItem(cacheKey.toUtf8(), cacheValue.toString().toUtf8());
+                        << XMakeConfigItem(cacheKey.toUtf8(), cacheValue.toString().toUtf8());
                 }
             }
         }
@@ -445,7 +445,7 @@ bool PresetsParser::parse(const Utils::FilePath &jsonFile, QString &errorMessage
     const Utils::expected_str<QByteArray> jsonContents = jsonFile.fileContents();
     if (!jsonContents) {
         errorMessage
-            = ::CMakeProjectManager::Tr::tr("Failed to read file \"%1\".").arg(jsonFile.fileName());
+            = ::XMakeProjectManager::Tr::tr("Failed to read file \"%1\".").arg(jsonFile.fileName());
         return false;
     }
 
@@ -462,7 +462,7 @@ bool PresetsParser::parse(const Utils::FilePath &jsonFile, QString &errorMessage
 
     if (!jsonDoc.isObject()) {
         errorMessage
-            = ::CMakeProjectManager::Tr::tr("Invalid file \"%1\".").arg(jsonFile.fileName());
+            = ::XMakeProjectManager::Tr::tr("Invalid file \"%1\".").arg(jsonFile.fileName());
         return false;
     }
 
@@ -471,14 +471,14 @@ bool PresetsParser::parse(const Utils::FilePath &jsonFile, QString &errorMessage
     m_presetsData.fileDir = jsonFile.parentDir();
 
     if (!parseVersion(root.value("version"), m_presetsData.version)) {
-        errorMessage = ::CMakeProjectManager::Tr::tr("Invalid \"version\" in file \"%1\".")
+        errorMessage = ::XMakeProjectManager::Tr::tr("Invalid \"version\" in file \"%1\".")
                            .arg(jsonFile.fileName());
         return false;
     }
 
     // optional
-    parseCMakeMinimumRequired(root.value("cmakeMinimumRequired"),
-                              m_presetsData.cmakeMinimimRequired);
+    parseXMakeMinimumRequired(root.value("xmakeMinimumRequired"),
+                              m_presetsData.xmakeMinimimRequired);
 
     // optional
     m_presetsData.include = parseInclude(root.value("include"));
@@ -487,7 +487,7 @@ bool PresetsParser::parse(const Utils::FilePath &jsonFile, QString &errorMessage
     if (!parseConfigurePresets(root.value("configurePresets"),
                                m_presetsData.configurePresets,
                                jsonFile.parentDir())) {
-        errorMessage = ::CMakeProjectManager::Tr::tr(
+        errorMessage = ::XMakeProjectManager::Tr::tr(
                            "Invalid \"configurePresets\" section in %1 file")
                            .arg(jsonFile.fileName());
         return false;
@@ -497,7 +497,7 @@ bool PresetsParser::parse(const Utils::FilePath &jsonFile, QString &errorMessage
     if (!parseBuildPresets(root.value("buildPresets"),
                            m_presetsData.buildPresets,
                            jsonFile.parentDir())) {
-        errorMessage = ::CMakeProjectManager::Tr::tr("Invalid \"buildPresets\" section in %1 file")
+        errorMessage = ::XMakeProjectManager::Tr::tr("Invalid \"buildPresets\" section in %1 file")
                            .arg(jsonFile.fileName());
         return false;
     }
@@ -516,13 +516,13 @@ static QHash<QString, QString> merge(const QHash<QString, QString> &first,
     return result;
 }
 
-static CMakeConfig merge(const CMakeConfig &first, const CMakeConfig &second)
+static XMakeConfig merge(const XMakeConfig &first, const XMakeConfig &second)
 {
-    return Utils::setUnionMerge<CMakeConfig>(
+    return Utils::setUnionMerge<XMakeConfig>(
         first,
         second,
         [](const auto & /*left*/, const auto &right) { return right; },
-        &CMakeConfigItem::less);
+        &XMakeConfigItem::less);
 }
 
 static QStringList merge(const QStringList &first, const QStringList &second)
@@ -562,8 +562,8 @@ void PresetsDetails::ConfigurePreset::inheritFrom(const ConfigurePreset &other)
     if (!installDir && other.installDir)
         installDir = other.installDir;
 
-    if (!cmakeExecutable && other.cmakeExecutable)
-        cmakeExecutable = other.cmakeExecutable;
+    if (!xmakeExecutable && other.xmakeExecutable)
+        xmakeExecutable = other.xmakeExecutable;
 
     if (!cacheVariables && other.cacheVariables)
         cacheVariables = other.cacheVariables;
@@ -672,4 +672,4 @@ bool PresetsDetails::Condition::evaluate() const
     return false;
 }
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

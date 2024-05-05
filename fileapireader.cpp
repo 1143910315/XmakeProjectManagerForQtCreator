@@ -3,10 +3,10 @@
 
 #include "fileapireader.h"
 
-#include "cmakeprocess.h"
-#include "cmakeprojectmanagertr.h"
-#include "cmakeprojectconstants.h"
-#include "cmakespecificsettings.h"
+#include "xmakeprocess.h"
+#include "xmakeprojectmanagertr.h"
+#include "xmakeprojectconstants.h"
+#include "xmakespecificsettings.h"
 #include "fileapidataextractor.h"
 #include "fileapiparser.h"
 
@@ -27,9 +27,9 @@
 using namespace ProjectExplorer;
 using namespace Utils;
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
-static Q_LOGGING_CATEGORY(cmakeFileApiMode, "qtc.cmake.fileApiMode", QtWarningMsg);
+static Q_LOGGING_CATEGORY(xmakeFileApiMode, "qtc.xmake.fileApiMode", QtWarningMsg);
 
 using namespace FileApiDetails;
 
@@ -54,29 +54,29 @@ FileApiReader::~FileApiReader()
 
 void FileApiReader::setParameters(const BuildDirParameters &p)
 {
-    qCDebug(cmakeFileApiMode)
+    qCDebug(xmakeFileApiMode)
         << "\n\n\n\n\n=============================================================\n";
 
     // Update:
     m_parameters = p;
-    qCDebug(cmakeFileApiMode) << "Work directory:" << m_parameters.buildDirectory.toUserOutput();
+    qCDebug(xmakeFileApiMode) << "Work directory:" << m_parameters.buildDirectory.toUserOutput();
 
     // Reset watcher:
     m_watcher.clear();
 
-    FileApiParser::setupCMakeFileApi(m_parameters.buildDirectory);
+    FileApiParser::setupXMakeFileApi(m_parameters.buildDirectory);
 
     resetData();
 }
 
 void FileApiReader::resetData()
 {
-    m_cmakeFiles.clear();
+    m_xmakeFiles.clear();
     if (!m_parameters.sourceDirectory.isEmpty()) {
-        CMakeFileInfo cmakeListsTxt;
-        cmakeListsTxt.path = m_parameters.sourceDirectory.pathAppended(Constants::CMAKE_LISTS_TXT);
-        cmakeListsTxt.isCMakeListsDotTxt = true;
-        m_cmakeFiles.insert(cmakeListsTxt);
+        XMakeFileInfo xmakeListsTxt;
+        xmakeListsTxt.path = m_parameters.sourceDirectory.pathAppended(Constants::CMAKE_LISTS_TXT);
+        xmakeListsTxt.isXMakeListsDotTxt = true;
+        m_xmakeFiles.insert(xmakeListsTxt);
     }
 
     m_cache.clear();
@@ -85,29 +85,29 @@ void FileApiReader::resetData()
     m_rootProjectNode.reset();
 }
 
-void FileApiReader::parse(bool forceCMakeRun,
+void FileApiReader::parse(bool forceXMakeRun,
                           bool forceInitialConfiguration,
                           bool forceExtraConfiguration,
                           bool debugging,
                           bool profiling)
 {
-    qCDebug(cmakeFileApiMode) << "Parse called with arguments: ForceCMakeRun:" << forceCMakeRun
+    qCDebug(xmakeFileApiMode) << "Parse called with arguments: ForceXMakeRun:" << forceXMakeRun
                               << " - forceConfiguration:" << forceInitialConfiguration
                               << " - forceExtraConfiguration:" << forceExtraConfiguration;
     startState();
 
-    QStringList args = (forceInitialConfiguration ? m_parameters.initialCMakeArguments
+    QStringList args = (forceInitialConfiguration ? m_parameters.initialXMakeArguments
                                                         : QStringList())
                              + (forceExtraConfiguration
                                     ? (m_parameters.configurationChangesArguments
-                                       + m_parameters.additionalCMakeArguments)
+                                       + m_parameters.additionalXMakeArguments)
                                     : QStringList());
     if (debugging) {
         if (TemporaryDirectory::masterDirectoryFilePath().osType() == Utils::OsType::OsTypeWindows) {
             args << "--debugger"
-                 << "--debugger-pipe \\\\.\\pipe\\cmake-dap";
+                 << "--debugger-pipe \\\\.\\pipe\\xmake-dap";
         } else {
-            FilePath file = TemporaryDirectory::masterDirectoryFilePath() / "cmake-dap.sock";
+            FilePath file = TemporaryDirectory::masterDirectoryFilePath() / "xmake-dap.sock";
             file.removeFile();
             args << "--debugger"
                  << "--debugger-pipe=" + file.path();
@@ -115,50 +115,50 @@ void FileApiReader::parse(bool forceCMakeRun,
     }
 
     if (profiling) {
-        const FilePath file = TemporaryDirectory::masterDirectoryFilePath() / "cmake-profile.json";
+        const FilePath file = TemporaryDirectory::masterDirectoryFilePath() / "xmake-profile.json";
         args << "--profiling-format=google-trace"
              << "--profiling-output=" + file.path();
     }
 
-    qCDebug(cmakeFileApiMode) << "Parameters request these CMake arguments:" << args;
+    qCDebug(xmakeFileApiMode) << "Parameters request these XMake arguments:" << args;
 
-    const FilePath replyFile = FileApiParser::scanForCMakeReplyFile(m_parameters.buildDirectory);
+    const FilePath replyFile = FileApiParser::scanForXMakeReplyFile(m_parameters.buildDirectory);
     // Only need to update when one of the following conditions is met:
-    //  * The user forces the cmake run,
+    //  * The user forces the xmake run,
     //  * The user provided arguments,
     //  * There is no reply file,
-    //  * One of the cmakefiles is newer than the replyFile and the user asked
-    //    for creator to run CMake as needed,
+    //  * One of the xmakefiles is newer than the replyFile and the user asked
+    //    for creator to run XMake as needed,
     //  * A query file is newer than the reply file
     const bool hasArguments = !args.isEmpty();
     const bool replyFileMissing = !replyFile.exists();
-    const bool cmakeFilesChanged = m_parameters.cmakeTool() && settings().autorunCMake()
-                                   && anyOf(m_cmakeFiles, [&replyFile](const CMakeFileInfo &info) {
+    const bool xmakeFilesChanged = m_parameters.xmakeTool() && settings().autorunXMake()
+                                   && anyOf(m_xmakeFiles, [&replyFile](const XMakeFileInfo &info) {
                                           return !info.isGenerated
                                                  && info.path.lastModified() > replyFile.lastModified();
                                       });
-    const bool queryFileChanged = anyOf(FileApiParser::cmakeQueryFilePaths(m_parameters.buildDirectory),
+    const bool queryFileChanged = anyOf(FileApiParser::xmakeQueryFilePaths(m_parameters.buildDirectory),
                                         [&replyFile](const FilePath &qf) {
                                             return qf.lastModified() > replyFile.lastModified();
                                         });
 
-    const bool mustUpdate = forceCMakeRun || hasArguments || replyFileMissing || cmakeFilesChanged
+    const bool mustUpdate = forceXMakeRun || hasArguments || replyFileMissing || xmakeFilesChanged
                             || queryFileChanged;
-    qCDebug(cmakeFileApiMode) << QString("Do I need to run CMake? %1 "
+    qCDebug(xmakeFileApiMode) << QString("Do I need to run XMake? %1 "
                                          "(force: %2 | args: %3 | missing reply: %4 | "
-                                         "cmakeFilesChanged: %5 | "
+                                         "xmakeFilesChanged: %5 | "
                                          "queryFileChanged: %6)")
                                      .arg(mustUpdate)
-                                     .arg(forceCMakeRun)
+                                     .arg(forceXMakeRun)
                                      .arg(hasArguments)
                                      .arg(replyFileMissing)
-                                     .arg(cmakeFilesChanged)
+                                     .arg(xmakeFilesChanged)
                                      .arg(queryFileChanged);
 
     if (mustUpdate) {
-        qCDebug(cmakeFileApiMode) << QString("FileApiReader: Starting CMake with \"%1\".")
+        qCDebug(xmakeFileApiMode) << QString("FileApiReader: Starting XMake with \"%1\".")
                                          .arg(args.join("\", \""));
-        startCMakeState(args);
+        startXMakeState(args);
     } else {
         endState(replyFile, false);
     }
@@ -166,9 +166,9 @@ void FileApiReader::parse(bool forceCMakeRun,
 
 void FileApiReader::stop()
 {
-    if (m_cmakeProcess)
-        disconnect(m_cmakeProcess.get(), nullptr, this, nullptr);
-    m_cmakeProcess.reset();
+    if (m_xmakeProcess)
+        disconnect(m_xmakeProcess.get(), nullptr, this, nullptr);
+    m_xmakeProcess.reset();
 
     if (m_future) {
         m_future->cancel();
@@ -178,10 +178,10 @@ void FileApiReader::stop()
     m_isParsing = false;
 }
 
-void FileApiReader::stopCMakeRun()
+void FileApiReader::stopXMakeRun()
 {
-    if (m_cmakeProcess)
-        m_cmakeProcess->stop();
+    if (m_xmakeProcess)
+        m_xmakeProcess->stop();
 }
 
 bool FileApiReader::isParsing() const
@@ -189,31 +189,31 @@ bool FileApiReader::isParsing() const
     return m_isParsing;
 }
 
-QList<CMakeBuildTarget> FileApiReader::takeBuildTargets(QString &errorMessage){
+QList<XMakeBuildTarget> FileApiReader::takeBuildTargets(QString &errorMessage){
     Q_UNUSED(errorMessage)
 
     return std::exchange(m_buildTargets, {});
 }
 
-QSet<CMakeFileInfo> FileApiReader::takeCMakeFileInfos(QString &errorMessage)
+QSet<XMakeFileInfo> FileApiReader::takeXMakeFileInfos(QString &errorMessage)
 {
     Q_UNUSED(errorMessage)
 
-    return std::exchange(m_cmakeFiles, {});
+    return std::exchange(m_xmakeFiles, {});
 }
 
-CMakeConfig FileApiReader::takeParsedConfiguration(QString &errorMessage)
+XMakeConfig FileApiReader::takeParsedConfiguration(QString &errorMessage)
 {
-    if (m_lastCMakeExitCode != 0)
-        errorMessage = Tr::tr("CMake returned error code: %1").arg(m_lastCMakeExitCode);
+    if (m_lastXMakeExitCode != 0)
+        errorMessage = Tr::tr("XMake returned error code: %1").arg(m_lastXMakeExitCode);
 
     return std::exchange(m_cache, {});
 }
 
 QString FileApiReader::ctestPath() const
 {
-    // if we failed to run cmake we should not offer ctest information either
-    return m_lastCMakeExitCode == 0 ? m_ctestPath : QString();
+    // if we failed to run xmake we should not offer ctest information either
+    return m_lastXMakeExitCode == 0 ? m_ctestPath : QString();
 }
 
 bool FileApiReader::isMultiConfig() const
@@ -235,37 +235,37 @@ RawProjectParts FileApiReader::createRawProjectParts(QString &errorMessage)
 
 void FileApiReader::startState()
 {
-    qCDebug(cmakeFileApiMode) << "FileApiReader: START STATE.";
+    qCDebug(xmakeFileApiMode) << "FileApiReader: START STATE.";
     QTC_ASSERT(!m_isParsing, return );
     QTC_ASSERT(!m_future.has_value(), return );
 
     m_isParsing = true;
 
-    qCDebug(cmakeFileApiMode) << "FileApiReader: CONFIGURATION STARTED SIGNAL";
+    qCDebug(xmakeFileApiMode) << "FileApiReader: CONFIGURATION STARTED SIGNAL";
     emit configurationStarted();
 }
 
 void FileApiReader::endState(const FilePath &replyFilePath, bool restoredFromBackup)
 {
-    qCDebug(cmakeFileApiMode) << "FileApiReader: END STATE.";
+    qCDebug(xmakeFileApiMode) << "FileApiReader: END STATE.";
     QTC_ASSERT(m_isParsing, return );
     QTC_ASSERT(!m_future.has_value(), return );
 
     const FilePath sourceDirectory = m_parameters.sourceDirectory;
     const FilePath buildDirectory = m_parameters.buildDirectory;
-    const QString cmakeBuildType = m_parameters.cmakeBuildType == "Build"
-                                       ? "" : m_parameters.cmakeBuildType;
+    const QString xmakeBuildType = m_parameters.xmakeBuildType == "Build"
+                                       ? "" : m_parameters.xmakeBuildType;
 
     m_lastReplyTimestamp = replyFilePath.lastModified();
 
     m_future = Utils::asyncRun(ProjectExplorerPlugin::sharedThreadPool(),
-                        [replyFilePath, sourceDirectory, buildDirectory, cmakeBuildType](
+                        [replyFilePath, sourceDirectory, buildDirectory, xmakeBuildType](
                             QPromise<std::shared_ptr<FileApiQtcData>> &promise) {
                             auto result = std::make_shared<FileApiQtcData>();
                             FileApiData data = FileApiParser::parseData(promise,
                                                                         replyFilePath,
                                                                         buildDirectory,
-                                                                        cmakeBuildType,
+                                                                        xmakeBuildType,
                                                                         result->errorMessage);
                             if (result->errorMessage.isEmpty()) {
                                 *result = extractData(QFuture<void>(promise.future()), data,
@@ -283,7 +283,7 @@ void FileApiReader::endState(const FilePath &replyFilePath, bool restoredFromBac
                       const std::shared_ptr<FileApiQtcData> &value) {
                       m_isParsing = false;
                       m_cache = std::move(value->cache);
-                      m_cmakeFiles = std::move(value->cmakeFiles);
+                      m_xmakeFiles = std::move(value->xmakeFiles);
                       m_buildTargets = std::move(value->buildTargets);
                       m_projectParts = std::move(value->projectParts);
                       m_rootProjectNode = std::move(value->rootProjectNode);
@@ -302,8 +302,8 @@ void FileApiReader::endState(const FilePath &replyFilePath, bool restoredFromBac
 
 void FileApiReader::makeBackupConfiguration(bool store)
 {
-    FilePath reply = m_parameters.buildDirectory.pathAppended(".cmake/api/v1/reply");
-    FilePath replyPrev = m_parameters.buildDirectory.pathAppended(".cmake/api/v1/reply.prev");
+    FilePath reply = m_parameters.buildDirectory.pathAppended(".xmake/api/v1/reply");
+    FilePath replyPrev = m_parameters.buildDirectory.pathAppended(".xmake/api/v1/reply.prev");
     if (!store)
         std::swap(reply, replyPrev);
 
@@ -313,20 +313,20 @@ void FileApiReader::makeBackupConfiguration(bool store)
         QTC_CHECK(!replyPrev.exists());
         if (!reply.renameFile(replyPrev))
             Core::MessageManager::writeFlashing(
-                addCMakePrefix(Tr::tr("Failed to rename \"%1\" to \"%2\".")
+                addXMakePrefix(Tr::tr("Failed to rename \"%1\" to \"%2\".")
                                    .arg(reply.toString(), replyPrev.toString())));
     }
 
-    FilePath cmakeCacheTxt = m_parameters.buildDirectory.pathAppended(Constants::CMAKE_CACHE_TXT);
-    FilePath cmakeCacheTxtPrev = m_parameters.buildDirectory.pathAppended(Constants::CMAKE_CACHE_TXT_PREV);
+    FilePath xmakeCacheTxt = m_parameters.buildDirectory.pathAppended(Constants::CMAKE_CACHE_TXT);
+    FilePath xmakeCacheTxtPrev = m_parameters.buildDirectory.pathAppended(Constants::CMAKE_CACHE_TXT_PREV);
     if (!store)
-        std::swap(cmakeCacheTxt, cmakeCacheTxtPrev);
+        std::swap(xmakeCacheTxt, xmakeCacheTxtPrev);
 
-    if (cmakeCacheTxt.exists())
-        if (!FileUtils::copyIfDifferent(cmakeCacheTxt, cmakeCacheTxtPrev))
+    if (xmakeCacheTxt.exists())
+        if (!FileUtils::copyIfDifferent(xmakeCacheTxt, xmakeCacheTxtPrev))
             Core::MessageManager::writeFlashing(
-                addCMakePrefix(Tr::tr("Failed to copy \"%1\" to \"%2\".")
-                                   .arg(cmakeCacheTxt.toString(), cmakeCacheTxtPrev.toString())));
+                addXMakePrefix(Tr::tr("Failed to copy \"%1\" to \"%2\".")
+                                   .arg(xmakeCacheTxt.toString(), xmakeCacheTxtPrev.toString())));
 }
 
 void FileApiReader::writeConfigurationIntoBuildDirectory(const QStringList &configurationArguments)
@@ -338,70 +338,70 @@ void FileApiReader::writeConfigurationIntoBuildDirectory(const QStringList &conf
     QStringList unknownOptions;
     contents.append("# This file is managed by Qt Creator, do not edit!\n\n");
     contents.append(
-        transform(CMakeConfig::fromArguments(configurationArguments, unknownOptions).toList(),
-                  [](const CMakeConfigItem &item) { return item.toCMakeSetLine(nullptr); })
+        transform(XMakeConfig::fromArguments(configurationArguments, unknownOptions).toList(),
+                  [](const XMakeConfigItem &item) { return item.toXMakeSetLine(nullptr); })
             .join('\n')
             .toUtf8());
 
-    const FilePath settingsFile = buildDir / "qtcsettings.cmake";
+    const FilePath settingsFile = buildDir / "qtcsettings.xmake";
     QTC_CHECK(settingsFile.writeFileContents(contents));
 }
 
-std::unique_ptr<CMakeProjectNode> FileApiReader::rootProjectNode()
+std::unique_ptr<XMakeProjectNode> FileApiReader::rootProjectNode()
 {
     return std::exchange(m_rootProjectNode, {});
 }
 
 FilePath FileApiReader::topCmakeFile() const
 {
-    return m_cmakeFiles.size() == 1 ? (*m_cmakeFiles.begin()).path : FilePath{};
+    return m_xmakeFiles.size() == 1 ? (*m_xmakeFiles.begin()).path : FilePath{};
 }
 
-int FileApiReader::lastCMakeExitCode() const
+int FileApiReader::lastXMakeExitCode() const
 {
-    return m_lastCMakeExitCode;
+    return m_lastXMakeExitCode;
 }
 
-void FileApiReader::startCMakeState(const QStringList &configurationArguments)
+void FileApiReader::startXMakeState(const QStringList &configurationArguments)
 {
-    qCDebug(cmakeFileApiMode) << "FileApiReader: START CMAKE STATE.";
-    QTC_ASSERT(!m_cmakeProcess, return );
+    qCDebug(xmakeFileApiMode) << "FileApiReader: START CMAKE STATE.";
+    QTC_ASSERT(!m_xmakeProcess, return );
 
-    m_cmakeProcess = std::make_unique<CMakeProcess>();
+    m_xmakeProcess = std::make_unique<XMakeProcess>();
 
-    connect(m_cmakeProcess.get(), &CMakeProcess::finished, this, &FileApiReader::cmakeFinishedState);
-    connect(m_cmakeProcess.get(), &CMakeProcess::stdOutReady, this, [this](const QString &data) {
+    connect(m_xmakeProcess.get(), &XMakeProcess::finished, this, &FileApiReader::xmakeFinishedState);
+    connect(m_xmakeProcess.get(), &XMakeProcess::stdOutReady, this, [this](const QString &data) {
         if (data.endsWith("Waiting for debugger client to connect...\n"))
             emit debuggingStarted();
     });
 
-    qCDebug(cmakeFileApiMode) << ">>>>>> Running cmake with arguments:" << configurationArguments;
+    qCDebug(xmakeFileApiMode) << ">>>>>> Running xmake with arguments:" << configurationArguments;
     // Reset watcher:
     m_watcher.removeFiles(m_watcher.filePaths());
     m_watcher.removeDirectories(m_watcher.directoryPaths());
 
     makeBackupConfiguration(true);
     writeConfigurationIntoBuildDirectory(configurationArguments);
-    m_cmakeProcess->run(m_parameters, configurationArguments);
+    m_xmakeProcess->run(m_parameters, configurationArguments);
 }
 
-void FileApiReader::cmakeFinishedState(int exitCode)
+void FileApiReader::xmakeFinishedState(int exitCode)
 {
-    qCDebug(cmakeFileApiMode) << "FileApiReader: CMAKE FINISHED STATE.";
+    qCDebug(xmakeFileApiMode) << "FileApiReader: CMAKE FINISHED STATE.";
 
-    m_lastCMakeExitCode = exitCode;
-    m_cmakeProcess.release()->deleteLater();
+    m_lastXMakeExitCode = exitCode;
+    m_xmakeProcess.release()->deleteLater();
 
-    if (m_lastCMakeExitCode != 0)
+    if (m_lastXMakeExitCode != 0)
         makeBackupConfiguration(false);
 
-    FileApiParser::setupCMakeFileApi(m_parameters.buildDirectory);
+    FileApiParser::setupXMakeFileApi(m_parameters.buildDirectory);
 
-    m_watcher.addDirectory(FileApiParser::cmakeReplyDirectory(m_parameters.buildDirectory).path(),
+    m_watcher.addDirectory(FileApiParser::xmakeReplyDirectory(m_parameters.buildDirectory).path(),
                            FileSystemWatcher::WatchAllChanges);
 
-    endState(FileApiParser::scanForCMakeReplyFile(m_parameters.buildDirectory),
-             m_lastCMakeExitCode != 0);
+    endState(FileApiParser::scanForXMakeReplyFile(m_parameters.buildDirectory),
+             m_lastXMakeExitCode != 0);
 }
 
 void FileApiReader::replyDirectoryHasChanged(const QString &directory) const
@@ -409,10 +409,10 @@ void FileApiReader::replyDirectoryHasChanged(const QString &directory) const
     if (m_isParsing)
         return; // This has been triggered by ourselves, ignore.
 
-    const FilePath reply = FileApiParser::scanForCMakeReplyFile(m_parameters.buildDirectory);
+    const FilePath reply = FileApiParser::scanForXMakeReplyFile(m_parameters.buildDirectory);
     const FilePath dir = reply.absolutePath();
     if (dir.isEmpty())
-        return; // CMake started to fill the result dir, but has not written a result file yet
+        return; // XMake started to fill the result dir, but has not written a result file yet
     QTC_CHECK(!dir.needsDevice());
     QTC_ASSERT(dir.path() == directory, return);
 
@@ -420,4 +420,4 @@ void FileApiReader::replyDirectoryHasChanged(const QString &directory) const
         emit dirty();
 }
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

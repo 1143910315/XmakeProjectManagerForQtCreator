@@ -3,9 +3,9 @@
 
 #include "fileapidataextractor.h"
 
-#include "cmakeprojectconstants.h"
-#include "cmakeprojectmanagertr.h"
-#include "cmakespecificsettings.h"
+#include "xmakeprojectconstants.h"
+#include "xmakeprojectmanagertr.h"
+#include "xmakespecificsettings.h"
 #include "fileapiparser.h"
 #include "projecttreehelper.h"
 
@@ -26,45 +26,45 @@
 
 using namespace ProjectExplorer;
 using namespace Utils;
-using namespace CMakeProjectManager::Internal::FileApiDetails;
+using namespace XMakeProjectManager::Internal::FileApiDetails;
 
-namespace CMakeProjectManager::Internal {
-    static Q_LOGGING_CATEGORY(cmakeLogger, "qtc.cmake.fileApiExtractor", QtWarningMsg);
+namespace XMakeProjectManager::Internal {
+    static Q_LOGGING_CATEGORY(xmakeLogger, "qtc.xmake.fileApiExtractor", QtWarningMsg);
 
 // --------------------------------------------------------------------
 // Helpers:
 // --------------------------------------------------------------------
 
-    class CMakeFileResult {
+    class XMakeFileResult {
 public:
-        QSet<CMakeFileInfo> cmakeFiles;
+        QSet<XMakeFileInfo> xmakeFiles;
 
-        std::vector<std::unique_ptr<FileNode>> cmakeNodesSource;
-        std::vector<std::unique_ptr<FileNode>> cmakeNodesBuild;
-        std::vector<std::unique_ptr<FileNode>> cmakeNodesOther;
-        std::vector<std::unique_ptr<FileNode>> cmakeListNodes;
+        std::vector<std::unique_ptr<FileNode>> xmakeNodesSource;
+        std::vector<std::unique_ptr<FileNode>> xmakeNodesBuild;
+        std::vector<std::unique_ptr<FileNode>> xmakeNodesOther;
+        std::vector<std::unique_ptr<FileNode>> xmakeListNodes;
     };
 
-    static CMakeFileResult extractCMakeFilesData(const QFuture<void> &cancelFuture,
-                                                 const std::vector<CMakeFileInfo> &cmakefiles,
+    static XMakeFileResult extractXMakeFilesData(const QFuture<void> &cancelFuture,
+                                                 const std::vector<XMakeFileInfo> &xmakefiles,
                                                  const FilePath &sourceDirectory,
                                                  const FilePath &buildDirectory) {
-        if (cmakefiles.empty()) {
+        if (xmakefiles.empty()) {
             return {};
         }
 
         // Uniquify fileInfos
-        std::set<CMakeFileInfo> cmakeFileSet { cmakefiles.begin(), cmakefiles.end() };
+        std::set<XMakeFileInfo> xmakeFileSet { xmakefiles.begin(), xmakefiles.end() };
 
-        // Load and parse cmake files. We use concurrency here to speed up the process of
+        // Load and parse xmake files. We use concurrency here to speed up the process of
         // reading many small files, which can get slow especially on remote devices.
-        QFuture<CMakeFileInfo> mapResult
-            = QtConcurrent::mapped(cmakeFileSet, [cancelFuture, sourceDirectory](const auto &info) {
+        QFuture<XMakeFileInfo> mapResult
+            = QtConcurrent::mapped(xmakeFileSet, [cancelFuture, sourceDirectory](const auto &info) {
                                        if (cancelFuture.isCanceled()) {
-                                           return CMakeFileInfo();
+                                           return XMakeFileInfo();
                                        }
                                        const FilePath sfn = sourceDirectory.resolvePath(info.path);
-                                       CMakeFileInfo absolute(info);
+                                       XMakeFileInfo absolute(info);
                                        absolute.path = sfn;
 
                                        const auto mimeType = Utils::mimeTypeForFile(info.path);
@@ -74,10 +74,10 @@ public:
                                            std::string errorString;
                                            if (fileContent) {
                                                fileContent = fileContent->replace("\r\n", "\n");
-                                               if (!absolute.cmakeListFile.ParseString(fileContent->toStdString(),
+                                               if (!absolute.xmakeListFile.ParseString(fileContent->toStdString(),
                                                                                        sfn.fileName().toStdString(),
                                                                                        errorString)) {
-                                                   qCWarning(cmakeLogger) << "Failed to parse:" << sfn.path()
+                                                   qCWarning(xmakeLogger) << "Failed to parse:" << sfn.path()
                                                                           << QString::fromLatin1(errorString);
                                                }
                                            }
@@ -92,36 +92,36 @@ public:
             return {};
         }
 
-        CMakeFileResult result;
+        XMakeFileResult result;
 
         for (const auto &info : mapResult.results()) {
             if (cancelFuture.isCanceled()) {
                 return {};
             }
 
-            result.cmakeFiles.insert(info);
+            result.xmakeFiles.insert(info);
 
-            if (info.isCMake && !info.isCMakeListsDotTxt) {
-                // Skip files that cmake considers to be part of the installation -- but include
-                // CMakeLists.txt files. This fixes cmake binaries running from their own
+            if (info.isXMake && !info.isXMakeListsDotTxt) {
+                // Skip files that xmake considers to be part of the installation -- but include
+                // XMakeLists.txt files. This fixes xmake binaries running from their own
                 // build directory.
                 continue;
             }
 
             auto node = std::make_unique<FileNode>(info.path, FileType::Project);
             node->setIsGenerated(info.isGenerated
-                                 && !info.isCMakeListsDotTxt); // CMakeLists.txt are never
+                                 && !info.isXMakeListsDotTxt); // XMakeLists.txt are never
                                                                // generated, independent
-                                                               // what cmake thinks:-)
+                                                               // what xmake thinks:-)
 
-            if (info.isCMakeListsDotTxt) {
-                result.cmakeListNodes.emplace_back(std::move(node));
+            if (info.isXMakeListsDotTxt) {
+                result.xmakeListNodes.emplace_back(std::move(node));
             } else if (info.path.isChildOf(sourceDirectory)) {
-                result.cmakeNodesSource.emplace_back(std::move(node));
+                result.xmakeNodesSource.emplace_back(std::move(node));
             } else if (info.path.isChildOf(buildDirectory)) {
-                result.cmakeNodesBuild.emplace_back(std::move(node));
+                result.xmakeNodesBuild.emplace_back(std::move(node));
             } else {
-                result.cmakeNodesOther.emplace_back(std::move(node));
+                result.xmakeNodesOther.emplace_back(std::move(node));
             }
         }
 
@@ -130,14 +130,14 @@ public:
 
     class PreprocessedData {
 public:
-        CMakeProjectManager::CMakeConfig cache;
+        XMakeProjectManager::XMakeConfig cache;
 
-        QSet<CMakeFileInfo> cmakeFiles;
+        QSet<XMakeFileInfo> xmakeFiles;
 
-        std::vector<std::unique_ptr<FileNode>> cmakeNodesSource;
-        std::vector<std::unique_ptr<FileNode>> cmakeNodesBuild;
-        std::vector<std::unique_ptr<FileNode>> cmakeNodesOther;
-        std::vector<std::unique_ptr<FileNode>> cmakeListNodes;
+        std::vector<std::unique_ptr<FileNode>> xmakeNodesSource;
+        std::vector<std::unique_ptr<FileNode>> xmakeNodesBuild;
+        std::vector<std::unique_ptr<FileNode>> xmakeNodesOther;
+        std::vector<std::unique_ptr<FileNode>> xmakeListNodes;
 
         Configuration codemodel;
         std::vector<TargetDetails> targetDetails;
@@ -151,14 +151,14 @@ public:
 
         result.codemodel = std::move(data.codemodel);
 
-        CMakeFileResult cmakeFileResult = extractCMakeFilesData(cancelFuture, data.cmakeFiles,
+        XMakeFileResult xmakeFileResult = extractXMakeFilesData(cancelFuture, data.xmakeFiles,
                                                                 sourceDirectory, buildDirectory);
 
-        result.cmakeFiles = std::move(cmakeFileResult.cmakeFiles);
-        result.cmakeNodesSource = std::move(cmakeFileResult.cmakeNodesSource);
-        result.cmakeNodesBuild = std::move(cmakeFileResult.cmakeNodesBuild);
-        result.cmakeNodesOther = std::move(cmakeFileResult.cmakeNodesOther);
-        result.cmakeListNodes = std::move(cmakeFileResult.cmakeListNodes);
+        result.xmakeFiles = std::move(xmakeFileResult.xmakeFiles);
+        result.xmakeNodesSource = std::move(xmakeFileResult.xmakeNodesSource);
+        result.xmakeNodesBuild = std::move(xmakeFileResult.xmakeNodesBuild);
+        result.xmakeNodesOther = std::move(xmakeFileResult.xmakeNodesOther);
+        result.xmakeListNodes = std::move(xmakeFileResult.xmakeListNodes);
 
         result.targetDetails = std::move(data.targetDetails);
 
@@ -205,14 +205,14 @@ public:
         return false;
     }
 
-    static CMakeBuildTarget toBuildTarget(const TargetDetails &t,
+    static XMakeBuildTarget toBuildTarget(const TargetDetails &t,
                                           const FilePath &sourceDirectory,
                                           const FilePath &buildDirectory,
                                           bool relativeLibs,
                                           const QSet<FilePath> &artifacts) {
         const FilePath currentBuildDir = buildDirectory.resolvePath(t.buildDir);
 
-        CMakeBuildTarget ct;
+        XMakeBuildTarget ct;
         ct.title = t.name;
         if (!t.artifacts.isEmpty()) {
             ct.executable = buildDirectory.resolvePath(t.artifacts.at(0));
@@ -283,7 +283,7 @@ public:
                     continue;
                 }
 
-                // CMake sometimes mixes several shell-escaped pieces into one fragment. Disentangle that again:
+                // XMake sometimes mixes several shell-escaped pieces into one fragment. Disentangle that again:
                 const QStringList parts = ProcessArgs::splitArgs(f.fragment, HostOsInfo::hostOs());
                 for (QString part : parts) {
                     // Library search paths that are added with target_link_directories are added as
@@ -370,12 +370,12 @@ public:
                 }
             }
             ct.libraryDirectories = filteredUnique(librarySeachPaths);
-            qCInfo(cmakeLogger) << "libraryDirectories for target" << ct.title << ":" << ct.libraryDirectories;
+            qCInfo(xmakeLogger) << "libraryDirectories for target" << ct.title << ":" << ct.libraryDirectories;
         }
         return ct;
     }
 
-    static QList<CMakeBuildTarget> generateBuildTargets(const QFuture<void> &cancelFuture,
+    static QList<XMakeBuildTarget> generateBuildTargets(const QFuture<void> &cancelFuture,
                                                         const PreprocessedData &input,
                                                         const FilePath &sourceDirectory,
                                                         const FilePath &buildDirectory,
@@ -387,7 +387,7 @@ public:
             }
         }
 
-        QList<CMakeBuildTarget> result;
+        QList<XMakeBuildTarget> result;
         result.reserve(input.targetDetails.size());
         for (const TargetDetails &t : input.targetDetails) {
             if (cancelFuture.isCanceled()) {
@@ -408,7 +408,7 @@ public:
     }
 
     static bool isPchFile(const FilePath &buildDirectory, const FilePath &path) {
-        return path.fileName().startsWith("cmake_pch") && path.isChildOf(buildDirectory);
+        return path.fileName().startsWith("xmake_pch") && path.isChildOf(buildDirectory);
     }
 
     static bool isUnityFile(const FilePath &buildDirectory, const FilePath &path) {
@@ -433,7 +433,7 @@ public:
                 if (ci.language != "C" && ci.language != "CXX" && ci.language != "CUDA") {
                     continue; // No need to bother the C++ codemodel
                 }
-                // CMake users worked around Creator's inability of listing header files by creating
+                // XMake users worked around Creator's inability of listing header files by creating
                 // custom targets with all the header files. This target breaks the code model, so
                 // keep quiet about it:-)
                 if (ci.defines.empty() && ci.includes.empty() && allOf(ci.sources, [&t](const int sid) {
@@ -449,11 +449,11 @@ public:
                 QString ending;
                 QString qtcPchFile;
                 if (ci.language == "C") {
-                    ending = "/cmake_pch.h";
-                    qtcPchFile = "qtc_cmake_pch.h";
+                    ending = "/xmake_pch.h";
+                    qtcPchFile = "qtc_xmake_pch.h";
                 } else if (ci.language == "CXX") {
-                    ending = "/cmake_pch.hxx";
-                    qtcPchFile = "qtc_cmake_pch.hxx";
+                    ending = "/xmake_pch.hxx";
+                    qtcPchFile = "qtc_xmake_pch.hxx";
                 }
 
                 RawProjectPart rpp;
@@ -561,7 +561,7 @@ public:
                 if (!precompiled_header.isEmpty()) {
                     precompiled_header = sourceDirectory.resolvePath(precompiled_header);
 
-                    // Remove the CMake PCH usage command line options in order to avoid the case
+                    // Remove the XMake PCH usage command line options in order to avoid the case
                     // when the build system would produce a .pch/.gch file that would be treated
                     // by the Clang code model as its own and fail.
                     auto remove = [&](const QStringList &args) {
@@ -578,7 +578,7 @@ public:
                     remove({ "-include", precompiled_header.path() });
                     remove({ "/FI", precompiled_header.path() });
 
-                    // Make a copy of the CMake PCH header and use it instead
+                    // Make a copy of the XMake PCH header and use it instead
                     FilePath qtc_precompiled_header = precompiled_header.parentDir().pathAppended(qtcPchFile);
                     FileUtils::copyIfDifferent(precompiled_header, qtc_precompiled_header);
 
@@ -623,7 +623,7 @@ public:
     }
 
     static void addProjects(const QFuture<void> &cancelFuture,
-                            const QHash<FilePath, ProjectNode *> &cmakeListsNodes,
+                            const QHash<FilePath, ProjectNode *> &xmakeListsNodes,
                             const Configuration &config,
                             const FilePath &sourceDir) {
         for (const FileApiDetails::Project &p : config.projects) {
@@ -635,7 +635,7 @@ public:
                 continue; // Top-level project has already been covered
             }
             FilePath dir = directorySourceDir(config, sourceDir, p.directories[0]);
-            createProjectNode(cmakeListsNodes, dir, p.name);
+            createProjectNode(xmakeListsNodes, dir, p.name);
         }
     }
 
@@ -653,7 +653,7 @@ public:
                         return fn->displayName() == p;
                     });
                 if (!existingNode) {
-                    auto node = createCMakeVFolder(sourceDirectory, Node::DefaultFolderPriority + 5, p);
+                    auto node = createXMakeVFolder(sourceDirectory, Node::DefaultFolderPriority + 5, p);
                     node->setListInProject(false);
                     node->setIcon([] {
                                       return Icon::fromTheme("edit-copy");
@@ -703,7 +703,7 @@ public:
             auto node = std::make_unique<FileNode>(sourcePath, Node::fileTypeForFileName(sourcePath));
             node->setIsGenerated(si.isGenerated);
 
-            // CMake pch / unity files are generated at configured time, but not marked as generated
+            // XMake pch / unity files are generated at configured time, but not marked as generated
             // so that a "clean" step won't remove them and at a subsequent build they won't exist.
             if (isPchFile(buildDirectory, sourcePath) || isUnityFile(buildDirectory, sourcePath)) {
                 node->setIsGenerated(true);
@@ -745,12 +745,12 @@ public:
             }
         }
 
-        addCMakeVFolder(targetRoot,
+        addXMakeVFolder(targetRoot,
                         buildDirectory,
                         100,
                         Tr::tr("<Build Directory>"),
                         std::move(buildFileNodes));
-        addCMakeVFolder(targetRoot,
+        addXMakeVFolder(targetRoot,
                         FilePath(),
                         10,
                         Tr::tr("<Other Locations>"),
@@ -778,11 +778,11 @@ public:
             type = FileType::Unknown;
             nodes.back()->setIsGenerated(true);
         }
-        addCMakeVFolder(targetRoot, buildDir, 10, Tr::tr("<Generated Files>"), std::move(nodes));
+        addXMakeVFolder(targetRoot, buildDir, 10, Tr::tr("<Generated Files>"), std::move(nodes));
     }
 
     static void addTargets(const QFuture<void> &cancelFuture,
-                           const QHash<FilePath, ProjectNode *> &cmakeListsNodes,
+                           const QHash<FilePath, ProjectNode *> &xmakeListsNodes,
                            const Configuration &config,
                            const std::vector<TargetDetails> &targetDetails,
                            const FilePath &sourceDir,
@@ -810,7 +810,7 @@ public:
 
             const FilePath dir = directorySourceDir(config, sourceDir, t.directory);
 
-            CMakeTargetNode *tNode = createTargetNode(cmakeListsNodes, dir, t.name);
+            XMakeTargetNode *tNode = createTargetNode(xmakeListsNodes, dir, t.name);
             QTC_ASSERT(tNode, continue);
 
             tNode->setTargetInformation(td.artifacts, td.type);
@@ -821,11 +821,11 @@ public:
         }
     }
 
-    static std::unique_ptr<CMakeProjectNode> generateRootProjectNode(const QFuture<void> &cancelFuture,
+    static std::unique_ptr<XMakeProjectNode> generateRootProjectNode(const QFuture<void> &cancelFuture,
                                                                      PreprocessedData &data,
                                                                      const FilePath &sourceDirectory,
                                                                      const FilePath &buildDirectory) {
-        std::unique_ptr<CMakeProjectNode> result = std::make_unique<CMakeProjectNode>(sourceDirectory);
+        std::unique_ptr<XMakeProjectNode> result = std::make_unique<XMakeProjectNode>(sourceDirectory);
 
         const FileApiDetails::Project topLevelProject
             = findOrDefault(data.codemodel.projects, equal(&FileApiDetails::Project::parent, -1));
@@ -835,17 +835,17 @@ public:
             result->setDisplayName(sourceDirectory.fileName());
         }
 
-        QHash<FilePath, ProjectNode *> cmakeListsNodes = addCMakeLists(result.get(),
-                                                                       std::move(data.cmakeListNodes));
-        data.cmakeListNodes.clear(); // Remove all the nullptr in the vector...
+        QHash<FilePath, ProjectNode *> xmakeListsNodes = addXMakeLists(result.get(),
+                                                                       std::move(data.xmakeListNodes));
+        data.xmakeListNodes.clear(); // Remove all the nullptr in the vector...
 
-        addProjects(cancelFuture, cmakeListsNodes, data.codemodel, sourceDirectory);
+        addProjects(cancelFuture, xmakeListsNodes, data.codemodel, sourceDirectory);
         if (cancelFuture.isCanceled()) {
             return {};
         }
 
         addTargets(cancelFuture,
-                   cmakeListsNodes,
+                   xmakeListsNodes,
                    data.codemodel,
                    data.targetDetails,
                    sourceDirectory,
@@ -854,35 +854,35 @@ public:
             return {};
         }
 
-        if (!data.cmakeNodesSource.empty() || !data.cmakeNodesBuild.empty()
-            || !data.cmakeNodesOther.empty()) {
-            addCMakeInputs(result.get(),
+        if (!data.xmakeNodesSource.empty() || !data.xmakeNodesBuild.empty()
+            || !data.xmakeNodesOther.empty()) {
+            addXMakeInputs(result.get(),
                            sourceDirectory,
                            buildDirectory,
-                           std::move(data.cmakeNodesSource),
-                           std::move(data.cmakeNodesBuild),
-                           std::move(data.cmakeNodesOther));
+                           std::move(data.xmakeNodesSource),
+                           std::move(data.xmakeNodesBuild),
+                           std::move(data.xmakeNodesOther));
         }
         if (cancelFuture.isCanceled()) {
             return {};
         }
 
-        addCMakePresets(result.get(), sourceDirectory);
+        addXMakePresets(result.get(), sourceDirectory);
         if (cancelFuture.isCanceled()) {
             return {};
         }
 
-        data.cmakeNodesSource.clear(); // Remove all the nullptr in the vector...
-        data.cmakeNodesBuild.clear(); // Remove all the nullptr in the vector...
-        data.cmakeNodesOther.clear(); // Remove all the nullptr in the vector...
+        data.xmakeNodesSource.clear(); // Remove all the nullptr in the vector...
+        data.xmakeNodesBuild.clear(); // Remove all the nullptr in the vector...
+        data.xmakeNodesOther.clear(); // Remove all the nullptr in the vector...
 
         return result;
     }
 
     static void setupLocationInfoForTargets(const QFuture<void> &cancelFuture,
-                                            CMakeProjectNode *rootNode,
-                                            const QList<CMakeBuildTarget> &targets) {
-        const QSet<QString> titles = Utils::transform<QSet>(targets, &CMakeBuildTarget::title);
+                                            XMakeProjectNode *rootNode,
+                                            const QList<XMakeBuildTarget> &targets) {
+        const QSet<QString> titles = Utils::transform<QSet>(targets, &XMakeBuildTarget::title);
         QHash<QString, FolderNode *> buildKeyToNode;
         rootNode->forEachGenericNode([&buildKeyToNode, &titles](Node *node) {
                                          FolderNode *folderNode = node->asFolderNode();
@@ -891,7 +891,7 @@ public:
                                              buildKeyToNode.insert(buildKey, folderNode);
                                          }
                                      });
-        for (const CMakeBuildTarget &t : targets) {
+        for (const XMakeBuildTarget &t : targets) {
             if (cancelFuture.isCanceled()) {
                 return;
             }
@@ -949,10 +949,10 @@ public:
             return {};
         }
 
-        // Ninja generator from CMake version 3.20.5 has libraries relative to build directory
+        // Ninja generator from XMake version 3.20.5 has libraries relative to build directory
         const bool haveLibrariesRelativeToBuildDirectory =
             input.replyFile.generator.startsWith("Ninja")
-            && input.replyFile.cmakeVersion >= QVersionNumber(3, 20, 5);
+            && input.replyFile.xmakeVersion >= QVersionNumber(3, 20, 5);
 
         result.buildTargets = generateBuildTargets(cancelFuture, data, sourceDir, buildDir,
                                                    haveLibrariesRelativeToBuildDirectory);
@@ -960,7 +960,7 @@ public:
             return {};
         }
 
-        result.cmakeFiles = std::move(data.cmakeFiles);
+        result.xmakeFiles = std::move(data.xmakeFiles);
         result.projectParts = generateRawProjectParts(cancelFuture, data, sourceDir, buildDir);
         if (cancelFuture.isCanceled()) {
             return {};
@@ -987,4 +987,4 @@ public:
 
         return result;
     }
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal

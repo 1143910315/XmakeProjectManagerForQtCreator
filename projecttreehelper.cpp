@@ -3,9 +3,9 @@
 
 #include "projecttreehelper.h"
 
-#include "cmakeproject.h"
-#include "cmakeprojectconstants.h"
-#include "cmakeprojectmanagertr.h"
+#include "xmakeproject.h"
+#include "xmakeprojectconstants.h"
+#include "xmakeprojectmanagertr.h"
 
 #include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projectmanager.h>
@@ -16,14 +16,14 @@
 
 using namespace ProjectExplorer;
 
-namespace CMakeProjectManager::Internal {
+namespace XMakeProjectManager::Internal {
 
 bool sourcesOrHeadersFolder(const QString &displayName)
 {
     return displayName == "Source Files" || displayName == "Header Files";
 }
 
-std::unique_ptr<FolderNode> createCMakeVFolder(const Utils::FilePath &basePath,
+std::unique_ptr<FolderNode> createXMakeVFolder(const Utils::FilePath &basePath,
                                                int priority,
                                                const QString &displayName)
 {
@@ -34,7 +34,7 @@ std::unique_ptr<FolderNode> createCMakeVFolder(const Utils::FilePath &basePath,
     return newFolder;
 }
 
-void addCMakeVFolder(FolderNode *base,
+void addXMakeVFolder(FolderNode *base,
                      const Utils::FilePath &basePath,
                      int priority,
                      const QString &displayName,
@@ -45,7 +45,7 @@ void addCMakeVFolder(FolderNode *base,
         return;
     FolderNode *folder = base;
     if (!displayName.isEmpty()) {
-        auto newFolder = createCMakeVFolder(basePath, priority, displayName);
+        auto newFolder = createXMakeVFolder(basePath, priority, displayName);
         folder = newFolder.get();
         base->addNode(std::move(newFolder));
     }
@@ -66,45 +66,45 @@ std::vector<std::unique_ptr<FileNode>> &&removeKnownNodes(
     return std::move(files);
 }
 
-void addCMakeInputs(FolderNode *root,
+void addXMakeInputs(FolderNode *root,
                     const Utils::FilePath &sourceDir,
                     const Utils::FilePath &buildDir,
                     std::vector<std::unique_ptr<FileNode>> &&sourceInputs,
                     std::vector<std::unique_ptr<FileNode>> &&buildInputs,
                     std::vector<std::unique_ptr<FileNode>> &&rootInputs)
 {
-    std::unique_ptr<ProjectNode> cmakeVFolder = std::make_unique<CMakeInputsNode>(root->filePath());
+    std::unique_ptr<ProjectNode> xmakeVFolder = std::make_unique<XMakeInputsNode>(root->filePath());
 
     QSet<Utils::FilePath> knownFiles;
     root->forEachGenericNode([&knownFiles](const Node *n) { knownFiles.insert(n->filePath()); });
 
-    addCMakeVFolder(cmakeVFolder.get(),
+    addXMakeVFolder(xmakeVFolder.get(),
                     sourceDir,
                     1000,
                     QString(),
                     removeKnownNodes(knownFiles, std::move(sourceInputs)));
-    addCMakeVFolder(cmakeVFolder.get(),
+    addXMakeVFolder(xmakeVFolder.get(),
                     buildDir,
                     100,
                     Tr::tr("<Build Directory>"),
                     removeKnownNodes(knownFiles, std::move(buildInputs)));
-    addCMakeVFolder(cmakeVFolder.get(),
+    addXMakeVFolder(xmakeVFolder.get(),
                     Utils::FilePath(),
                     10,
                     Tr::tr("<Other Locations>"),
                     removeKnownNodes(knownFiles, std::move(rootInputs)),
                     /*listInProject=*/false);
 
-    root->addNode(std::move(cmakeVFolder));
+    root->addNode(std::move(xmakeVFolder));
 }
 
-void addCMakePresets(FolderNode *root, const Utils::FilePath &sourceDir)
+void addXMakePresets(FolderNode *root, const Utils::FilePath &sourceDir)
 {
     QStringList presetFileNames;
-    presetFileNames << "CMakePresets.json";
-    presetFileNames << "CMakeUserPresets.json";
+    presetFileNames << "XMakePresets.json";
+    presetFileNames << "XMakeUserPresets.json";
 
-    const CMakeProject *cp = static_cast<const CMakeProject *>(
+    const XMakeProject *cp = static_cast<const XMakeProject *>(
         ProjectManager::projectForFile(sourceDir.pathAppended(Constants::CMAKE_LISTS_TXT)));
 
     if (cp && cp->presetsData().include)
@@ -120,69 +120,69 @@ void addCMakePresets(FolderNode *root, const Utils::FilePath &sourceDir)
     if (presets.empty())
         return;
 
-    std::unique_ptr<ProjectNode> cmakeVFolder = std::make_unique<CMakePresetsNode>(root->filePath());
-    addCMakeVFolder(cmakeVFolder.get(), sourceDir, 1000, QString(), std::move(presets));
+    std::unique_ptr<ProjectNode> xmakeVFolder = std::make_unique<XMakePresetsNode>(root->filePath());
+    addXMakeVFolder(xmakeVFolder.get(), sourceDir, 1000, QString(), std::move(presets));
 
-    root->addNode(std::move(cmakeVFolder));
+    root->addNode(std::move(xmakeVFolder));
 }
 
-QHash<Utils::FilePath, ProjectNode *> addCMakeLists(
-    CMakeProjectNode *root, std::vector<std::unique_ptr<FileNode>> &&cmakeLists)
+QHash<Utils::FilePath, ProjectNode *> addXMakeLists(
+    XMakeProjectNode *root, std::vector<std::unique_ptr<FileNode>> &&xmakeLists)
 {
-    QHash<Utils::FilePath, ProjectNode *> cmakeListsNodes;
-    cmakeListsNodes.insert(root->filePath(), root);
+    QHash<Utils::FilePath, ProjectNode *> xmakeListsNodes;
+    xmakeListsNodes.insert(root->filePath(), root);
 
-    const QSet<Utils::FilePath> cmakeDirs
-        = Utils::transform<QSet>(cmakeLists, [](const std::unique_ptr<FileNode> &n) {
+    const QSet<Utils::FilePath> xmakeDirs
+        = Utils::transform<QSet>(xmakeLists, [](const std::unique_ptr<FileNode> &n) {
               return n->filePath().parentDir();
           });
-    root->addNestedNodes(std::move(cmakeLists),
+    root->addNestedNodes(std::move(xmakeLists),
                          Utils::FilePath(),
-                         [&cmakeDirs, &cmakeListsNodes](const Utils::FilePath &fp)
+                         [&xmakeDirs, &xmakeListsNodes](const Utils::FilePath &fp)
                              -> std::unique_ptr<ProjectExplorer::FolderNode> {
-                             if (cmakeDirs.contains(fp)) {
-                                 auto fn = std::make_unique<CMakeListsNode>(fp);
-                                 cmakeListsNodes.insert(fp, fn.get());
+                             if (xmakeDirs.contains(fp)) {
+                                 auto fn = std::make_unique<XMakeListsNode>(fp);
+                                 xmakeListsNodes.insert(fp, fn.get());
                                  return fn;
                              }
 
                              return std::make_unique<FolderNode>(fp);
                          });
     root->compress();
-    return cmakeListsNodes;
+    return xmakeListsNodes;
 }
 
-void createProjectNode(const QHash<Utils::FilePath, ProjectNode *> &cmakeListsNodes,
+void createProjectNode(const QHash<Utils::FilePath, ProjectNode *> &xmakeListsNodes,
                        const Utils::FilePath &dir,
                        const QString &displayName)
 {
-    ProjectNode *cmln = cmakeListsNodes.value(dir);
+    ProjectNode *cmln = xmakeListsNodes.value(dir);
     QTC_ASSERT(cmln, return );
 
     const Utils::FilePath projectName = dir.pathAppended(".project::" + displayName);
 
     ProjectNode *pn = cmln->projectNode(projectName);
     if (!pn) {
-        auto newNode = std::make_unique<CMakeProjectNode>(projectName);
+        auto newNode = std::make_unique<XMakeProjectNode>(projectName);
         pn = newNode.get();
         cmln->addNode(std::move(newNode));
     }
     pn->setDisplayName(displayName);
 }
 
-CMakeTargetNode *createTargetNode(const QHash<Utils::FilePath, ProjectNode *> &cmakeListsNodes,
+XMakeTargetNode *createTargetNode(const QHash<Utils::FilePath, ProjectNode *> &xmakeListsNodes,
                                   const Utils::FilePath &dir,
                                   const QString &displayName)
 {
-    ProjectNode *cmln = cmakeListsNodes.value(dir);
+    ProjectNode *cmln = xmakeListsNodes.value(dir);
     QTC_ASSERT(cmln, return nullptr);
 
     QString targetId = displayName;
 
-    CMakeTargetNode *tn = static_cast<CMakeTargetNode *>(
+    XMakeTargetNode *tn = static_cast<XMakeTargetNode *>(
         cmln->findNode([&targetId](const Node *n) { return n->buildKey() == targetId; }));
     if (!tn) {
-        auto newNode = std::make_unique<CMakeTargetNode>(dir, displayName);
+        auto newNode = std::make_unique<XMakeTargetNode>(dir, displayName);
         tn = newNode.get();
         cmln->addNode(std::move(newNode));
     }
@@ -212,7 +212,7 @@ void addFileSystemNodes(ProjectNode *root, const std::shared_ptr<FolderNode> &fo
     QTC_ASSERT(root, return );
 
     auto fileSystemNode = cloneFolderNode<VirtualFolderNode>(folderNode.get());
-    // just before special nodes like "CMake Modules"
+    // just before special nodes like "XMake Modules"
     fileSystemNode->setPriority(Node::DefaultPriority - 6);
     fileSystemNode->setDisplayName(Tr::tr("<File System>"));
     fileSystemNode->setIcon(DirectoryIcon(ProjectExplorer::Constants::FILEOVERLAY_UNKNOWN));
@@ -227,4 +227,4 @@ void addFileSystemNodes(ProjectNode *root, const std::shared_ptr<FolderNode> &fo
     }
 }
 
-} // CMakeProjectManager::Internal
+} // XMakeProjectManager::Internal
