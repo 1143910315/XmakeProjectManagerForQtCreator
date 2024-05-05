@@ -62,7 +62,7 @@ add_qtc_plugin(XmakeProjectManagerForQtCreator
     QtCreator::ExtensionSystem
     QtCreator::Utils
   SOURCES
-    .github/workflows/build_xmake.yml
+    .github/workflows/build_cmake.yml
     .github/workflows/README.md
     README.md
     builddirparameters.cpp builddirparameters.h
