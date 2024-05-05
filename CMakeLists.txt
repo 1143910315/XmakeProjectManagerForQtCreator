@@ -53,8 +53,10 @@ add_qtc_plugin(XmakeProjectManagerForQtCreator
     QtCreator::Core
     QtCreator::CppEditor
     QtCreator::ProjectExplorer
-    QtCreator::TextEditor
+    QtCreator::QmlJSEditor
+    QtCreator::QmlJSTools
     QtCreator::QtSupport
+    QtCreator::TextEditor
   DEPENDS
     ${QtX}::Widgets
     QtCreator::ExtensionSystem
