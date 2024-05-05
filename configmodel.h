@@ -11,6 +11,7 @@ namespace CMakeProjectManager::Internal {
     class ConfigModelTreeItem;
 
     class ConfigModel : public Utils::TreeModel<> {
+        Q_OBJECT
 public:
         enum Roles {
             ItemIsAdvancedRole = Qt::UserRole,
