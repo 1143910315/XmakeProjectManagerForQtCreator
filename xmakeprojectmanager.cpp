@@ -378,7 +378,7 @@ private:
 
         project->setOldPresetKits(oldKits);
 
-        emit project->projectImporter()->xmakePresetsUpdated();
+        emit project->projectImporter()->cmakePresetsUpdated();
 
         Core::ModeManager::activateMode(ProjectExplorer::Constants::MODE_SESSION);
         Core::ModeManager::setFocusToCurrentMode();
