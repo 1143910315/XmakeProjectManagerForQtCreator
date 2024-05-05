@@ -33,6 +33,7 @@ namespace CMakeProjectManager {
 // --------------------------------------------------------------------
 
         class CMakeBuildSystem final : public ProjectExplorer::BuildSystem {
+            Q_OBJECT
 public:
             explicit CMakeBuildSystem(CMakeBuildConfiguration *bc);
             ~CMakeBuildSystem() final;
