@@ -365,15 +365,13 @@ namespace XMakeProjectManager::Internal {
         qCDebug(cmInputLog) << "PrefixPath:" << prefixPath;
 
         if (!qmake.isEmpty() && !prefixPath.isEmpty()) {
-            return { qmake, prefixPath }
+            return { qmake, prefixPath };
         }
-        ;
 
         FilePath toolchainFile = config.filePathValueOf(QByteArray("XMAKE_TOOLCHAIN_FILE"));
         if (prefixPath.isEmpty() && toolchainFile.isEmpty()) {
-            return { qmake, QString() }
+            return { qmake, QString() };
         }
-        ;
 
         // Run a XMake project that would do qmake probing
         TemporaryDirectory qtcQMakeProbeDir("qtc-xmake-qmake-probe-XXXXXXXX");
@@ -1080,10 +1078,6 @@ namespace XMakeProjectManager::Internal {
         XMakeBuildConfigurationFactory::BuildType buildType
             = XMakeBuildConfigurationFactory::buildTypeFromByteArray(data->xmakeBuildType);
         // RelWithDebInfo + QML Debugging = Profile
-        if (buildType == XMakeBuildConfigurationFactory::BuildTypeRelWithDebInfo
-            && data->hasQmlDebugging) {
-            buildType = XMakeBuildConfigurationFactory::BuildTypeProfile;
-        }
         BuildInfo info = XMakeBuildConfigurationFactory::createBuildInfo(buildType);
         info.buildDirectory = data->buildDirectory;
 
