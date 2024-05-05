@@ -47,6 +47,7 @@ public:
     } // namespace Internal
 
     class CMAKE_EXPORT CMakeBuildConfiguration : public ProjectExplorer::BuildConfiguration {
+        Q_OBJECT
 public:
         CMakeBuildConfiguration(ProjectExplorer::Target *target, Utils::Id id);
         ~CMakeBuildConfiguration() override;
