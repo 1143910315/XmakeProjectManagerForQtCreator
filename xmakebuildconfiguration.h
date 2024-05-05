@@ -107,12 +107,8 @@ public:
 
         enum BuildType {
             BuildTypeNone = 0,
-            BuildTypeDebug = 1,
-            BuildTypeRelease = 2,
-            BuildTypeRelWithDebInfo = 3,
-            BuildTypeProfile = 4,
-            BuildTypeMinSizeRel = 5,
-            BuildTypeLast = 6
+            BuildTypeXMake = 1,
+            BuildTypeLast = 2
         };
         static BuildType buildTypeFromByteArray(const QByteArray &in);
         static ProjectExplorer::BuildConfiguration::BuildType xmakeBuildTypeToBuildType(const BuildType &in);
