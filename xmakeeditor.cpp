@@ -172,9 +172,8 @@ private:
             std::string errorString;
             const std::string fileName = "buffer";
             if (!xmakeListFile.ParseString(content.toStdString(), fileName, errorString)) {
-                return {}
+                return {};
             }
-            ;
         }
 
         QHash<QString, Link> hash;
