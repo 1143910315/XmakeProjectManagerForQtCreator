@@ -235,9 +235,8 @@ public:
 
     XMakeKeywords XMakeTool::keywords() {
         if (!isValid()) {
-            return {}
+            return {};
         }
-        ;
 
         if (!m_introspection->m_haveKeywords && m_introspection->m_haveCapabilitites) {
             QMutexLocker locker(&m_introspection->m_keywordsMutex);
@@ -328,9 +327,8 @@ public:
 
     QString XMakeTool::versionDisplay() const {
         if (m_executable.isEmpty()) {
-            return {}
+            return {};
         }
-        ;
 
         if (!isValid()) {
             return Tr::tr("Version not parseable");
