@@ -34,6 +34,14 @@ if(WITH_TESTS)
   enable_testing()
 endif()
 
+include_directories("./dev/qtcreator/lib/qtcreator/plugins")
+
+file(GLOB LIBRARIES "./dev/qtcreator/lib/qtcreator/plugins/*.lib")
+
+foreach(LIB ${LIBRARIES})
+    list(APPEND depends ${LIB})
+endforeach()
+
 add_qtc_plugin(XmakeProjectManagerForQtCreator
   PLUGIN_DEPENDS
     QtCreator::Core
