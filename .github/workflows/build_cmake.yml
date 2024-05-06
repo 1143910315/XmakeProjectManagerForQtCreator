@@ -268,13 +268,31 @@ jobs:
           message(FATAL_ERROR "Build failed")
         endif()
 
+    - name: Rename Folder
+      shell: cmake -P {0}
+      run: |
+        # 设置源文件夹和目标文件夹名称
+        set(SOURCE_FOLDER_NAME "./build/install/XmakeProjectManagerForQtCreator-13.0.0-Windows-x64-debug")
+        set(TARGET_FOLDER_NAME "./build/install/XmakeProjectManagerForQtCreator-13.0.0-Windows-x64")
+
+        # 检查是否存在源文件夹
+        if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_FOLDER_NAME})
+            # 移动文件夹
+            file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_FOLDER_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_FOLDER_NAME})
+            message(STATUS "Renamed folder ${SOURCE_FOLDER_NAME} to ${TARGET_FOLDER_NAME}")
+        else()
+            message(FATAL_ERROR "Source folder ${SOURCE_FOLDER_NAME} does not exist!")
+        endif()
+
     - uses: actions/upload-artifact@v3
       id: upload_artifact
       with:
         path: |
-          ./build/install/${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}-debug/lib/qtcreator/plugins/XmakeProjectManagerForQtCreator.pdb
+          ./build/install/${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}/lib/qtcreator/plugins/XmakeProjectManagerForQtCreator.pdb
           ./build/install/${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}/lib/qtcreator/plugins/XmakeProjectManagerForQtCreator.dll
         name: ${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
+        options:
+         flatten: true
 
   release:
     if: contains(github.ref, 'tags/v')
