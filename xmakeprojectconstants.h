@@ -28,7 +28,7 @@ namespace XMakeProjectManager {
 
         const char PACKAGE_MANAGER_DIR[] = ".qtc/package-manager";
 
-        const char XMAKE_LISTS_TXT[] = "XMakeLists.txt";
+        const char XMAKE_LISTS_TXT[] = "xmake.lua";
         const char XMAKE_CACHE_TXT[] = "XMakeCache.txt";
         const char XMAKE_CACHE_TXT_PREV[] = "XMakeCache.txt.prev";
 
