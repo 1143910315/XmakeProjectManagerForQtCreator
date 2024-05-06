@@ -149,7 +149,6 @@ public:
     }
 
     bool XMakeTool::isValid() const {
-        QMessageBox::information(nullptr, "标题", "input");
         if (!m_id.isValid() || !m_introspection) {
             return false;
         }
