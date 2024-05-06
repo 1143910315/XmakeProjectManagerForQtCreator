@@ -116,7 +116,7 @@ namespace XMakeProjectManager::Internal {
 
         m_process.reset(new Process);
 
-        m_process->setWorkingDirectory(buildDirectory);
+        m_process->setWorkingDirectory(parameters.sourceDirectory);
         m_process->setEnvironment(parameters.environment);
 
         m_process->setStdOutLineCallback([this](const QString &s) {
