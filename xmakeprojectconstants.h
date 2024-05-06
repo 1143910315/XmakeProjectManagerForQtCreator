@@ -7,6 +7,7 @@ namespace XMakeProjectManager {
     namespace Constants {
         const char XMAKE_EDITOR_ID[] = "XMakeProject.XMakeEditor";
         const char MIMETYPE[] = "text/x-xmake";
+        const char PROJECT_MIMETYPE[] = "text/x-cmake-project";
         const char RUN_XMAKE[] = "XMakeProject.RunXMake";
         const char RUN_XMAKE_PROFILER[] = "XMakeProject.RunXMakeProfiler";
         const char RUN_XMAKE_DEBUGGER[] = "XMakeProject.RunXMakeDebugger";

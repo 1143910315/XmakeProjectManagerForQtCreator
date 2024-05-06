@@ -523,8 +523,8 @@ public:
         XMakeEditorFactory() {
             setId(Constants::XMAKE_EDITOR_ID);
             setDisplayName(::Core::Tr::tr("XMake Editor"));
-            addMimeType(Utils::Constants::CMAKE_MIMETYPE);
-            addMimeType(Utils::Constants::CMAKE_PROJECT_MIMETYPE);
+            addMimeType(XMakeProjectManager::Constants::MIMETYPE);
+            addMimeType(XMakeProjectManager::Constants::PROJECT_MIMETYPE);
 
             setEditorCreator([] {
                                  return new XMakeEditor;
