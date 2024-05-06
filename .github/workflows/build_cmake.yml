@@ -291,8 +291,6 @@ jobs:
           ./build/install/${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}/lib/qtcreator/plugins/XmakeProjectManagerForQtCreator.pdb
           ./build/install/${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}/lib/qtcreator/plugins/XmakeProjectManagerForQtCreator.dll
         name: ${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
-        options:
-         flatten: true
 
   release:
     if: contains(github.ref, 'tags/v')
