@@ -23,11 +23,11 @@ jobs:
             cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
           }
-        - {
-            name: "Ubuntu Latest GCC", artifact: "Linux-x64",
-            os: ubuntu-latest,
-            cc: "gcc", cxx: "g++"
-          }
+#        - {
+#            name: "Ubuntu Latest GCC", artifact: "Linux-x64",
+#            os: ubuntu-latest,
+#            cc: "gcc", cxx: "g++"
+#          }
 #        - {
 #            name: "macOS Latest Clang", artifact: "macOS-x64",
 #            os: macos-latest,
@@ -272,8 +272,8 @@ jobs:
       id: upload_artifact
       with:
         path: |
-          ./${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}-debug.7z
-          ./${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
+          ./build/install/${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}-debug/lib/qtcreator/plugins/XmakeProjectManagerForQtCreator.pdb
+          ./build/install/${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}/lib/qtcreator/plugins/XmakeProjectManagerForQtCreator.dll
         name: ${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
 
   release:
