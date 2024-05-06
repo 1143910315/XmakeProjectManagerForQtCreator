@@ -268,20 +268,20 @@ jobs:
           message(FATAL_ERROR "Build failed")
         endif()
 
-    - name: Rename Folder
+    - name: Move pdb file
       shell: cmake -P {0}
       run: |
-        # 设置源文件夹和目标文件夹名称
-        set(SOURCE_FOLDER_NAME "./build/install/XmakeProjectManagerForQtCreator-13.0.0-Windows-x64-debug")
-        set(TARGET_FOLDER_NAME "./build/install/XmakeProjectManagerForQtCreator-13.0.0-Windows-x64")
+        # 设置源文件和目标文件的路径
+        set(SOURCE_FILE_PATH "build/install/XmakeProjectManagerForQtCreator-13.0.0-Windows-x64-debug/lib/qtcreator/plugins/XmakeProjectManagerForQtCreator.pdb")
+        set(TARGET_DIRECTORY "build/install/XmakeProjectManagerForQtCreator-13.0.0-Windows-x64/lib/qtcreator/plugins/")
 
-        # 检查是否存在源文件夹
-        if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_FOLDER_NAME})
-            # 移动文件夹
-            file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_FOLDER_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_FOLDER_NAME})
-            message(STATUS "Renamed folder ${SOURCE_FOLDER_NAME} to ${TARGET_FOLDER_NAME}")
+        # 检查源文件是否存在
+        if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_FILE_PATH})
+            # 移动文件到目标目录
+            file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_FILE_PATH} ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_DIRECTORY}/XmakeProjectManagerForQtCreator.pdb)
+            message(STATUS "Moved file ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_FILE_PATH} to ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_DIRECTORY}")
         else()
-            message(FATAL_ERROR "Source folder ${SOURCE_FOLDER_NAME} does not exist!")
+            message(FATAL_ERROR "Source file ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_FILE_PATH} does not exist!")
         endif()
 
     - uses: actions/upload-artifact@v3
