@@ -76,7 +76,7 @@ namespace XMakeProjectManager::Internal {
 
             TextEditor::SnippetProvider::registerGroup(Constants::XMAKE_SNIPPETS_GROUP_ID,
                                                        Tr::tr("XMake", "SnippetProvider"));
-            ProjectManager::registerProjectType<XMakeProject>(Utils::Constants::CMAKE_PROJECT_MIMETYPE);
+            ProjectManager::registerProjectType<XMakeProject>(Constants::MimeType::XMAKE_MIMETYPE);
 
             ActionBuilder(this, Constants::BUILD_TARGET_CONTEXT_MENU)
             .setParameterText(Tr::tr("Build \"%1\""), Tr::tr("Build"), ActionBuilder::AlwaysEnabled)

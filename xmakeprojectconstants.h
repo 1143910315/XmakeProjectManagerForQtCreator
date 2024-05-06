@@ -53,6 +53,10 @@ namespace XMakeProjectManager {
             const char SETTINGS_CATEGORY[] = ":/xmakeproject/images/settingscategory_xmakeprojectmanager.png";
         } // namespace Icons
 
+        namespace MimeType {
+            const char XMAKE_MIMETYPE[] = "xmake.lua";
+        } // namespace MimeType
+
 // Actions
         const char BUILD_TARGET_CONTEXT_MENU[] = "XMake.BuildTargetContextMenu";
 
