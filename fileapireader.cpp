@@ -74,7 +74,7 @@ void FileApiReader::resetData()
     m_xmakeFiles.clear();
     if (!m_parameters.sourceDirectory.isEmpty()) {
         XMakeFileInfo xmakeListsTxt;
-        xmakeListsTxt.path = m_parameters.sourceDirectory.pathAppended(Constants::XMAKE_LISTS_TXT);
+        xmakeListsTxt.path = m_parameters.sourceDirectory.pathAppended(Constants::PROJECT_FILE_NAME);
         xmakeListsTxt.isXMakeListsDotTxt = true;
         m_xmakeFiles.insert(xmakeListsTxt);
     }

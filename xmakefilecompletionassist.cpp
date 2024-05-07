@@ -82,7 +82,7 @@ XMakeFileCompletionAssist::XMakeFileCompletionAssist()
                                 Icon::MenuTintedStyle)
                                .icon())
     , m_snippetCollector(Constants::XMAKE_SNIPPETS_GROUP_ID,
-                         FileIconProvider::icon(FilePath::fromString(Constants::XMAKE_LISTS_TXT)))
+                         FileIconProvider::icon(FilePath::fromString(Constants::PROJECT_FILE_NAME)))
 {}
 
 static bool isInComment(const AssistInterface *interface)

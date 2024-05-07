@@ -33,7 +33,7 @@ namespace XMakeProjectManager {
   \class XMakeProject
 */
 XMakeProject::XMakeProject(const FilePath &fileName)
-    : Project(XMakeProjectManager::Constants::MIMETYPE, fileName)
+    : Project(XMakeProjectManager::Constants::PROJECT_MIMETYPE, fileName)
 {
     setId(XMakeProjectManager::Constants::XMAKE_PROJECT_ID);
     setProjectLanguages(Core::Context(ProjectExplorer::Constants::CXX_LANGUAGE_ID));

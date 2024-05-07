@@ -1013,7 +1013,7 @@ namespace XMakeProjectManager::Internal {
         FilePath baseDirectory = sourceFile.parentDir();
 
         while (baseDirectory.isChildOf(project)) {
-            const FilePath xmakeListsTxt = baseDirectory.pathAppended(Constants::XMAKE_LISTS_TXT);
+            const FilePath xmakeListsTxt = baseDirectory.pathAppended(Constants::PROJECT_FILE_NAME);
             if (xmakeListsTxt.exists()) {
                 break;
             }

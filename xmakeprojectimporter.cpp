@@ -241,7 +241,7 @@ namespace XMakeProjectManager::Internal {
         const FilePath &importPath,
         const FilePath &sourceDirectory,
         const PresetsDetails::ConfigurePreset &configurePreset) {
-        const FilePath xmakeListTxt = importPath / Constants::XMAKE_LISTS_TXT;
+        const FilePath xmakeListTxt = importPath / Constants::PROJECT_FILE_NAME;
         xmakeListTxt.writeFileContents(QByteArray("xmake_minimum_required(VERSION 3.15)\n"
                                                   "\n"
                                                   "project(preset-probe)\n"
@@ -376,7 +376,7 @@ namespace XMakeProjectManager::Internal {
         // Run a XMake project that would do qmake probing
         TemporaryDirectory qtcQMakeProbeDir("qtc-xmake-qmake-probe-XXXXXXXX");
 
-        FilePath xmakeListTxt(qtcQMakeProbeDir.filePath(Constants::XMAKE_LISTS_TXT));
+        FilePath xmakeListTxt(qtcQMakeProbeDir.filePath(Constants::PROJECT_FILE_NAME));
 
         xmakeListTxt.writeFileContents(QByteArray(R"(
         xmake_minimum_required(VERSION 3.15)

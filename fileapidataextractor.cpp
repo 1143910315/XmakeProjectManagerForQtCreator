@@ -458,7 +458,7 @@ public:
 
                 RawProjectPart rpp;
                 rpp.setProjectFileLocation(
-                    t.sourceDir.pathAppended(Constants::XMAKE_LISTS_TXT).toString());
+                    t.sourceDir.pathAppended(Constants::PROJECT_FILE_NAME).toString());
                 rpp.setBuildSystemTarget(t.name);
                 const QString postfix = needPostfix ? QString("_%1_%2").arg(ci.language).arg(count)
                                                 : QString();

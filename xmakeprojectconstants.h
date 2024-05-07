@@ -6,8 +6,8 @@
 namespace XMakeProjectManager {
     namespace Constants {
         const char XMAKE_EDITOR_ID[] = "XMakeProject.XMakeEditor";
-        const char MIMETYPE[] = "text/x-xmake";
-        const char PROJECT_MIMETYPE[] = "text/x-cmake-project";
+        const char PROJECT_FILE_NAME[] = "xmake.lua";
+        const char PROJECT_MIMETYPE[] = "text/x-xmake-project";
         const char RUN_XMAKE[] = "XMakeProject.RunXMake";
         const char RUN_XMAKE_PROFILER[] = "XMakeProject.RunXMakeProfiler";
         const char RUN_XMAKE_DEBUGGER[] = "XMakeProject.RunXMakeDebugger";
@@ -28,7 +28,6 @@ namespace XMakeProjectManager {
 
         const char PACKAGE_MANAGER_DIR[] = ".qtc/package-manager";
 
-        const char XMAKE_LISTS_TXT[] = "xmake.lua";
         const char XMAKE_CACHE_TXT[] = "XMakeCache.txt";
         const char XMAKE_CACHE_TXT_PREV[] = "XMakeCache.txt.prev";
 
@@ -54,10 +53,6 @@ namespace XMakeProjectManager {
             const char FILE_OVERLAY[] = ":/xmakeproject/images/fileoverlay_xmake.png";
             const char SETTINGS_CATEGORY[] = ":/xmakeproject/images/settingscategory_xmakeprojectmanager.png";
         } // namespace Icons
-
-        namespace MimeType {
-            const char XMAKE_MIMETYPE[] = "xmake.lua";
-        } // namespace MimeType
 
 // Actions
         const char BUILD_TARGET_CONTEXT_MENU[] = "XMake.BuildTargetContextMenu";

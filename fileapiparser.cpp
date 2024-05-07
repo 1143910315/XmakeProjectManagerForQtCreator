@@ -231,7 +231,7 @@ static std::vector<XMakeFileInfo> readXMakeFilesFile(const FilePath &xmakeFilesF
 
         info.isXMake = input.value("isXMake").toBool();
         const QString filename = info.path.fileName();
-        info.isXMakeListsDotTxt = (filename.compare(Constants::XMAKE_LISTS_TXT,
+        info.isXMakeListsDotTxt = (filename.compare(Constants::PROJECT_FILE_NAME,
                                                     HostOsInfo::fileNameCaseSensitivity())
                                    == 0);
 

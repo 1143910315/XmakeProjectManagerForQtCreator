@@ -412,7 +412,7 @@ private:
         }
         if (fileName.exists()) {
             if (fileName.isDir()) {
-                FilePath subProject = fileName.pathAppended(Constants::XMAKE_LISTS_TXT);
+                FilePath subProject = fileName.pathAppended(Constants::PROJECT_FILE_NAME);
                 if (subProject.exists()) {
                     fileName = subProject;
                 } else {
@@ -429,7 +429,7 @@ private:
     static TextDocument *createXMakeDocument() {
         auto doc = new TextDocument;
         doc->setId(Constants::XMAKE_EDITOR_ID);
-        doc->setMimeType(Constants::MimeType::XMAKE_MIMETYPE);
+        doc->setMimeType(Constants::MimeType::PROJECT_MIMETYPE);
         return doc;
     }
 
@@ -523,7 +523,6 @@ public:
         XMakeEditorFactory() {
             setId(Constants::XMAKE_EDITOR_ID);
             setDisplayName(::Core::Tr::tr("XMake Editor"));
-            addMimeType(XMakeProjectManager::Constants::MIMETYPE);
             addMimeType(XMakeProjectManager::Constants::PROJECT_MIMETYPE);
 
             setEditorCreator([] {

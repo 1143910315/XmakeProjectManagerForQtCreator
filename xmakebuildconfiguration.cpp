@@ -1912,7 +1912,7 @@ private:
         registerBuildConfiguration<XMakeBuildConfiguration>(Constants::XMAKE_BUILDCONFIGURATION_ID);
 
         setSupportedProjectType(XMakeProjectManager::Constants::XMAKE_PROJECT_ID);
-        setSupportedProjectMimeTypeName(XMakeProjectManager::Constants::MIMETYPE);
+        setSupportedProjectMimeTypeName(XMakeProjectManager::Constants::PROJECT_MIMETYPE);
 
         setBuildGenerator([](const Kit *k, const FilePath &projectPath, bool forSetup) {
                               QList<BuildInfo> result;
