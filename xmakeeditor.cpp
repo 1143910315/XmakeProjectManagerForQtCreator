@@ -429,7 +429,7 @@ private:
     static TextDocument *createXMakeDocument() {
         auto doc = new TextDocument;
         doc->setId(Constants::XMAKE_EDITOR_ID);
-        doc->setMimeType(Utils::Constants::CMAKE_MIMETYPE);
+        doc->setMimeType(Constants::MimeType::XMAKE_MIMETYPE);
         return doc;
     }
 
