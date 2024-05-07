@@ -5,7 +5,19 @@
     "Vendor" : "MyCompany",
     "Copyright" : "(C) MyCompany",
     "License" : "Put short license information here",
+    "Category" : "Build Systems",
     "Description" : "Put a short description of your plugin here",
     "Url" : "https://www.mycompany.com",
-    ${IDE_PLUGIN_DEPENDENCIES}
+    ${IDE_PLUGIN_DEPENDENCIES},
+
+    "Mimetypes" : [
+        "<?xml version='1.0'?>",
+        "<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>",
+        "  <mime-type type='text/x-xmake'>",
+        "    <sub-class-of type='text/plain'/>",
+        "    <comment>Xmake Project file</comment>",
+        "    <glob pattern='xmake.lua'/>",
+        "  </mime-type>",
+        "</mime-info>"
+    ]
 }
