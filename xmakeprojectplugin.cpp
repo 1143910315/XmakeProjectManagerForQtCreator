@@ -70,13 +70,10 @@ namespace XMakeProjectManager::Internal {
             addTestCreator(createXMakeProjectImporterTest);
 #endif
 
-            FileIconProvider::registerIconOverlayForSuffix(Constants::Icons::FILE_OVERLAY, "xmake");
-            FileIconProvider::registerIconOverlayForFilename(Constants::Icons::FILE_OVERLAY,
-                                                             Constants::XMAKE_LISTS_TXT);
-
             TextEditor::SnippetProvider::registerGroup(Constants::XMAKE_SNIPPETS_GROUP_ID,
                                                        Tr::tr("XMake", "SnippetProvider"));
             ProjectManager::registerProjectType<XMakeProject>(Constants::MimeType::XMAKE_MIMETYPE);
+            FileIconProvider::registerIconOverlayForFilename(Constants::Icons::FILE_OVERLAY, "xmake.lua");
 
             ActionBuilder(this, Constants::BUILD_TARGET_CONTEXT_MENU)
             .setParameterText(Tr::tr("Build \"%1\""), Tr::tr("Build"), ActionBuilder::AlwaysEnabled)
