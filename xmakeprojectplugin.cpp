@@ -73,7 +73,7 @@ namespace XMakeProjectManager::Internal {
             TextEditor::SnippetProvider::registerGroup(Constants::XMAKE_SNIPPETS_GROUP_ID,
                                                        Tr::tr("XMake", "SnippetProvider"));
             ProjectManager::registerProjectType<XMakeProject>(Constants::MimeType::XMAKE_MIMETYPE);
-            FileIconProvider::registerIconOverlayForFilename(Constants::Icons::FILE_OVERLAY, "xmake.lua");
+            FileIconProvider::registerIconOverlayForFilename(Constants::Icons::FILE_OVERLAY, Constants::MimeType::XMAKE_MIMETYPE);
 
             ActionBuilder(this, Constants::BUILD_TARGET_CONTEXT_MENU)
             .setParameterText(Tr::tr("Build \"%1\""), Tr::tr("Build"), ActionBuilder::AlwaysEnabled)
